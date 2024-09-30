@@ -1,0 +1,9 @@
+black
+Django
+django-oauth-toolkit
+django-cors-headers
+django-filter
+django-guardian
+djangorestframework
+gunicorn
+requests
