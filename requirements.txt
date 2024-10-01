@@ -7,3 +7,4 @@ django-guardian
 djangorestframework
 gunicorn
 requests
+tomli
