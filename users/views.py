@@ -16,8 +16,8 @@ from rest_framework.views import APIView
 
 from rest_framework.renderers import JSONRenderer
 
-from .serializers import SiteUserSerializer, UserSerializer
-from .models import SiteUser
+from .serializers import UserSerializer
+from .models import User
 
 import logging
 
@@ -57,16 +57,16 @@ class CreateUser(APIView):
         base_information = {"user_id": new_user.id}
         base_information["category"] = category
 
-        new_site_user_serializer = SiteUserSerializer(data=base_information)
-        if new_site_user_serializer.is_valid():
+        new_user_serializer = UserSerializer(data=base_information)
+        if new_user_serializer.is_valid():
             logger.debug(f"New user IS VALID!")
 
             # Correct the DRFs broken password ingestion
             new_user.set_password(new_info["password"])
             new_user.save()
-            SiteUser.objects.create(user=new_user, category=category)
+            User.objects.create(user=new_user, category=category)
 
-            new_site_user = SiteUser.objects.filter(user_id=new_user.id).first()
+            new_site_user = User.objects.filter(user_id=new_user.id).first()
 
             if new_user.is_superuser:
                 return JsonResponse(
@@ -76,7 +76,7 @@ class CreateUser(APIView):
         else:
             if "email" in new_user_serializer.errors.keys():
                 return JsonResponse({"error": new_user.errors["email"][0]}, status=401)
-            for key, msg in new_site_user_serializer.errors.items():
+            for key, msg in new_user_serializer.errors.items():
                 logger.debug(f"{key}: {msg}")
             return JsonResponse({"error": "Unknown"}, status=500)
 
@@ -167,18 +167,18 @@ class UserListView(APIView):
             )
 
         # user = User.objects.filter(email=user.email).first()
-        siteuser = SiteUser.objects.filter(user=user).first()
+        user = User.objects.filter(user=user).first()
 
         if not user.is_staff:
-            serialized_site_info = SiteUserSerializer(siteuser).data
-            serialized_site_info["category"] = siteuser.get_category()
+            serialized_site_info = UserSerializer(user).data
+            serialized_site_info["category"] = user.get_category()
             logger.debug(f"===> Data: {serialized_site_info}")
             return JsonResponse([serialized_site_info], safe=False, status=200)
 
-        siteusers = SiteUser.objects.all()
+        users = User.objects.all()
         serialized_data = []
-        for su in siteusers:
-            data = SiteUserSerializer(su).data
+        for su in users:
+            data = UserSerializer(su).data
             data["category"] = su.get_category()
             serialized_data.append(data)
         logger.debug(f"{serialized_data}")
@@ -238,7 +238,7 @@ def login_view(request):
         logger.debug(
             f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
         )
-    site_user = SiteUser.objects.filter(user=user).first()
+    site_user = User.objects.filter(user=user).first()
     user_category = site_user.get_category()
 
     if user.is_superuser:
@@ -280,7 +280,7 @@ def whoami_view(request):
     # for h in headers:
     #     logger.debug(f"===> {h}")
 
-    site_user = SiteUser.objects.filter(user=user).first()
+    site_user = User.objects.filter(user=user).first()
     category = site_user.get_category()
 
     if user.is_superuser:
