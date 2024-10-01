@@ -52,33 +52,22 @@ class CreateUser(APIView):
             logger.debug(f"+" * 40)
             logger.debug(f"{new_user_serializer.errors}")
             logger.debug(f"+" * 40)
-        new_user_serializer.save()
-        new_user = User.objects.filter(email=new_info["email"]).first()
-        base_information = {"user_id": new_user.id}
-        base_information["category"] = category
-
-        new_user_serializer = UserSerializer(data=base_information)
-        if new_user_serializer.is_valid():
-            logger.debug(f"New user IS VALID!")
-
-            # Correct the DRFs broken password ingestion
-            new_user.set_password(new_info["password"])
-            new_user.save()
-            User.objects.create(user=new_user, category=category)
-
-            new_site_user = User.objects.filter(user_id=new_user.id).first()
-
-            if new_user.is_superuser:
-                return JsonResponse(
-                    {"created": new_user.get_username(), "admin": True}, status=200
-                )
-            return JsonResponse({"created": new_user.get_username()}, status=200)
-        else:
             if "email" in new_user_serializer.errors.keys():
                 return JsonResponse({"error": new_user.errors["email"][0]}, status=401)
             for key, msg in new_user_serializer.errors.items():
                 logger.debug(f"{key}: {msg}")
-            return JsonResponse({"error": "Unknown"}, status=500)
+            return JsonResponse({"error": "Unknown - See logs"}, status=500)
+        new_user_serializer.save()
+        new_user = User.objects.filter(email=new_info["email"]).first()
+
+        new_user.set_password(new_info["password"])
+        new_user.save()
+
+        if new_user.is_superuser:
+            return JsonResponse(
+                {"created": new_user.get_username(), "admin": True}, status=200
+            )
+        return JsonResponse({"created": new_user.get_username()}, status=200)
 
 
 class DeleteUser(APIView):
@@ -205,7 +194,7 @@ def login_view(request):
     user = authenticate(request, username=username, password=password)
 
     if user is None:
-        return JsonResponse({"detail": "Invalid credentials."}, status=400)
+        return JsonResponse({"detail": "Invalid credentials."}, status=403)
 
     # log_info(request, user)
 
@@ -238,8 +227,7 @@ def login_view(request):
         logger.debug(
             f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
         )
-    site_user = User.objects.filter(user=user).first()
-    user_category = site_user.get_category()
+    user_category = user.get_category()
 
     if user.is_superuser:
         return JsonResponse(
@@ -280,15 +268,12 @@ def whoami_view(request):
     # for h in headers:
     #     logger.debug(f"===> {h}")
 
-    site_user = User.objects.filter(user=user).first()
-    category = site_user.get_category()
-
     if user.is_superuser:
         return JsonResponse(
-            {"username": request.user.username, "role": category, "admin": True},
+            {"username": request.user.username, "role": user.category, "admin": True},
             status=200,
         )
 
     return JsonResponse(
-        {"username": request.user.username, "role": category}, status=200
+        {"username": request.user.username, "role": user.category}, status=200
     )
