@@ -27,7 +27,12 @@
           </v-col>
           <v-col>
             <v-row class="justify-center">
-              <v-btn type="submit" @click.prevent="login()" :disabled="loggedIn">{{ loggedIn ? `${this.userStore.user}` : "Login"}}</v-btn>
+              <v-btn 
+                type="submit" 
+                @click.prevent="login()" 
+                :key="this.userStore.isAuthenticated">
+                  {{ this.userStore.isAuthenticated ? `${this.userStore.user}` : "Login" }}
+              </v-btn>
               <v-btn type="submit" @click.prevent="logout()">Logout</v-btn>
             </v-row>
           </v-col>
@@ -103,7 +108,7 @@
             <v-col>
                 User: {{ userStore.user }}<br>
                 Password: {{ userStore.password }}<br>
-                Authenticated: {{ loggedIn }}<br>
+                Authenticated: {{ userStore.isAuthenticated }}<br>
                 Token: {{ userStore.token }}<br>
             </v-col>
         </v-card>
@@ -117,7 +122,7 @@
   
   export default {
   
-    name: 'Home',
+    name: 'Login',
     setup() {
       const userStore = useUserStore();
       return { userStore };
