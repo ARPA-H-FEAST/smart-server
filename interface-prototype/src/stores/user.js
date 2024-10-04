@@ -67,6 +67,12 @@ export const useUserStore = defineStore("user", {
         }
       };
 
+      if (response.isAuthenticated) {
+        this.isAuthenticated = true;
+      } else {
+        this.isAuthenticated = false;
+      }
+
       if (!response.username) {
         console.log("Got a response non-username: %s", response.username);
         this.user = null;
@@ -140,6 +146,7 @@ export const useUserStore = defineStore("user", {
       this.user = null;
       this.token = null;
       this.isAdmin = false;
+      this.isAuthenticated = false;
 
       console.log("User store state is now: User %s Token %s", this.user, this.token);
 
@@ -161,7 +168,7 @@ export const useUserStore = defineStore("user", {
       }
       const response = await res.json();
 
-      // console.log("---> WhoAmI reported: %s", JSON.stringify(response));
+      console.log("---> WhoAmI reported: %s", JSON.stringify(response));
       
       const success = this.handleUserResponse(response);
       if (!success){
