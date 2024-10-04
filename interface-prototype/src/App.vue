@@ -1,11 +1,20 @@
 <template>
-  <v-app>
+<!-- <nav>
+  <RouterLink to="/login">Go to login</RouterLink>
+  <RouterLink to="/callback">Go to callback</RouterLink>
+</nav> -->
+<v-app>
       <div class="text-center">
       <h2>Welcome to the MGPC on FHIR Login Testing Interface</h2>
       </div>
     <v-main>
+      <p>
+        <strong>Current router path:</strong> {{ $route.fullPath }}
+      </p>
+      <RouterView></RouterView>
       <!-- <FileUpload upload-target-u-r-l="test" /> -->
-       <Login />
+      <!-- <Login /> -->
+
     </v-main>
   </v-app>
 </template>
