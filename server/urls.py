@@ -19,9 +19,12 @@ from django.urls import include, path
 
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
+from oauth2_provider import urls as oauth2_urls
+
 urlpatterns = [
     path("smart-feast/", include("users.urls")),
-    path("smart-feast/api/", include("ui.urls")),
+    path("oauth/", include(oauth2_urls)),
+    # path("smart-feast/api/", include("ui.urls")),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
