@@ -235,30 +235,49 @@ def login_view(request):
                 "username": user.get_username(),
                 "role": user_category,
                 "admin": True,
-                "authenticated": True,
+                "isAuthenticated": True,
             },
             status=200,
         )
     return JsonResponse(
-        {"username": user.get_username(), "role": user_category, "authenticated": True}
+        {
+            "username": user.get_username(),
+            "role": user_category,
+            "isAuthenticated": True,
+        }
     )
 
 
 def logout_view(request):
     logger.debug(f"---> Caught request! Body: {request.body}")
     logger.debug(f"---> User info? {request.user}")
-    users = User.objects.all()
 
     if not request.user.is_authenticated:
         return JsonResponse({"detail": "You're not logged in."}, status=400)
 
     logout(request)
 
+    users = User.objects.all()
+
+    for u in users:
+        logger.debug(
+            f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
+        )
+
     return JsonResponse({"detail": "Successfully logged out."})
 
 
 def whoami_view(request):
     user = request.user
+
+    users = User.objects.all()
+
+    print(f"WHOAMI: Got request user {user}")
+    for u in users:
+        logger.debug(
+            f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
+        )
+
     if not user.is_authenticated:
         return JsonResponse({"isAuthenticated": False})
 
@@ -268,12 +287,29 @@ def whoami_view(request):
     # for h in headers:
     #     logger.debug(f"===> {h}")
 
+    users = User.objects.all()
+
+    for u in users:
+        logger.debug(
+            f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
+        )
+
     if user.is_superuser:
         return JsonResponse(
-            {"username": request.user.username, "role": user.category, "admin": True},
+            {
+                "username": request.user.username,
+                "role": user.category,
+                "admin": True,
+                "isAuthenticated": True,
+            },
             status=200,
         )
 
     return JsonResponse(
-        {"username": request.user.username, "role": user.category}, status=200
+        {
+            "username": request.user.username,
+            "role": user.category,
+            "isAuthenticated": True,
+        },
+        status=200,
     )
