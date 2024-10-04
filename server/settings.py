@@ -38,13 +38,15 @@ APPEND_SLASH = False
 
 AUTH_USER_MODEL = "users.User"
 
-CORS_ALLOWED_ORIGINS = [
-    "http://middleware",
-    "http://localhost:3000",
-    "http://localhost:4242",
-    "http://127.0.0.1",
-    "http://smart-feast",
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://middleware",
+#     "http://localhost:3000",
+#     "http://localhost:4242",
+#     "http://127.0.0.1",
+#     "http://smart-feast",
+# ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
 CORS_ALLOW_HEADERS = ["X-CSRFToken", "Content-Type"]
@@ -88,20 +90,21 @@ mimetypes.add_type("application/javascript", ".js", True)
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
+    "oauth2_provider",
+    "corsheaders",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "corsheaders",
     "rest_framework",
-    "ui.apps.UiConfig",
+    # "ui.apps.UiConfig",
     "users.apps.UsersConfig",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
