@@ -64,7 +64,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://hivelab.biochemistry.gwu.edu",
 ]
 
-LOGIN_URL = None
+LOGIN_URL = "http://localhost:3000/login/"
 
 if DEBUG:
     LOGGING = {
