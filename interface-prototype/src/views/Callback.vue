@@ -25,6 +25,7 @@
                 Password: {{ userStore.password }}<br>
                 Authenticated: {{ userStore.isAuthenticated }}<br>
                 Token: {{ userStore.token }}<br>
+                Code: {{ userStore.code }}<br>
             </v-col>
         </v-card>
     </v-container>
@@ -48,12 +49,18 @@
     mounted() {
       this.userStore.clearError();
       this.userStore.checkUser();
+      this.checkCode();
     },
     components: {  },
     methods:
       {
         clearState() {
           this.userStore.clearError();
+        },
+        checkCode() {
+          if (this.$route.query?.code) {
+            this.userStore.code = this.$route.query.code
+          }
         },
         async logout() {
           const success = await this.userStore.logout();

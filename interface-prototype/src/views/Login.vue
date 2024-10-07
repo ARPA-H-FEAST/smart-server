@@ -100,6 +100,8 @@
       </v-row>
   </v-container>
 
+  <v-btn type="submit" @click.prevent="oauthAuthorize()">OAuth: Authorize</v-btn>
+
   <v-container>
         <v-card>
             <v-card-title class="text-center">
@@ -110,6 +112,7 @@
                 Password: {{ userStore.password }}<br>
                 Authenticated: {{ userStore.isAuthenticated }}<br>
                 Token: {{ userStore.token }}<br>
+                Code: {{ userStore.code }}<br>
             </v-col>
         </v-card>
     </v-container>
@@ -161,6 +164,7 @@
       if (this.userStore.user)  {
         this.loggedIn = true;
       }
+      this.checkCode();
     },
     components: {  },
     methods:
@@ -177,6 +181,19 @@
           this.loginError = "";
           this.userError = [];
           this.userStore.clearError();
+        },
+        async oauthAuthorize() {
+          const response = await this.userStore.oauthAuthorize()
+          console.log("OAuth: Redirect is ", response)
+          if (response) {
+            console.log("---> Redirecting router to ", response)
+            window.location.replace(response)
+          }
+        },
+        checkCode() {
+          if (this.$route?.query?.code) {
+            this.userStore.code = this.$route.query.code
+          }
         },
         async login() {
           const success = await this.userStore.login(this.email, this.password);
