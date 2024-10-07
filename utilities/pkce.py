@@ -1,5 +1,5 @@
-client_id = "IgymH0O1x9KAoOeWHm9LdI50QOjF7Cdd0ieKgn7G"
-client_secret = "CjUITk4lbRb0opB8pibqRSXYxZvNQ9qahEV3rYmnIm2xLaM5AuVfa4nFDTCp1Q7EXXAzA2WxbNcyN5Chh1dPCqc8IVsf7MXPv6Ud4uvWEJXln42VvhDUJhiZRpmRBW9W"
+client_id = "xxxx"
+client_secret = "xxxx"
 
 # Adapted from tutorial here: https://django-oauth-toolkit.readthedocs.io/en/stable/getting_started.html
 
