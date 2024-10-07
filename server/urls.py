@@ -23,7 +23,7 @@ from oauth2_provider import urls as oauth2_urls
 
 urlpatterns = [
     path("smart-feast/", include("users.urls")),
-    path("oauth/", include(oauth2_urls)),
+    path("o/", include(oauth2_urls)),
     # path("smart-feast/api/", include("ui.urls")),
 ]
 
