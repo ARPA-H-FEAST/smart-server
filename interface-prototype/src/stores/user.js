@@ -10,7 +10,8 @@ export const useUserStore = defineStore("user", {
     role: 0,
     isAuthenticated: false,
     error: null,
-    targetURL: import.meta.env.DEV ? import.meta.env.VITE_DEV_MIDDLEWARE_BASE + '/api' : '/smart-feast/api',
+    targetURL: import.meta.env.DEV ? import.meta.env.VITE_DEV_MIDDLEWARE_BASE + '/smart-feast/api' : '/smart-feast/api',
+    oauthURL: import.meta.env.DEV ? import.meta.env.VITE_DEV_MIDDLEWARE_BASE + '/o' : '/o',
   }),
 
   mounted() {
@@ -179,6 +180,27 @@ export const useUserStore = defineStore("user", {
 
       return success;
 
+    },
+
+    async oauthAuthorize(){
+
+      const response_type = "code"
+      const code_challenge = "X2FuTgPDZOgIK0DplFTDzm-rYGCf83uxgH7kcwQDc9Y"
+      const code_challenge_method = "S256"
+      const client_id = "IgymH0O1x9KAoOeWHm9LdI50QOjF7Cdd0ieKgn7G"
+      const redirect_uri = "http://localhost:3000/callback/"
+
+      const res = await fetch(`${this.oauthURL}/authorize/?response_type=${response_type}&code_challenge=${code_challenge}&code_challenge_method=${code_challenge_method}&client_id=${client_id}&redirect_uri=${redirect_uri}`)
+      // const response = await res.json()
+
+      console.log("Got response: ", res)
+      if (res.url) {
+        const url = new URL(res.url)
+        // const urlString = 
+        console.log("Found URL: ", url.searchParams.get('next'))
+        return url.searchParams.get('next')
+      }
+      return null
     },
 
     async createUser(email, password, firstName, lastName, userRole) {
