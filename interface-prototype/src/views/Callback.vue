@@ -9,6 +9,7 @@
             <v-col>
             <v-row class="justify-center">
               <v-btn type="submit" @click.prevent="logout()">Logout</v-btn>
+              <o-auth />
             </v-row>
           </v-col>
         </v-col>
@@ -35,6 +36,7 @@
   import { onMounted, ref } from 'vue';
   
   import { useUserStore } from '@/stores/user';
+  import OAuth from '@/components/OAuth.vue';
   
   export default {
   
@@ -51,7 +53,7 @@
       this.userStore.checkUser();
       this.checkCode();
     },
-    components: {  },
+    components: { OAuth },
     methods:
       {
         clearState() {
@@ -68,6 +70,7 @@
             this.userStore.clearError();
             this.showAdmin = false;
             this.loggedIn = false;
+            this.$router.push("/login")
           } else {
             // Error handling logic
             // console.log("Error on logout!")

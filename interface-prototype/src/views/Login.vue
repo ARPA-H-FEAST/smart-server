@@ -94,13 +94,11 @@
             <v-row class="justify-center">
               <v-btn type="submit" @click.prevent="createUser()">Create an Account</v-btn>
             </v-row>
-
-
         </v-col>
       </v-row>
-  </v-container>
+      <OAuth />
 
-  <v-btn type="submit" @click.prevent="oauthAuthorize()">OAuth: Authorize</v-btn>
+    </v-container>
 
   <v-container>
         <v-card>
@@ -122,6 +120,7 @@
   import { onMounted, ref } from 'vue';
   
   import { useUserStore } from '@/stores/user';
+  import OAuth from '@/components/OAuth.vue';
   
   export default {
   
@@ -166,7 +165,7 @@
       }
       this.checkCode();
     },
-    components: {  },
+    components: { OAuth },
     methods:
       {
         clearState() {
@@ -181,14 +180,6 @@
           this.loginError = "";
           this.userError = [];
           this.userStore.clearError();
-        },
-        async oauthAuthorize() {
-          const response = await this.userStore.oauthAuthorize()
-          console.log("OAuth: Redirect is ", response)
-          if (response) {
-            console.log("---> Redirecting router to ", response)
-            window.location.replace(response)
-          }
         },
         checkCode() {
           if (this.$route?.query?.code) {

@@ -12,7 +12,12 @@ export const useUserStore = defineStore("user", {
     error: null,
     targetURL: import.meta.env.DEV ? import.meta.env.VITE_DEV_MIDDLEWARE_BASE + '/smart-feast/api' : '/smart-feast/api',
     oauthURL: import.meta.env.DEV ? import.meta.env.VITE_DEV_MIDDLEWARE_BASE + '/o' : '/o',
-  }),
+    response_code: "code",
+    code_challenge: "X2FuTgPDZOgIK0DplFTDzm-rYGCf83uxgH7kcwQDc9Y",
+    code_challenge_method: "S256",
+    client_id: "IgymH0O1x9KAoOeWHm9LdI50QOjF7Cdd0ieKgn7G",
+    redirect_uri: "http://localhost:3000/callback/",
+}),
 
   mounted() {
     // Update the CSRF token when the store has been remounted
@@ -182,15 +187,12 @@ export const useUserStore = defineStore("user", {
 
     },
 
+    
     async oauthAuthorize(){
 
-      const response_type = "code"
-      const code_challenge = "X2FuTgPDZOgIK0DplFTDzm-rYGCf83uxgH7kcwQDc9Y"
-      const code_challenge_method = "S256"
-      const client_id = "IgymH0O1x9KAoOeWHm9LdI50QOjF7Cdd0ieKgn7G"
-      const redirect_uri = "http://localhost:3000/callback/"
-
-      const res = await fetch(`${this.oauthURL}/authorize/?response_type=${response_type}&code_challenge=${code_challenge}&code_challenge_method=${code_challenge_method}&client_id=${client_id}&redirect_uri=${redirect_uri}`)
+      const res = await fetch(
+        `${this.oauthURL}/authorize/?response_type=${this.response_code}&code_challenge=${this.code_challenge}&code_challenge_method=${this.code_challenge_method}&client_id=${this.client_id}&redirect_uri=${this.redirect_uri}`
+      )
       // const response = await res.json()
 
       console.log("Got response: ", res)
@@ -201,6 +203,38 @@ export const useUserStore = defineStore("user", {
         return url.searchParams.get('next')
       }
       return null
+    },
+
+    async oauthGetToken() {
+
+      // Great walkthrough on SO: https://stackoverflow.com/a/35553666
+      // ...not sure it solves my issue
+      const headers = new Headers({
+        "Cache-Control": "no-cache",
+        "Content-Type": "application/x-www-form-urlencoded",
+      })
+      try {
+        const res = await fetch(
+          `${this.oauthURL}/token/`,
+          {
+            headers: headers,
+            method: 'POST',
+            body: JSON.stringify(
+              {
+                client_id: this.client_id,
+                client_secret: this.client_secret,
+                code: this.response_code,
+                code_verifier: this.code_verifier,
+                redirect_uri: this.redirect_uri,
+                grant_type: "authorization_code"
+              }
+            )
+          }
+      )} catch (error) {
+        console.log("ERROR: ", error)
+      }
+      console.log("Get Token: Got response ", res)
+
     },
 
     async createUser(email, password, firstName, lastName, userRole) {
