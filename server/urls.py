@@ -21,6 +21,12 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 from oauth2_provider import urls as oauth2_urls
 
+import logging
+
+logger = logging.getLogger()
+
+logger.debug(f"---> OAuth URLS: {oauth2_urls}")
+
 urlpatterns = [
     path("smart-feast/", include("users.urls")),
     path("o/", include(oauth2_urls)),

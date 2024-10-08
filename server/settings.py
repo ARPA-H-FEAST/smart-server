@@ -101,6 +101,19 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",
 ]
 
+# This is questionable:
+# c.f. https://django-oauth-toolkit.readthedocs.io/en/latest/changelog.html#warning
+# & https://stackoverflow.com/a/72186730
+OAUTH2_PROVIDER = {
+    "PKCE_REQUIRED": False,
+    "OAUTH2_BACKEND_CLASS": "oauth2_provider.oauth2_backends.JSONOAuthLibCore",
+    "SCOPES": {
+        "read": "Read scope",
+        "write": "Write scope",
+        "groups": "Access to your groups",
+    },
+}
+
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
