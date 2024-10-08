@@ -16,20 +16,7 @@
       </v-row>
   </v-container>
 
-  <v-container>
-        <v-card>
-            <v-card-title class="text-center">
-                Current User Information
-            </v-card-title>
-            <v-col>
-                User: {{ userStore.user }}<br>
-                Password: {{ userStore.password }}<br>
-                Authenticated: {{ userStore.isAuthenticated }}<br>
-                Token: {{ userStore.token }}<br>
-                Code: {{ userStore.code }}<br>
-            </v-col>
-        </v-card>
-    </v-container>
+  <UserInfo />
   
   </template>
   <script>
@@ -37,6 +24,7 @@
   
   import { useUserStore } from '@/stores/user';
   import OAuth from '@/components/OAuth.vue';
+  import UserInfo from '@/components/UserInfo.vue';
   
   export default {
   
@@ -53,7 +41,7 @@
       this.userStore.checkUser();
       this.checkCode();
     },
-    components: { OAuth },
+    components: { OAuth, UserInfo },
     methods:
       {
         clearState() {

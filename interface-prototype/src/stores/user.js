@@ -12,10 +12,13 @@ export const useUserStore = defineStore("user", {
     error: null,
     targetURL: import.meta.env.DEV ? import.meta.env.VITE_DEV_MIDDLEWARE_BASE + '/smart-feast/api' : '/smart-feast/api',
     oauthURL: import.meta.env.DEV ? import.meta.env.VITE_DEV_MIDDLEWARE_BASE + '/o' : '/o',
+    credentials: {},
     response_code: "code",
-    code_challenge: "X2FuTgPDZOgIK0DplFTDzm-rYGCf83uxgH7kcwQDc9Y",
+    code_challenge: "KmMMtZpHymv5qE1gWgF-B9q52dY7Sh4EqJFQIU11zLU",
+    client_secret: "EYWXMoDpFXtoBxe3WyRwAXXEknjyNBIYC6eou7LnvPrP1qHKlIwspUwJ3HGY3XgjJNa8grLwRjHM5t06kVASxXjcujFR483xYTz6WBkxVCCA6Of1lPLWsvJmcXXp3QkF",
     code_challenge_method: "S256",
-    client_id: "IgymH0O1x9KAoOeWHm9LdI50QOjF7Cdd0ieKgn7G",
+    code_verifier: "8I889XDKKU1EX9JI95HEQCL9YDUEDPWHI84QX19AY7HMBYZAAKXRYY5L1X5RV7FF4XXE1HF0WHOZLE4VX49X4U47C46S6PAKLC7K4NO3JTI8POCAB6IUNOE7MK",
+    client_id: "eD7iUDjvqszkAV5XG8aKhB351szW5jnA8u6UZXqy",
     redirect_uri: "http://localhost:3000/callback/",
 }),
 
@@ -151,6 +154,8 @@ export const useUserStore = defineStore("user", {
       }
       this.user = null;
       this.token = null;
+      this.code = null;
+      this.credentials = {};
       this.isAdmin = false;
       this.isAuthenticated = false;
 
@@ -211,9 +216,9 @@ export const useUserStore = defineStore("user", {
       // ...not sure it solves my issue
       const headers = new Headers({
         "Cache-Control": "no-cache",
-        "Content-Type": "application/x-www-form-urlencoded",
+        // "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type": "application/json",
       })
-      try {
         const res = await fetch(
           `${this.oauthURL}/token/`,
           {
@@ -223,17 +228,25 @@ export const useUserStore = defineStore("user", {
               {
                 client_id: this.client_id,
                 client_secret: this.client_secret,
-                code: this.response_code,
+                code: this.code,
                 code_verifier: this.code_verifier,
                 redirect_uri: this.redirect_uri,
-                grant_type: "authorization_code"
+                grant_type: "authorization_code",
               }
             )
           }
-      )} catch (error) {
-        console.log("ERROR: ", error)
-      }
+      ) 
       console.log("Get Token: Got response ", res)
+      const response = await res.json()
+      console.log("Get Token: Unrolled ", response)
+      this.credentials = {
+        accessToken: response.access_token,
+        tokenType: response.token_type,
+        scope: response.scope,
+        refreshToken: response.refresh_token,
+      }
+      this.code = null
+      console.log("New credentials: ", JSON.stringify(this.credentials))
 
     },
 
