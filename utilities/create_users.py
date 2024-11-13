@@ -1,5 +1,4 @@
-from users.models import SiteUser
-from django.contrib.auth.models import User
+from users.models import User
 
 users = {
     0: {
@@ -40,24 +39,32 @@ users = {
         "is_staff": True,
         "is_superuser": True,
     },
+    4: {  # For the sake of demonstration
+        "username": "rajamazumder@gwu.edu",
+        "email": "rajamazumder@gwu.edu",
+        "password": "rm",
+        "first_name": "Raja",
+        "last_name": "Mazumder",
+        "is_staff": True,
+        "is_superuser": True,
+    },
 }
 
-categories = [3, 1, 2, 3, 3]
+categories = [3, 1, 2, 3, 3, 3]
 
 print(f"====\tCreating USERS\t====")
 
 for k, v in users.items():
     user = User.objects.create_user(**users[k])
-    SiteUser.objects.create(user=user, category=categories[k])
 
 # user1 = User.objects.create_user(**users[0])
-# siteuser1 = SiteUser.objects.create(user=user1, category=3)
+# user1 = User.objects.create(user=user1, category=3)
 
 # user2 = User.objects.create_user(**users[1])
-# siteuser2 = SiteUser.objects.create(user=user2, category=1)
+# user2 = User.objects.create(user=user2, category=1)
 
 # user3 = User.objects.create_user(**users[2])
-# siteuser3 = SiteUser.objects.create(user=user3, category=2)
+# user3 = User.objects.create(user=user3, category=2)
 
 # user4 = User.objects.create_user(**users[3])
-# siteuser4 = SiteUser.objects.create(user=user4, category=3)
+# user4 = User.objects.create(user=user4, category=3)
