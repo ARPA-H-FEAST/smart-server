@@ -16,20 +16,14 @@ export const useUserStore = defineStore("user", {
     code: null,
     oauth: {
       response_code: "code",
-      code_challenge: "aCkOfkEECcs3U2p-l9qysooa-kEGlIrBAr89hKTy5w8",
-      client_secret: "bgI6TI4ouCFDqXprVS39jRhOluD3dQSHw5Bt0YZL0A4mR2KTNtAMMB2mqTkF8RSEjBaljAXI4swSscd9hENYG50udKICzScoTDMNgatJfTaUqdszjXuCfvfwNyjkTK8h",
       code_challenge_method: "S256",
-      code_verifier: "RHDYP2UAU44LQAZ7N481RPTUDROJ9AWULUXJHPKIZ7IKMBM9HSL27KZ0MP1YG9NN6G1EWJBSMT2",
       client_id: "KEKIrAVQCOZKkCmfyAiWy8qAe0BvQaNYhV1HUuXx",
       redirect_uri: "http://localhost:3000/callback/",
     },
     oidc: {
       response_code: "code",
-      code_challenge: "R6ro7Nm-Cc2ihjrJu9EIthnuKIAjCpp8Pl0rygkUWrU",
-      // client_secret: "KU9G8xmij5a4uL41fPrnGtTgg4gwDlFcOnbOk2lgys8QxoSWg5PTxjAAI7lbvUwj6ijBrgpnTypSB2P1o2Ecj6pWaIphZvVBGysClUBoCfpviIbyNGCkKb2cnkxvaIEE",
       code_challenge_method: "S256",
-      code_verifier: "62AIUEIW37069AUZE0MJEBBCT460UVA62K40CGP4OO5GK24GISPW85T280VGV9XYUMAXC67YYOVMRIB",
-      client_id: "u02S3i6zqDAl0YqImmZKwtnDvVel25cxpKxFkjfM",
+      client_id: "uaAfDJyuoLo6d32XGYGawtLsWGlsJvGdDs3sENTm",
       redirect_uri: "http://localhost:3000/callback/",
     }
 }),
@@ -38,7 +32,7 @@ export const useUserStore = defineStore("user", {
     // Update the CSRF token when the store has been remounted
     //  (eg, the page has been refreshed)
     this.checkUser();
-  },
+    },
   actions: {
 
     clearError() {
@@ -210,12 +204,14 @@ export const useUserStore = defineStore("user", {
       // const res = await fetch(
       //   `${this.oauthURL}/authorize/?response_type=${this.oauth.response_code}&code_challenge=${this.oauth.code_challenge}&code_challenge_method=${this.oauth.code_challenge_method}&client_id=${this.oauth.client_id}&redirect_uri=${this.oauth.redirect_uri}`
       // )
+      const code_challenge = sessionStorage.getItem('code_challenge')
+      const code_verifier = sessionStorage.getItem('code_verifier')
       const res = await fetch(
-        `${this.oauthURL}/authorize/?response_type=${this.oauth.response_code}&code_challenge_method=${this.oauth.code_challenge_method}&code_verifier=${this.oauth.code_verifier}&client_id=${this.oauth.client_id}&redirect_uri=${this.oauth.redirect_uri}`
+        `${this.oauthURL}/authorize/?response_type=${this.oauth.response_code}&code_challenge=${code_challenge}&code_challenge_method=${this.oauth.code_challenge_method}&code_verifier=${code_verifier}&client_id=${this.oauth.client_id}&redirect_uri=${this.oauth.redirect_uri}`
       )
       // const response = await res.json()
 
-      console.log("Got response: ", res)
+      // console.log("Got response: ", res)
       if (res.url) {
         const url = new URL(res.url)
         // const urlString = 
@@ -227,8 +223,17 @@ export const useUserStore = defineStore("user", {
 
     async oidcAuthorize(){
 
+      // const pkceObj = await generatePKCE()
+      const code_challenge = sessionStorage.getItem('code_challenge')
+      const code_verifier = sessionStorage.getItem('code_verifier')
+      // console.log("Got Code Challenge: ", code_challenge)
+      // console.log("Got Code verifier: ", code_verifier)
+
+      // this.oidc.code_challenge = pkceObj.code_challenge
+      // this.oidc.code_verifier = pkceObj.code_verifier
+
       const res = await fetch(
-        `${this.oauthURL}/authorize/?response_type=${this.oidc.response_code}&code_challenge=${this.oidc.code_challenge}&code_challenge_method=${this.oidc.code_challenge_method}&client_id=${this.oidc.client_id}&redirect_uri=${this.oidc.redirect_uri}`
+        `${this.oauthURL}/authorize/?response_type=${this.oidc.response_code}&code_challenge=${code_challenge}&code_challenge_method=${this.oidc.code_challenge_method}&code_challenge=${code_challenge}&client_id=${this.oidc.client_id}&redirect_uri=${this.oidc.redirect_uri}`
       )
       // const response = await res.json()
 
@@ -244,6 +249,8 @@ export const useUserStore = defineStore("user", {
 
     async oauthGetToken() {
 
+      const code_verifier = sessionStorage.getItem('code_verifier')
+
       // Great walkthrough on SO: https://stackoverflow.com/a/35553666
       // ...not sure it solves my issue
       const headers = new Headers({
@@ -255,7 +262,7 @@ export const useUserStore = defineStore("user", {
         // "Content-Type": "application/x-www-form-urlencoded",
         "Content-Type": "application/json",
       })
-        console.log("OAuth: Getting token, with code %s and verifier\n%s", this.code, this.oauth.code_verifier)
+        console.log("OAuth: Getting token, with code %s and verifier\n%s", this.code, this.code_verifier)
         const res = await fetch(
           `${this.oauthURL}/token/`,
           {
@@ -266,15 +273,15 @@ export const useUserStore = defineStore("user", {
                 client_id: this.oauth.client_id,
                 // client_secret: this.oauth.client_secret,
                 code: this.code,
-                code_verifier: this.oauth.code_verifier,
+                code_verifier: code_verifier,
                 redirect_uri: this.oauth.redirect_uri,
                 grant_type: 'authorization_code',
               })
           }
       ) 
-      console.log("Get Token: Got response ", res)
+      // console.log("Get Token: Got response ", res)
       const response = await res.json()
-      console.log("Get Token: Unrolled ", response)
+      // console.log("Get Token: Unrolled ", response)
       this.credentials = {
         accessToken: response.access_token,
         tokenType: response.token_type,
@@ -289,6 +296,8 @@ export const useUserStore = defineStore("user", {
 
     async oidcGetToken() {
 
+      const code_verifier = sessionStorage.getItem('code_verifier')
+
       // Great walkthrough on SO: https://stackoverflow.com/a/35553666
       // ...not sure it solves my issue
       const headers = new Headers({
@@ -300,7 +309,7 @@ export const useUserStore = defineStore("user", {
         // "Content-Type": "application/x-www-form-urlencoded",
         "Content-Type": "application/json",
       })
-        console.log("OIDC: Getting token, with code %s and verifier\n%s", this.code, this.oidc.code_verifier)
+        console.log("OIDC: Getting token, with code %s and verifier\n%s", this.code, code_verifier)
         const res = await fetch(
           `${this.oauthURL}/token/`,
           {
@@ -309,11 +318,8 @@ export const useUserStore = defineStore("user", {
             body: JSON.stringify(
               {
                 client_id: this.oidc.client_id,
-                // client_secret: this.oidc.client_secret,
                 code: this.code,
-                code_verifier: this.oidc.code_verifier,
-                // code_challenge: this.oidc.code_challenge,
-                // code_challenge_method: this.oidc.code_challenge_method,
+                code_verifier: code_verifier,
                 redirect_uri: this.oidc.redirect_uri,
                 grant_type: 'authorization_code',
               })
@@ -345,7 +351,7 @@ export const useUserStore = defineStore("user", {
     },
 
     async createUser(email, password, firstName, lastName, userRole) {
-      console.log("--> Attempting to register user with credentials:\nUser %s Password: %s\n Name: %s %s\nRole", email, password, firstName, lastName, userRole);
+      // console.log("--> Attempting to register user with credentials:\nUser %s Password: %s\n Name: %s %s\nRole", email, password, firstName, lastName, userRole);
 
       const res = await fetch(`${this.targetURL}/create-user/`, {
         method: "POST",

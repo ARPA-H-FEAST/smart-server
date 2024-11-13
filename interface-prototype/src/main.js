@@ -10,6 +10,7 @@ import { registerPlugins } from '@/plugins'
 // Components
 import App from './App.vue'
 import router from './router'
+import { generatePKCE } from "@/utilities/pkce";
 
 // Composables
 import { createApp } from 'vue'
@@ -28,6 +29,17 @@ router.onError((error, to) => {
         console.log('--> Error was %s', error);
     }
 })
+
+async function createClientNonces() {
+    // Create PKCE requirements just once per session
+    // i.e. avoid refresh on remounting userStore
+    // requires browser
+    await generatePKCE()
+    // console.log("Got PKCE Challenge: ", sessionStorage.getItem('code_challenge'))
+    // console.log("Got PKCE Verifier: ", sessionStorage.getItem('code_verifier'))
+  }
+
+createClientNonces()
 
 app.use(pinia)
 app.use(router)
