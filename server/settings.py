@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+import logging
 import mimetypes
 import tomli
 
@@ -97,20 +98,32 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    # "ui.apps.UiConfig",
+    "ui.apps.UiConfig",
     "users.apps.UsersConfig",
 ]
+
+logger = logging.getLogger()
+
+
+def get_rsa_key():
+    with open("oidc.key", "r") as key_p:
+        return "".join(key_p.readlines())
+
 
 # This is questionable:
 # c.f. https://django-oauth-toolkit.readthedocs.io/en/latest/changelog.html#warning
 # & https://stackoverflow.com/a/72186730
 OAUTH2_PROVIDER = {
-    "PKCE_REQUIRED": False,
+    "PKCE_REQUIRED": True,
     "OAUTH2_BACKEND_CLASS": "oauth2_provider.oauth2_backends.JSONOAuthLibCore",
+    "OIDC_ENABLED": True,
+    "OIDC_RSA_PRIVATE_KEY": get_rsa_key(),
     "SCOPES": {
+        "openid": "OpenID Connect scope",
         "read": "Read scope",
         "write": "Write scope",
         "groups": "Access to your groups",
+        "patient/*": "Access to in-group patient records",
     },
 }
 
