@@ -31,15 +31,15 @@ users = {
         "is_staff": True,
     },
     4: {  # Admin + superuser
-        "username": "a@a.a",
-        "email": "a@a.a",
+        "username": "a",
+        "email": "a",
         "password": "a",
         "first_name": "a",
         "last_name": "a",
         "is_staff": True,
         "is_superuser": True,
     },
-    4: {  # For the sake of demonstration
+    5: {  # For the sake of demonstration
         "username": "rajamazumder@gwu.edu",
         "email": "rajamazumder@gwu.edu",
         "password": "rm",
