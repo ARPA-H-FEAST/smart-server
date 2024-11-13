@@ -4,8 +4,8 @@
 # client_secret = ""
 
 # With OIDC
-client_id = "u02S3i6zqDAl0YqImmZKwtnDvVel25cxpKxFkjfM"
-client_secret = "pGVq2Ztbp7SpvcvS5AKN2zzk83w6P2bAlB3rUZ5mebPFO1GRhcJ21StlsAyQd9vNmMNbnLAztWh8N9w25oYEUh2BVxdQiPYxcAs6pPG2Xm3MsOmwkV30w2ca6fTsDCpy"
+client_id = ""
+client_secret = ""
 
 # Adapted from tutorial here: https://django-oauth-toolkit.readthedocs.io/en/stable/getting_started.html
 
