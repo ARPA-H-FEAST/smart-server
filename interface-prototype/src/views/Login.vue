@@ -96,7 +96,10 @@
             </v-row>
         </v-col>
       </v-row>
+    <v-container>
+      <FHIRComplianceStatement />
       <OAuth />
+    </v-container>
 
     </v-container>
 
@@ -111,6 +114,7 @@
   import { useUserStore } from '@/stores/user';
   import OAuth from '@/components/OAuth.vue';
   import UserInfo from '@/components/UserInfo.vue';
+  import FHIRComplianceStatement from '@/components/FHIRComplianceStatement.vue';
 
   export default {
   
@@ -155,7 +159,7 @@
       }
       this.checkCode();
     },
-    components: { OAuth, UserInfo },
+    components: { FHIRComplianceStatement, OAuth, UserInfo },
     methods:
       {
         clearState() {

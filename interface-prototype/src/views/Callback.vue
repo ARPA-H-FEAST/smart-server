@@ -9,6 +9,7 @@
             <v-col>
             <v-row class="justify-center">
               <v-btn type="submit" @click.prevent="logout()">Logout</v-btn>
+              <FHIRComplianceStatement />
               <o-auth />
             </v-row>
           </v-col>
@@ -25,7 +26,8 @@
   import { useUserStore } from '@/stores/user';
   import OAuth from '@/components/OAuth.vue';
   import UserInfo from '@/components/UserInfo.vue';
-  
+  import FHIRComplianceStatement from '@/components/FHIRComplianceStatement.vue';
+
   export default {
   
     name: 'Callback',
@@ -41,7 +43,7 @@
       this.userStore.checkUser();
       this.checkCode();
     },
-    components: { OAuth, UserInfo },
+    components: { FHIRComplianceStatement, OAuth, UserInfo },
     methods:
       {
         clearState() {
