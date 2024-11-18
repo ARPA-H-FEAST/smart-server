@@ -141,7 +141,7 @@ MIDDLEWARE = [
 
 # NB: Include the backends! See e.g.
 # https://stackoverflow.com/q/28178767
-# ...or, as typical, RTFM (to completion...):
+# ...or, as typical, RTM (to completion...):
 # https://django-oauth-toolkit.readthedocs.io/en/latest/tutorial/tutorial_03.html#setup-a-provider
 AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
