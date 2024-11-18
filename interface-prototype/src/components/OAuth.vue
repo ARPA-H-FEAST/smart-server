@@ -1,7 +1,7 @@
 <template>
     <v-container class="justify-left">
-        <v-btn type="submit" @click.prevent="oauthAuthorize()">OAuth: Authorize</v-btn>
-        <v-btn type="submit" @click.prevent="oauthGetToken()">OAuth: Obtain Token</v-btn>
+        <v-btn type="submit" @click.prevent="oauthAuthorize()" :disabled="true">OAuth: Authorize</v-btn>
+        <v-btn type="submit" @click.prevent="oauthGetToken()" :disabled="true">OAuth: Obtain Token</v-btn>
     </v-container>
     <v-container class="justify-left">
         <v-btn type="submit" @click.prevent="oidcAuthorize()">OIDC: Authorize</v-btn>
