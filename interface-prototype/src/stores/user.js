@@ -333,21 +333,11 @@ export const useUserStore = defineStore("user", {
         tokenType: response.token_type,
         scope: response.scope,
         refreshToken: response.refresh_token,
-        idToken: response.id_token ? this.parseJWT(response.id_token) : "OIDC only",
+        idToken: response.id_token ? response.id_token : "OIDC only",
       }
       this.code = null
       console.log("New credentials: ", JSON.stringify(this.credentials))
 
-    },
-
-    parseJWT(token) {
-      const base64URL = token.split('.')[1];
-      const base64 = base64URL.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-  
-      return JSON.parse(jsonPayload)
     },
 
     async createUser(email, password, firstName, lastName, userRole) {
