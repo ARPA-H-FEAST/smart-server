@@ -50,7 +50,7 @@ AUTH_USER_MODEL = "users.User"
 CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
-CORS_ALLOW_HEADERS = ["X-CSRFToken", "Content-Type", "Cache-Control"]
+CORS_ALLOW_HEADERS = ["X-CSRFToken", "Content-Type", "Cache-Control", "Authorization"]
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_COOKIE_SAMESITE = "Strict"
@@ -134,9 +134,19 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "oauth2_provider.middleware.OAuth2TokenMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# NB: Include the backends! See e.g.
+# https://stackoverflow.com/q/28178767
+# ...or, as typical, RTFM (to completion...):
+# https://django-oauth-toolkit.readthedocs.io/en/latest/tutorial/tutorial_03.html#setup-a-provider
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "oauth2_provider.backends.OAuth2Backend",
+)
 
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
