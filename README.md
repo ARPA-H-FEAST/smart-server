@@ -1,19 +1,19 @@
-# SMART Server
-## GWU implementation of an OAuth (optionally, with OIDC) server
+# SMART Server  
+## GWU implementation of an OAuth (optionally, with OIDC) server  
 
-# Local deployment
----  
----  
+# Local deployment  
+---    
+---    
 # ============= WARNING ==============
 Local development is not possible without performing a local installation of the `oauthlib` python library. See below note about virtual environments.  
 The offending line is [here](https://github.com/oauthlib/oauthlib/blob/master/oauthlib/oauth2/rfc6749/grant_types/base.py#L257). That line disallows 
 local development over `http`. You must either serve through `https`, via e.g. nginx or Apache, or come up with some other workaround.
 
 Steps required:
-1. Clone the `oauthlib` library somewhere accessible, e.g. an `external-src` directory:
-`git clone https://github.com/oauthlib/oauthlib.git $HOME/external-src; cd $HOME/external-src/oauthlib/`
-2. Install an editable version in the Python environment:
-`pip install -e .  # Note the "cd" command in step 1`
+1. Clone the `oauthlib` library somewhere accessible, e.g. an `external-src` directory:  
+`git clone https://github.com/oauthlib/oauthlib.git $HOME/external-src; cd $HOME/external-src/oauthlib/`  
+2. Install an editable version in the Python environment:  
+`pip install -e .  # Note the "cd" command in step 1`  
 3. Edit `oauth2/rfc6749/grant_types/base.py#L257` to return `True`, regardless of `https` status. This allows CORS headers to be crafted in development.
 # ====================================
 ---   
@@ -36,16 +36,16 @@ $ ./initialize_db.sh
 $ # Return to the user middleware directory
 $ cd -
 ```
-3. Create a private encryption key. Even for development, it is best practice not to share this or commit it anywhere.
-`$ openssl genrsa -out oidc.key 4096`
+3. Create a private encryption key. Even for development, it is best practice not to share this or commit it anywhere.  
+`$ openssl genrsa -out oidc.key 4096`  
 
 One full description of this key, and how it is created, can be found [here](https://django-oauth-toolkit.readthedocs.io/en/latest/oidc.html#creating-rsa-private-key).
 
-4. Start the middleware server: `$ python manage.py runserver`
-**NB** The server cannot interact functionally, as there is no `login` landing page running yet. The server is not configured to use the built-in Django admin user management pages.
+4. Start the middleware server: `$ python manage.py runserver`  
+**NB** The server cannot interact functionally, as there is no `login` landing page running yet. The server is not configured to use the built-in Django admin user management pages.  
 
-### Node + User Interface (Single Page Application)
-Installation of `nodejs` and management of the various environments is outside the scope of this documentation. See e.g. [here](https://github.com/nvm-sh/nvm) for installation and management of node.
+### Node + User Interface (Single Page Application)  
+Installation of `nodejs` and management of the various environments is outside the scope of this documentation. See e.g. [here](https://github.com/nvm-sh/nvm) for installation and management of node.  
 
 1. Navigate to the prototype User Interface: `$ cd interface-prototype`
 2. Install dependencies: `$ npm install`
