@@ -22,6 +22,7 @@ urlpatterns = [
     path("api/login/", views.login_view),
     path("api/logout/", views.logout_view),
     path("api/whoami/", views.whoami_view),
+    path("api/init/", views.init),
     # path("api/csrf/", views.get_csrf),
     # path("api/session/", views.session_view),
     # path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),

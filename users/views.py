@@ -248,6 +248,18 @@ def login_view(request):
     )
 
 
+def init(request):
+    with open("./users/shims/init.json", "r") as fp:
+        contents = json.load(fp)
+    fp.close()
+    return JsonResponse(
+        {
+            "status": 1,
+            "record": contents,
+        }
+    )
+
+
 def logout_view(request):
     logger.debug(f"---> Caught request! Body: {request.body}")
     logger.debug(f"---> User info? {request.user}")
@@ -264,7 +276,7 @@ def logout_view(request):
             f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
         )
 
-    return JsonResponse({"detail": "Successfully logged out."})
+    return JsonResponse({"detail": "Successfully logged out.", "status": 1})
 
 
 def whoami_view(request):
@@ -279,7 +291,12 @@ def whoami_view(request):
         )
 
     if not user.is_authenticated:
-        return JsonResponse({"isAuthenticated": False})
+        return JsonResponse(
+            {
+                "status": 1,
+                "userinfo": {"msg": "Not authenticated"},
+            }
+        )
 
     # headers = request.headers
 
@@ -301,6 +318,7 @@ def whoami_view(request):
                 "role": user.category,
                 "admin": True,
                 "isAuthenticated": True,
+                "status": 1,
             },
             status=200,
         )
@@ -310,6 +328,7 @@ def whoami_view(request):
             "username": request.user.username,
             "role": user.category,
             "isAuthenticated": True,
+            "status": 1,
         },
         status=200,
     )
