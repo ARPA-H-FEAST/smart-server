@@ -31,8 +31,44 @@ def search(request):
 @login_required
 def query_fhir(request):
     method = request.method
+    query_args_string = request.GET.get("q", None)
+    # logger.debug(f"Found query args {query_args_string}")
+    if query_args_string is None:
+        return JsonResponse({"response": "no query text provided"}, safe=False)
+    match method:
+        case "GET":
+            fhir_response = requests.request(
+                method="GET", url=f"http://localhost:8081/fhir/{query_args_string}"
+            )
+            response_body = fhir_response.json()
+            # logger.debug(
+            #     f"Got server response: {response_body}\n\n(Type {type(response_body)})"
+            # )
+            return JsonResponse(response_body, safe=False)
+        case "POST":
+            json_body = request.body.decode("utf-8")
+            logger.debug(f"---> Got JSON info {json_body}")
+            fhir_response = requests.request(
+                headers={
+                    "Content-Type": "application/json",
+                },
+                method="POST",
+                url=f"http://localhost:8081/fhir/{query_args_string}",
+                data=json_body,
+            )
+            response_body = fhir_response.json()
+            # logger.debug(
+            #     f"Got server response: {response_body}\n\n(Type {type(response_body)})"
+            # )
+            return JsonResponse(response_body, safe=False)
+        case _:
+            ...
+
+
+def fhir_metadata(request):
+    method = request.method
     logger.debug(f"---> Got request of method {method}")
-    logger.debug(f"META keys are\n{request.META.keys()}")
+    # logger.debug(f"META keys are\n{request.META.keys()}")
     match method:
         case "GET":
             # hardcoded reponse to confirm FHIR server is there
@@ -41,6 +77,18 @@ def query_fhir(request):
             )
             compliance_statement = fhir_response.json()
             # logger.debug(f"Got JSON compliance string {compliance_statement}")
-            return JsonResponse({"result": "confirmed"}, safe=False)
+            return JsonResponse(compliance_statement, safe=False)
         case "POST":
             return JsonResponse({"result": "Post not yet supported"}, safe=False)
+
+
+def fhir_openapi(request):
+    method = request.method
+    match method:
+        case "GET":
+            swagger_response = requests.request(
+                method="GET", url="http://localhost:8081/fhir/swagger-ui/"
+            )
+            return HttpResponse(swagger_response)
+        case _:
+            ...
