@@ -7,7 +7,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN mkdir -p /var/log/gunicorn/ && \
     mkdir -p /var/run/gunicorn/ && \
     apt update && \
-    apt install -y python3-dev curl && \
+    apt install -y python3-dev curl dnsutils net-tools && \
     pip3 install -r requirements.txt
 
 # docker build -t feast-smart -f dockerfile .
