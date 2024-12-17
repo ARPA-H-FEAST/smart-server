@@ -97,7 +97,7 @@
         </v-col>
       </v-row>
     <v-container>
-      <FHIRComplianceStatement />
+      <v-row><FHIRComplianceStatement /><FHIRQueryAPI /></v-row>
       <OAuth />
     </v-container>
 
@@ -115,6 +115,7 @@
   import OAuth from '@/components/OAuth.vue';
   import UserInfo from '@/components/UserInfo.vue';
   import FHIRComplianceStatement from '@/components/FHIRComplianceStatement.vue';
+  import FHIRQueryAPI from '@/components/FHIRQueryAPI.vue';
 
   export default {
   
@@ -159,7 +160,7 @@
       }
       this.checkCode();
     },
-    components: { FHIRComplianceStatement, OAuth, UserInfo },
+    components: { FHIRComplianceStatement, FHIRQueryAPI, OAuth, UserInfo },
     methods:
       {
         clearState() {

@@ -6,13 +6,12 @@
             <v-card-title class="title text-center font-weight-bold">
               Welcome to the cool new OAuth App!
             </v-card-title>
-            <v-col>
             <v-row class="justify-center">
               <v-btn type="submit" @click.prevent="logout()">Logout</v-btn>
-              <FHIRComplianceStatement />
+                <FHIRComplianceStatement />
+                <FHIRQueryAPI />
               <o-auth />
             </v-row>
-          </v-col>
         </v-col>
       </v-row>
   </v-container>
@@ -27,6 +26,7 @@
   import OAuth from '@/components/OAuth.vue';
   import UserInfo from '@/components/UserInfo.vue';
   import FHIRComplianceStatement from '@/components/FHIRComplianceStatement.vue';
+  import FHIRQueryAPI from '@/components/FHIRQueryAPI.vue';
 
   export default {
   
@@ -43,7 +43,7 @@
       this.userStore.checkUser();
       this.checkCode();
     },
-    components: { FHIRComplianceStatement, OAuth, UserInfo },
+    components: { FHIRComplianceStatement, FHIRQueryAPI, OAuth, UserInfo },
     methods:
       {
         clearState() {

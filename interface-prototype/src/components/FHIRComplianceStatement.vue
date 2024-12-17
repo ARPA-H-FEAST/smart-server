@@ -14,7 +14,7 @@ async function getComplianceStatement() {
     
     console.log("Getting response with token ", userStore.credentials.idToken);
 
-    const response = await fetch("http://localhost:8000/smart-feast/api/fhir/", {
+    const response = await fetch("http://localhost:8000/smart-feast/api/fhir-metadata/", {
         method: 'GET',
         headers: {
             // NB Can use either accessToken (bearer) or idToken (JWT; OIDC flow _only_). 
@@ -27,7 +27,7 @@ async function getComplianceStatement() {
             console.log("---> Got redirect to URL: ", response.url)
         } else {
             const details = await response.json()
-            console.log("---> Recieved response ", details)
+            console.log("---> Recieved response ", JSON.stringify(details))
         }
     }
 }
