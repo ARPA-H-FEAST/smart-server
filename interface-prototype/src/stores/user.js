@@ -23,7 +23,7 @@ export const useUserStore = defineStore("user", {
     oidc: {
       response_code: "code",
       code_challenge_method: "S256",
-      client_id: "uaAfDJyuoLo6d32XGYGawtLsWGlsJvGdDs3sENTm",
+      client_id: "Qi1bQKA6hJwUSb0RoMv4GapAgmNEgEr8fk2JLP7W",
       redirect_uri: "http://localhost:3000/callback/",
     }
 }),
@@ -88,13 +88,13 @@ export const useUserStore = defineStore("user", {
         this.isAuthenticated = false;
       }
 
-      if (!response.username) {
-        console.log("Got a response non-username: %s", response.username);
+      if (!response.email) {
+        console.log("Got a response non-username: %s", response.email);
         this.user = null;
         this.token = null;
         return false;
       }
-      this.user = response['username'];
+      this.user = response['email'];
       this.token = getCookie('csrftoken');
       return true;
     },

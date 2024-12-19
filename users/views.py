@@ -43,7 +43,7 @@ class CreateUser(APIView):
                 f"=== ERROR: User email {previous_entry.email} already exists ==="
             )
             return JsonResponse(
-                {"error": f"User email {previous_entry.email} already exists"}
+                {"msg": f"User email {previous_entry.email} already exists"}
             )
 
         new_user_serializer = UserSerializer(data=new_info)
@@ -53,10 +53,10 @@ class CreateUser(APIView):
             logger.debug(f"{new_user_serializer.errors}")
             logger.debug(f"+" * 40)
             if "email" in new_user_serializer.errors.keys():
-                return JsonResponse({"error": new_user.errors["email"][0]}, status=401)
+                return JsonResponse({"msg": new_user.errors["email"][0]}, status=401)
             for key, msg in new_user_serializer.errors.items():
                 logger.debug(f"{key}: {msg}")
-            return JsonResponse({"error": "Unknown - See logs"}, status=500)
+            return JsonResponse({"msg": "Unknown - See logs"}, status=500)
         new_user_serializer.save()
         new_user = User.objects.filter(email=new_info["email"]).first()
 
@@ -91,7 +91,8 @@ class UpdateUser(APIView):
         if not request.user.is_authenticated:
             return JsonResponse(
                 {
-                    "error": "Must provide authentication credentials to perform this update"
+                    "msg": "Must provide authentication credentials to perform this update",
+                    "status": 0,
                 }
             )
 
@@ -105,7 +106,9 @@ class UpdateUser(APIView):
         if "new_password" in updated_info.keys():
             logger.debug("======== UPDATING PASSWORD ===========")
             if not (user.check_password(updated_info["old_password"]) or is_admin):
-                return JsonResponse({"error": "Old password is incorrect"}, status=401)
+                return JsonResponse(
+                    {"msg": "Old password is incorrect", "status": 0}, status=401
+                )
             user.set_password(updated_info["new_password"])
             user.save()
 
@@ -118,13 +121,14 @@ class UpdateUser(APIView):
             password = updated_info.pop("password")
 
             if not is_admin and not user.check_password(password):
-                return JsonResponse({"error": "Password is incorrect"}, status=401)
+                return JsonResponse({"msg": "Password is incorrect"}, status=401)
             if user.email != updated_info["email"]:
                 other_users = User.objects.filter(email=updated_info["email"]).first()
                 if other_users:
                     return JsonResponse(
                         {
-                            "error": f"Updated email {updated_info['email']} already exists"
+                            "msg": f"Updated email {updated_info['email']} already exists",
+                            "status": 0,
                         },
                         status=401,
                     )
@@ -137,10 +141,10 @@ class UpdateUser(APIView):
                 user.set_password(password)
         if user.is_superuser:
             return JsonResponse(
-                {"update": user.get_username(), "admin": True}, status=200
+                {"update": user.get_username(), "admin": True, "status": 1}, status=200
             )
 
-        return JsonResponse({"update": user.get_username()}, status=200)
+        return JsonResponse({"update": user.get_username(), "status": 1}, status=200)
 
 
 class UserListView(APIView):
@@ -152,7 +156,7 @@ class UserListView(APIView):
 
         if not logged_in:
             return JsonResponse(
-                {"error": "You must be logged in to view user information"}, status=401
+                {"msg": "You must be logged in to view user information"}, status=401
             )
 
         # user = User.objects.filter(email=user.email).first()
@@ -179,7 +183,7 @@ class UserListView(APIView):
 @csrf_exempt
 def login_view(request):
     if request.method != "POST":
-        return JsonResponse({"detail": "False"}, status=599)
+        return JsonResponse({"msg": "False"}, status=599)
     data = json.loads(request.body)
     logger.debug(f"---> Caught request! Data?: {data}")
     username = data.get("email")
@@ -187,14 +191,14 @@ def login_view(request):
 
     if username is None or password is None:
         return JsonResponse(
-            {"detail": "Please provide username and password."}, status=400
+            {"msg": "Please provide username and password.", "status": 0}, status=400
         )
 
     # Failed authentication yields an HTTP 400 error code
     user = authenticate(request, username=username, password=password)
 
     if user is None:
-        return JsonResponse({"detail": "Invalid credentials."}, status=403)
+        return JsonResponse({"msg": "Invalid credentials.", "status": 0}, status=403)
 
     # log_info(request, user)
 
@@ -203,22 +207,6 @@ def login_view(request):
     users = User.objects.all()
     for u in users:
         logger.debug(f"DB User: {u} ---> Authenticated? {u.is_authenticated}")
-
-    # logger.debug("=" * 80)
-    # session_keys = {
-    #     "_auth_user_id": "SESSION_KEY",
-    #     "_auth_user_backend": "BACKEND_SESSION_KEY",
-    #     "_auth_user_hash": "HASH_SESSION_KEY",
-    # }
-    # for k, v in session_keys.items():
-    #     if k in request.session.keys():
-    #         logger.debug(
-    #             f"---> Session info - {k}:\n{request.session[k]} (session 'key' {v})"
-    #         )
-    #     else:
-    #         logger.debug(f"---> Key {k} not in session info!! <---")
-    # logger.debug(f"---> Computed user info: {user._meta.pk.value_to_string(user)}")
-    # logger.debug("=" * 80)
 
     login(request, user)
 
@@ -230,20 +218,28 @@ def login_view(request):
     user_category = user.get_category()
 
     if user.is_superuser:
+        response_dict = {
+            "email": user.email,
+            "fullname": f"{user.get_full_name()}",
+            "role": user_category,
+            "admin": True,
+            "isAuthenticated": True,
+            "status": 1,
+        }
+        logger.debug("V" * 80)
+        logger.debug(response_dict)
+        logger.debug("^" * 80)
         return JsonResponse(
-            {
-                "username": user.get_username(),
-                "role": user_category,
-                "admin": True,
-                "isAuthenticated": True,
-            },
+            response_dict,
             status=200,
         )
     return JsonResponse(
         {
-            "username": user.get_username(),
+            "email": user.email,
+            "fullname": f"{user.get_full_name()}",
             "role": user_category,
             "isAuthenticated": True,
+            "status": 1,
         }
     )
 
@@ -265,7 +261,7 @@ def logout_view(request):
     logger.debug(f"---> User info? {request.user}")
 
     if not request.user.is_authenticated:
-        return JsonResponse({"detail": "You're not logged in."}, status=400)
+        return JsonResponse({"msg": "You're not logged in."}, status=400)
 
     logout(request)
 
@@ -276,7 +272,7 @@ def logout_view(request):
             f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
         )
 
-    return JsonResponse({"detail": "Successfully logged out.", "status": 1})
+    return JsonResponse({"msg": "Successfully logged out.", "status": 1})
 
 
 def whoami_view(request):
@@ -294,7 +290,7 @@ def whoami_view(request):
         return JsonResponse(
             {
                 "status": 1,
-                "userinfo": {"msg": "Not authenticated"},
+                "msg": "Not authenticated",
             }
         )
 
@@ -314,7 +310,8 @@ def whoami_view(request):
     if user.is_superuser:
         return JsonResponse(
             {
-                "username": request.user.username,
+                "email": request.user.email,
+                "fullname": f"{user.get_full_name()}",
                 "role": user.category,
                 "admin": True,
                 "isAuthenticated": True,
@@ -325,7 +322,8 @@ def whoami_view(request):
 
     return JsonResponse(
         {
-            "username": request.user.username,
+            "email": request.user.email,
+            "fullname": f"{user.get_full_name()}",
             "role": user.category,
             "isAuthenticated": True,
             "status": 1,
