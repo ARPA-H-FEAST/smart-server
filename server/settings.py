@@ -60,12 +60,10 @@ SESSION_COOKIE_SAMESITE = "Strict"
 # SESSION_COOKIE_HTTPONLY = True
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
-    "http://localhost:4242",
-    "https://hivelab.tst.biochemistry.gwu.edu",
-    "https://hivelab.biochemistry.gwu.edu",
+    "https://feast.mgpc.biochemistry.gwu.edu",
 ]
 
-LOGIN_URL = "http://localhost:3000/login/"
+LOGIN_URL = "https://feast.mgpc.biochemistry.gwu.edu/dsviewer/login/"
 
 if DEBUG:
     LOGGING = {
