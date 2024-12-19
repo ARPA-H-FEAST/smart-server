@@ -42,7 +42,7 @@ users = {
     5: {  # For the sake of demonstration
         "username": "rajamazumder@gwu.edu",
         "email": "rajamazumder@gwu.edu",
-        "password": "rm",
+        "password": "pass123!",
         "first_name": "Raja",
         "last_name": "Mazumder",
         "is_staff": True,
