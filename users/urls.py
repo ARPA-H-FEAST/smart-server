@@ -15,14 +15,14 @@ logger = logging.getLogger()
 # router.register(r"whoami", views.whoami_view)
 
 urlpatterns = [
-    path("api/users/", views.UserListView.as_view()),
-    path("api/create-user/", views.CreateUser.as_view()),
-    path("api/update-user/", views.UpdateUser.as_view()),
-    path("api/delete-user/", views.DeleteUser.as_view()),
-    path("api/login/", views.login_view),
-    path("api/logout/", views.logout_view),
-    path("api/whoami/", views.whoami_view),
-    path("api/init/", views.init),
+    path("users/", views.UserListView.as_view()),
+    path("create-user/", views.CreateUser.as_view()),
+    path("update-user/", views.UpdateUser.as_view()),
+    path("delete-user/", views.DeleteUser.as_view()),
+    path("login/", views.login_view),
+    path("logout/", views.logout_view),
+    path("whoami/", views.whoami_view),
+    path("init/", views.init),
     # path("api/csrf/", views.get_csrf),
     # path("api/session/", views.session_view),
     # path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),

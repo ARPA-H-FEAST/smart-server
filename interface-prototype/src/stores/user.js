@@ -10,8 +10,8 @@ export const useUserStore = defineStore("user", {
     role: 0,
     isAuthenticated: false,
     error: null,
-    targetURL: import.meta.env.DEV ? import.meta.env.VITE_DEV_MIDDLEWARE_BASE + '/smart-feast/api' : '/smart-feast/api',
-    oauthURL: import.meta.env.DEV ? import.meta.env.VITE_DEV_MIDDLEWARE_BASE + '/o' : '/o',
+    targetURL: import.meta.env.DEV ? import.meta.env.VITE_DEV_MIDDLEWARE_BASE + '/smart-feast' : '/smart-feast',
+    oauthURL: import.meta.env.DEV ? import.meta.env.VITE_DEV_MIDDLEWARE_BASE + '/smart-feast/oauth' : '/smart-feast/oauth',
     credentials: {},
     code: null,
     oauth: {
@@ -23,7 +23,7 @@ export const useUserStore = defineStore("user", {
     oidc: {
       response_code: "code",
       code_challenge_method: "S256",
-      client_id: "Qi1bQKA6hJwUSb0RoMv4GapAgmNEgEr8fk2JLP7W",
+      client_id: "uaAfDJyuoLo6d32XGYGawtLsWGlsJvGdDs3sENTm",
       redirect_uri: "http://localhost:3000/callback/",
     }
 }),

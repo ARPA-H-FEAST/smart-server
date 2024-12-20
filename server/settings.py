@@ -63,6 +63,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://feast.mgpc.biochemistry.gwu.edu",
 ]
 
+# LOGIN_URL = "http://localhost:3000/login/"
 LOGIN_URL = "https://feast.mgpc.biochemistry.gwu.edu/dsviewer/login/"
 
 if DEBUG:

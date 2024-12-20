@@ -29,7 +29,7 @@ logger.debug(f"---> OAuth URLS: {oauth2_urls}")
 
 urlpatterns = [
     path("smart-feast/", include("users.urls")),
-    path("o/", include(oauth2_urls)),
+    path("smart-feast/oauth/", include(oauth2_urls)),
     path("smart-feast/api/", include("ui.urls")),
 ]
 
