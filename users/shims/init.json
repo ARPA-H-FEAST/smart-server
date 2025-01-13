@@ -2,22 +2,22 @@
     "dataversion": "1.0",
     "logo": "FEAST",
     "search_examples": "Example queries: nbcc, gw, prostate",
-    "webroot": "/dsviewer",
+    "webroot": "/testing-ui",
     "headerlinks": [
         {
             "id": "home",
             "label": "Home",
-            "url": "/dsviewer"
+            "url": "/testing-ui"
         },
         {
             "id": "faq",
             "label": "FAQ",
-            "url": "/dsviewer/static/faq"
+            "url": "/testing-ui/static/faq"
         },
         {
             "id": "about",
             "label": "About",
-            "url": "/dsviewer/static/about"
+            "url": "/testing-ui/static/about"
         }
     ],
     "fileuploadformats": [],
@@ -26,19 +26,19 @@
         "links": [
             {
                 "label": "License",
-                "url": "/dsviewer/static/license"
+                "url": "/testing-ui/static/license"
             },
             {
                 "label": "Privacy Policy",
-                "url": "/dsviewer/static/privacy/"
+                "url": "/testing-ui/static/privacy/"
             },
             {
                 "label": "Disclaimer",
-                "url": "/dsviewer/static/disclaimer/"
+                "url": "/testing-ui/static/disclaimer/"
             },
             {
                 "label": "Contact Us",
-                "url": "/dsviewer/static/contactus/"
+                "url": "/testing-ui/static/contactus/"
             }
         ],
         "license": "",
