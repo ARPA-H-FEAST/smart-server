@@ -59,12 +59,12 @@ SESSION_COOKIE_SAMESITE = "Strict"
 # CSRF_COOKIE_HTTPONLY = True
 # SESSION_COOKIE_HTTPONLY = True
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
+    "http://localhost:8080",
     "https://feast.mgpc.biochemistry.gwu.edu",
 ]
 
-# LOGIN_URL = "http://localhost:3000/login/"
-LOGIN_URL = "https://feast.mgpc.biochemistry.gwu.edu/dsviewer/login/"
+LOGIN_URL = "http://localhost:8080/testing-ui/login/"
+# LOGIN_URL = "https://feast.mgpc.biochemistry.gwu.edu/dsviewer/login/"
 
 if DEBUG:
     LOGGING = {
@@ -150,6 +150,9 @@ AUTHENTICATION_BACKENDS = (
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         # "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly",

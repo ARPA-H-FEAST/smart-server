@@ -25,7 +25,7 @@ import logging
 
 logger = logging.getLogger()
 
-logger.debug(f"---> OAuth URLS: {oauth2_urls}")
+# logger.debug(f"---> OAuth URLS: {oauth2_urls}")
 
 urlpatterns = [
     path("smart-feast/", include("users.urls")),
