@@ -8,13 +8,16 @@ RUN mkdir -p /var/log/gunicorn/ && \
     mkdir -p /var/run/gunicorn/ && \
     apt update && \
     apt install -y python3-dev curl dnsutils net-tools && \
-    pip3 install -r requirements.txt
+    pip3 install -r requirements.txt 
 
 # docker build -t feast-smart -f dockerfile .
 FROM feast-smart-base
 
 COPY ./ /server
 WORKDIR /server
+
+RUN python manage.py makemigrations && \
+    cd utilities && bash initialize_db.sh && cd -
 
 # CMD ["gunicorn", "-c", "gunicorn_conf.py"]
 CMD [ "python", "manage.py", "runserver", "0.0.0.0:8000" ]
