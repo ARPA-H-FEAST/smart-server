@@ -28,9 +28,9 @@ logger = logging.getLogger()
 # logger.debug(f"---> OAuth URLS: {oauth2_urls}")
 
 urlpatterns = [
-    path("smart-feast/", include("users.urls")),
-    path("smart-feast/oauth/", include(oauth2_urls)),
-    path("smart-feast/api/", include("ui.urls")),
+    path("gw-feast/", include("users.urls")),
+    path("gw-feast/oauth/", include(oauth2_urls)),
+    path("gw-feast/api/", include("ui.urls")),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

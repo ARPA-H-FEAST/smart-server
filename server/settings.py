@@ -63,7 +63,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://feast.mgpc.biochemistry.gwu.edu",
 ]
 
-LOGIN_URL = "http://localhost:8080/testing-ui/login/"
+LOGIN_URL = "https://feast.mgpc.biochemistry.gwu.edu/login/"
 # LOGIN_URL = "https://feast.mgpc.biochemistry.gwu.edu/dsviewer/login/"
 
 if DEBUG:

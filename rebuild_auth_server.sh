@@ -6,4 +6,4 @@ docker rm feast-smart
 docker rmi feast-smart
 docker build -t feast-smart -f dockerfile .
 
-docker run -d --rm -p 8000:8000 --name feast-smart feast-smart
+docker run -d -p 127.0.0.1:4244:8000 --name feast-smart feast-smart
