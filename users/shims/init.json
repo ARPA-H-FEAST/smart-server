@@ -2,22 +2,22 @@
     "dataversion": "1.0",
     "logo": "FEAST",
     "search_examples": "Example queries: nbcc, gw, prostate",
-    "webroot": "/testing-ui",
+    "webroot": "/gw-feast",
     "headerlinks": [
         {
             "id": "home",
             "label": "Home",
-            "url": "/testing-ui"
+            "url": "/gw-feast"
         },
         {
             "id": "faq",
             "label": "FAQ",
-            "url": "/testing-ui/static/faq"
+            "url": "/gw-feast/static/faq"
         },
         {
             "id": "about",
             "label": "About",
-            "url": "/testing-ui/static/about"
+            "url": "/gw-feast/static/about"
         }
     ],
     "fileuploadformats": [],
@@ -26,19 +26,19 @@
         "links": [
             {
                 "label": "License",
-                "url": "/testing-ui/static/license"
+                "url": "/gw-feast/static/license"
             },
             {
                 "label": "Privacy Policy",
-                "url": "/testing-ui/static/privacy/"
+                "url": "/gw-feast/static/privacy/"
             },
             {
                 "label": "Disclaimer",
-                "url": "/testing-ui/static/disclaimer/"
+                "url": "/gw-feast/static/disclaimer/"
             },
             {
                 "label": "Contact Us",
-                "url": "/testing-ui/static/contactus/"
+                "url": "/gw-feast/static/contactus/"
             }
         ],
         "license": "",
