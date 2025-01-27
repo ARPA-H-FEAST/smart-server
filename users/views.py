@@ -3,7 +3,7 @@ import json
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.middleware.csrf import get_token
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect, csrf_exempt
@@ -81,6 +81,11 @@ class DeleteUser(APIView):
 
         return JsonResponse({"username": None}, status=200)
 
+# XXX - Sanity check
+@csrf_exempt
+def ping(request):
+    logger.debug("---> MAIN APP: Received PING")
+    return HttpResponse("USERS: PONG\n")
 
 class UpdateUser(APIView):
 

@@ -21,7 +21,7 @@ logger = logging.getLogger()
 @csrf_exempt
 def ping(request):
     logger.debug("---> MAIN APP: Received PING")
-    return HttpResponse("PONG\n")
+    return HttpResponse("UI/API: PONG\n")
 
 
 def search(request):

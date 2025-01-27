@@ -19,6 +19,7 @@ urlpatterns = [
     path("create-user/", views.CreateUser.as_view()),
     path("update-user/", views.UpdateUser.as_view()),
     path("delete-user/", views.DeleteUser.as_view()),
+    path("ping/", views.ping, name="ping"),
     path("login/", views.login_view),
     path("logout/", views.logout_view),
     path("whoami/", views.whoami_view),
