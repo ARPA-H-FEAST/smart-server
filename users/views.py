@@ -87,6 +87,11 @@ def ping(request):
     logger.debug("---> MAIN APP: Received PING")
     return HttpResponse("USERS: PONG\n")
 
+def ms_oauth(request):
+    logger.debug("Got a request")
+
+    return HttpResponse("<b1>CONTENT TBD!</b1>")
+
 class UpdateUser(APIView):
 
     def post(self, request):
@@ -130,13 +135,15 @@ class UpdateUser(APIView):
             if user.email != updated_info["email"]:
                 other_users = User.objects.filter(email=updated_info["email"]).first()
                 if other_users:
-                    return JsonResponse(
+                    response = JsonResponse(
                         {
                             "msg": f"Updated email {updated_info['email']} already exists",
                             "status": 0,
                         },
                         status=401,
                     )
+                    response['Access-Control-Allow-Origin'] = "https://login.microsoftonline.com"
+                    return response
             updated_info["username"] = updated_info["email"]
             user_pk = updated_info.pop("user_id")
             # Login status is not changed on "update"
@@ -145,9 +152,11 @@ class UpdateUser(APIView):
             if is_admin:
                 user.set_password(password)
         if user.is_superuser:
-            return JsonResponse(
+            response = JsonResponse(
                 {"update": user.get_username(), "admin": True, "status": 1}, status=200
             )
+            response['Access-Control-Allow-Origin'] = "https://login.microsoftonline.com"
+            return response
 
         return JsonResponse({"update": user.get_username(), "status": 1}, status=200)
 
