@@ -3,11 +3,13 @@ import json
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.middleware.csrf import get_token
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect, csrf_exempt
 from django.views.decorators.http import require_POST
+
+from django.shortcuts import redirect
 
 from rest_framework import routers, viewsets
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -20,6 +22,7 @@ from .serializers import UserSerializer
 from .models import User
 
 import logging
+import requests
 
 logger = logging.getLogger()
 
@@ -87,10 +90,36 @@ def ping(request):
     logger.debug("---> MAIN APP: Received PING")
     return HttpResponse("USERS: PONG\n")
 
-def ms_oauth(request):
-    logger.debug("Got a request")
+# XXX
+# def ms_oauth(request):
+#     logger.debug("-"*80)
+#     logger.debug(f"Got a request ----> Method was {request.method}")
+#     logger.debug("-"*80)
 
-    return HttpResponse("<b1>CONTENT TBD!</b1>")
+#     # Recreate the MS API call
+#     ms_auth_endpoint = "https://login.microsoftonline.com/d689239e-c492-40c6-b391-2c5951d31d14/oauth2/v2.0/authorize/?"
+
+#     ms_auth_body = {"scope": "openid"}
+
+#     for k in request.GET.keys():
+#         logger.debug(f"Found key {k}: Value {request.GET[k]}")
+#         ms_auth_endpoint += f"&{k}={request.GET[k]}"
+#         # ms_auth_body[k] = request.GET[k]
+#     # ?response_type=code&code_challenge=${code_challenge}&code_challenge_method=S256&redirect_uri=${redirect_uri}&client_id=${client_id}`
+#     response = redirect(ms_auth_endpoint)
+#     response["Access-Control-Allow-Origin"] = "https://feast.mgpc.biochemistry.gwu.edu, https://login.microsoftonline.com"
+#     response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+    # response["Access-Control-Allow-Origin"] = ["https://feast.mgpc.biochemistry.gwu.edu, https://login.microsoftonline.com"]
+    return response
+    # ms_response = requests.post(ms_auth_endpoint, data=ms_auth_body)
+
+    # logger.debug(f"Got response ---> Text {ms_response.text}")
+    # logger.debug("-"*80)
+    # for k, v in ms_response.__dict__.items():
+    #     logger.debug(f"Got item {k} ---> {v}")
+    # logger.debug("-"*80)
+
+    # return HttpResponse(ms_response.text, status=302)
 
 class UpdateUser(APIView):
 

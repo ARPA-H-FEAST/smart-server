@@ -20,6 +20,8 @@ urlpatterns = [
     path("update-user/", views.UpdateUser.as_view()),
     path("delete-user/", views.DeleteUser.as_view()),
     path("ping/", views.ping, name="ping"),
+    # XXX
+    #  path("ms-oauth/authorize/", views.ms_oauth, name="3P oauth"),
     path("login/", views.login_view),
     path("logout/", views.logout_view),
     path("whoami/", views.whoami_view),
