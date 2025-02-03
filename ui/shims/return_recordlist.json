@@ -1,0 +1,22 @@
+{
+    "recordlist": [{
+        "filename": "nbcc_deided_tsv.tar.gz",
+        "bcoid": "FEAST_000002",
+        "access_group": "NBCC",
+        "filetype": "gz",
+        "file_idx": 1,
+        "file_id": "0000000001",
+        "categories": {
+        "access_group": [
+            "NBCC"
+        ],
+        "file_type": [
+            "gz"
+        ]
+    }
+}],
+    "stats": {
+    "total": 1,
+    "retrieved": 1
+    }
+}
