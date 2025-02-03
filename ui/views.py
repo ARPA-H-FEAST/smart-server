@@ -27,6 +27,18 @@ def ping(request):
 def search(request):
     return JsonResponse({"result": "PONG"}, safe=False)
 
+def check_login_and_get_files(request):
+    method = request.method
+    user = request.user
+
+    logger.debug(f"---> Found method {method}  :: User {request.user}")
+
+    with open("./ui/shims/return_recordlist.json", "r") as fp:
+        response = json.load(fp)
+
+    return JsonResponse(
+        response, safe=False
+    )
 
 @login_required
 def query_fhir(request):
