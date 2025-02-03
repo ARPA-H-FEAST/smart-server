@@ -8,4 +8,5 @@ urlpatterns = [
     path("fhir-metadata/", views.fhir_metadata, name="fhir-metadata"),
     path("fhir-openapi/", views.fhir_openapi, name="fhir-openapi"),
     path("query/", views.query_fhir, name="fhir-queries"),
+    path("dataset/search/", views.check_login_and_get_files, name="dataset-search"),
 ]
