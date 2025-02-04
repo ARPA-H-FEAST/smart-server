@@ -7,6 +7,7 @@ users = {
         "password": "SampleUser",
         "first_name": "Sample",
         "last_name": "User",
+        "access_groups": ["nbcc", "prostate"],
     },
     1: {  # Patient
         "username": "p@p.p",
@@ -14,6 +15,7 @@ users = {
         "password": "p",
         "first_name": "p",
         "last_name": "p",
+        "access_groups": ["nbcc", "prostate"],
     },
     2: {  # Clinician
         "username": "c@c.c",
@@ -21,6 +23,7 @@ users = {
         "password": "c",
         "first_name": "c",
         "last_name": "c",
+        "access_groups": ["nbcc", "prostate"],
     },
     3: {  # Researcher
         "username": "r@r.r",
@@ -29,6 +32,7 @@ users = {
         "first_name": "r",
         "last_name": "r",
         "is_staff": True,
+        "access_groups": ["nbcc", "prostate"],
     },
     4: {  # Admin + superuser
         "username": "a",
@@ -38,6 +42,7 @@ users = {
         "last_name": "a",
         "is_staff": True,
         "is_superuser": True,
+        "access_groups": ["nbcc", "prostate"],
     },
     5: {  # For the sake of demonstration
         "username": "rajamazumder@gwu.edu",
@@ -47,6 +52,7 @@ users = {
         "last_name": "Mazumder",
         "is_staff": True,
         "is_superuser": True,
+        "access_groups": ["nbcc", "prostate"],
     },
 }
 

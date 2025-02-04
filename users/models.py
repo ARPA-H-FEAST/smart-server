@@ -20,4 +20,4 @@ class User(AbstractUser):
     category = models.PositiveSmallIntegerField(
         choices=UserCategories.choices, default=UserCategories.RESEARCHER
     )
-    access_groups = models.JSONField(max_length=1000, null=True)
+    access_groups = models.JSONField(max_length=1000, default=list)
