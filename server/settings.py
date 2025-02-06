@@ -50,14 +50,14 @@ AUTH_USER_MODEL = "users.User"
 CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
-CORS_ALLOW_HEADERS = ["X-CSRFToken", "Content-Type", "Cache-Control", "Authorization"]
+CORS_ALLOW_HEADERS = ["X-CSRFToken", "Content-Type", "Cache-Control", "Authorization", "Full-Credentials"]
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_COOKIE_SAMESITE = "Strict"
 SESSION_COOKIE_SAMESITE = "Strict"
 # Production values
 # CSRF_COOKIE_HTTPONLY = True
-# SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_HTTPONLY = True
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
     "https://feast.mgpc.biochemistry.gwu.edu",
@@ -116,6 +116,7 @@ OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": True,
     "OAUTH2_BACKEND_CLASS": "oauth2_provider.oauth2_backends.JSONOAuthLibCore",
     "OIDC_ENABLED": True,
+    "OIDC_ISS_ENDPOINT": "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/oauth",
     "OIDC_RSA_PRIVATE_KEY": get_rsa_key(),
     "SCOPES": {
         "openid": "OpenID Connect scope",
