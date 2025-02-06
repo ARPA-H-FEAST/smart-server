@@ -11,11 +11,20 @@ from django.conf import settings
 from django.core import serializers
 
 import json
+import jwt
 import logging
 import requests
 
+from base64 import b64decode, b64encode
+
 logger = logging.getLogger()
 
+def base64URLtobase64(b64Url):
+    b64Url = b64Url.replace("_", "/").replace("-","+")
+    padding = len(b64Url) % 4
+    if padding > 0:
+        b64Url += '=' * (4 - padding)
+    return b64Url
 
 # XXX - Sanity check
 @csrf_exempt
@@ -32,6 +41,57 @@ def check_login_and_get_files(request):
     user = request.user
 
     logger.debug(f"---> Found method {method}  :: User {request.user}")
+
+    # for name, cookie in request.COOKIES.items():
+    #     logger.debug(f"COOKIE {name}: {cookie}")
+        # TODO?/XXX
+        # if name == "access_token_cookie":
+            # encoded_secret = b64encode(b"secret")
+            # encoded_signature = base64URLtobase64(cookie.split(".")[2])
+            # header = cookie.split(".")[0]
+            # payload = cookie.split(".")[1]
+            # logger.debug(f"Headers: {b64decode(base64URLtobase64(header)).decode('utf-8')}")
+            # logger.debug(f"Payload: {b64decode(base64URLtobase64(payload)).decode('utf-8')}")
+            # logger.debug(f"---> Encoded signature: {encoded_signature}")
+            # b64_secret = b64decode(encoded_signature)
+            # new_final_segment = b64encode(b64_secret).decode('utf-8')
+            # logger.debug(f"---> Decoded signature: {b64_secret} ||| New final segment: {new_final_segment}")
+            # url_decoded_cookie = base64URLtobase64(cookie)
+            # logger.debug(f"Decoded cookie: {url_decoded_cookie}")
+            # non_encoded = header + "." + payload + "." + new_final_segment
+            # XXX TODO: This JWT is *not* the OAuth workflow, but GW SSO nontheless
+            # decoded = jwt.decode(non_encoded, b64_secret, algorithms=['RS256', "HS256"])
+            # logger.debug("="*80)
+            # logger.debug(f"Access token info: {decoded}")
+            # logger.debug("="*80)
+        # if name == "refresh_token_cookie":
+        #     b64_secret = b64decode(cookie.split(".")[2] + "==")
+        #     decoded = jwt.decode(cookie, b64_secret, algorithms=['RS256', "HS256"])
+        #     logger.debug("="*80)
+        #     logger.debug(f"Access token info: {decoded}")
+        #     logger.debug("="*80)
+
+    # for name, header in request.META.items():
+    #     logger.debug(f"HEADER {name}: {header}")
+
+    auth_token = request.headers.get("Authorization", None)
+    logger.debug("+"*80)
+    logger.debug(f"Received auth: {auth_token}")
+    logger.debug("+"*80)
+
+    full_credentials = json.loads(request.headers.get("Full-Credentials", None))
+    logger.debug("+"*80)
+    for k, v in full_credentials.items():
+        logger.debug(f"{k}: {v}")
+    logger.debug("+"*80)
+
+    id_token = full_credentials['id_token']
+    decoded = jwt.decode(id_token, algorithms=["HS256", "RS256"], options={"verify_signature": False})
+
+    logger.debug("+"*80)
+    logger.debug(f"Decoded ID:\n{decoded}")
+    logger.debug("+"*80)
+
 
     with open("./ui/shims/return_recordlist.json", "r") as fp:
         response = json.load(fp)
