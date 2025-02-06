@@ -1,5 +1,7 @@
 #!/bin/bash
 
+docker cp feast-smart:/server/db.sqlite3 .
+
 docker stop feast-smart
 docker rm feast-smart
 
