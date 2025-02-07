@@ -79,18 +79,21 @@ def check_login_and_get_files(request):
     logger.debug(f"Received auth: {auth_token}")
     logger.debug("+"*80)
 
-    full_credentials = json.loads(request.headers.get("Full-Credentials", None))
-    logger.debug("+"*80)
-    for k, v in full_credentials.items():
-        logger.debug(f"{k}: {v}")
-    logger.debug("+"*80)
+    iss_addr = json.loads(request.headers.get("Iss-Oauth", None))
+    logger.debug(f"Found ISS OAuth address: {iss_addr}")
 
-    id_token = full_credentials['id_token']
-    decoded = jwt.decode(id_token, algorithms=["HS256", "RS256"], options={"verify_signature": False})
+    # full_credentials = json.loads(request.headers.get("Full-Credentials", None))
+    # logger.debug("+"*80)
+    # for k, v in full_credentials.items():
+    #     logger.debug(f"{k}: {v}")
+    # logger.debug("+"*80)
 
-    logger.debug("+"*80)
-    logger.debug(f"Decoded ID:\n{decoded}")
-    logger.debug("+"*80)
+    # id_token = full_credentials['id_token']
+    # decoded = jwt.decode(id_token, algorithms=["HS256", "RS256"], options={"verify_signature": False})
+
+    # logger.debug("+"*80)
+    # logger.debug(f"Decoded ID:\n{decoded}")
+    # logger.debug("+"*80)
 
 
     with open("./ui/shims/return_recordlist.json", "r") as fp:

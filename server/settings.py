@@ -50,7 +50,7 @@ AUTH_USER_MODEL = "users.User"
 CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
-CORS_ALLOW_HEADERS = ["X-CSRFToken", "Content-Type", "Cache-Control", "Authorization", "Full-Credentials"]
+CORS_ALLOW_HEADERS = ["X-CSRFToken", "Content-Type", "Cache-Control", "Authorization", "Iss-Oauth"]
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_COOKIE_SAMESITE = "Strict"
