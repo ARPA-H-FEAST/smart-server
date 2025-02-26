@@ -197,7 +197,7 @@ def login_view(request):
     if request.method != "POST":
         return JsonResponse({"msg": "False"}, status=599)
     data = json.loads(request.body)
-    logger.debug(f"---> Caught request! Data?: {data}")
+    # logger.debug(f"---> Caught request! Data?: {data}")
     username = data.get("email")
     password = data.get("password")
 
@@ -214,19 +214,19 @@ def login_view(request):
 
     # log_info(request, user)
 
-    logger.debug(f"Got user: {user}")
+    # logger.debug(f"Got user: {user}")
 
     users = User.objects.all()
-    for u in users:
-        logger.debug(f"DB User: {u} ---> Authenticated? {u.is_authenticated}")
+    # for u in users:
+    #     logger.debug(f"DB User: {u} ---> Authenticated? {u.is_authenticated}")
 
     login(request, user)
 
-    users = User.objects.all()
-    for u in users:
-        logger.debug(
-            f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
-        )
+    # users = User.objects.all()
+    # for u in users:
+    #     logger.debug(
+    #         f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
+    #     )
     user_category = user.get_category()
 
     if user.is_superuser:
@@ -238,9 +238,9 @@ def login_view(request):
             "isAuthenticated": True,
             "status": 1,
         }
-        logger.debug("V" * 80)
-        logger.debug(response_dict)
-        logger.debug("^" * 80)
+        # logger.debug("V" * 80)
+        # logger.debug(response_dict)
+        # logger.debug("^" * 80)
         return JsonResponse(
             response_dict,
             status=200,
@@ -269,8 +269,8 @@ def init(request):
 
 
 def logout_view(request):
-    logger.debug(f"---> Caught request! Body: {request.body}")
-    logger.debug(f"---> User info? {request.user}")
+    # logger.debug(f"---> Caught request! Body: {request.body}")
+    # logger.debug(f"---> User info? {request.user}")
 
     if not request.user.is_authenticated:
         return JsonResponse({"msg": "You're not logged in."}, status=400)
@@ -279,10 +279,10 @@ def logout_view(request):
 
     users = User.objects.all()
 
-    for u in users:
-        logger.debug(
-            f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
-        )
+    # for u in users:
+    #     logger.debug(
+    #         f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
+    #     )
 
     return JsonResponse({"msg": "Successfully logged out.", "status": 1})
 
@@ -292,11 +292,11 @@ def whoami_view(request):
 
     users = User.objects.all()
 
-    print(f"WHOAMI: Got request user {user}")
-    for u in users:
-        logger.debug(
-            f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
-        )
+    # print(f"WHOAMI: Got request user {user}")
+    # for u in users:
+    #     logger.debug(
+    #         f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
+    #     )
 
     if not user.is_authenticated:
         return JsonResponse(
@@ -314,10 +314,10 @@ def whoami_view(request):
 
     users = User.objects.all()
 
-    for u in users:
-        logger.debug(
-            f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
-        )
+    # for u in users:
+    #     logger.debug(
+    #         f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
+    #     )
 
     if user.is_superuser:
         return JsonResponse(
