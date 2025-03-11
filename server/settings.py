@@ -33,24 +33,33 @@ SECRET_KEY = "django-insecure-v$rywutoth&6+v8&_#t@_7l*d=k-u^lnx@1)f(o9rs(2pu=i=n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config[DJANGO_MODE]["Debug"]
 
+if DJANGO_MODE == "dev":
+    DATA_HOME = BASE_DIR / "datadir/releases/current/"
+else:
+    DATA_HOME = "/data/arpah/releases/current/"
+
 ALLOWED_HOSTS = ["middleware", "127.0.0.1", "localhost"]
 
 APPEND_SLASH = False
 
 AUTH_USER_MODEL = "users.User"
 
-# CORS_ALLOWED_ORIGINS = [
-#     "http://middleware",
-#     "http://localhost:3000",
-#     "http://localhost:4242",
-#     "http://127.0.0.1",
-#     "http://smart-feast",
-# ]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://smart-feast",
+    "https://feast.mgpc.biochemistry.gwu.edu",
+]
 
 CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
-CORS_ALLOW_HEADERS = ["X-CSRFToken", "Content-Type", "Cache-Control", "Authorization", "Iss-Oauth"]
+CORS_ALLOW_HEADERS = [
+    "X-CSRFToken",
+    "Content-Type",
+    "Cache-Control",
+    "Authorization",
+    "Iss-Oauth",
+]
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_COOKIE_SAMESITE = "Strict"
@@ -59,12 +68,13 @@ SESSION_COOKIE_SAMESITE = "Strict"
 # CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:8080",
+    "http://localhost:3000",
     "https://feast.mgpc.biochemistry.gwu.edu",
 ]
 
-LOGIN_URL = "https://feast.mgpc.biochemistry.gwu.edu/gw-feast/callback/"
+# LOGIN_URL = "https://feast.mgpc.biochemistry.gwu.edu/gw-feast/callback/"
 # LOGIN_URL = "https://feast.mgpc.biochemistry.gwu.edu/dsviewer/login/"
+LOGIN_URL = "http://localhost:3000/gw-feast/callback/"
 
 if DEBUG:
     LOGGING = {
@@ -99,6 +109,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "ui.apps.UiConfig",
     "users.apps.UsersConfig",
+    "data_api.apps.DataApiConfig",
 ]
 
 logger = logging.getLogger()
