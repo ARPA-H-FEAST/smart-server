@@ -31,6 +31,7 @@ urlpatterns = [
     path("testing-ui/users/", include("users.urls")),
     path("testing-ui/oauth/", include(oauth2_urls)),
     path("testing-ui/api/", include("ui.urls")),
+    path("testing-ui/data-api/", include("data_api.urls")),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

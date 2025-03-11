@@ -84,11 +84,13 @@ class DeleteUser(APIView):
 
         return JsonResponse({"username": None}, status=200)
 
+
 # XXX - Sanity check
 @csrf_exempt
 def ping(request):
     logger.debug("---> MAIN APP: Received PING")
     return HttpResponse("USERS: PONG\n")
+
 
 class UpdateUser(APIView):
 
@@ -140,7 +142,9 @@ class UpdateUser(APIView):
                         },
                         status=401,
                     )
-                    response['Access-Control-Allow-Origin'] = "https://login.microsoftonline.com"
+                    response["Access-Control-Allow-Origin"] = (
+                        "https://login.microsoftonline.com"
+                    )
                     return response
             updated_info["username"] = updated_info["email"]
             user_pk = updated_info.pop("user_id")
@@ -153,7 +157,9 @@ class UpdateUser(APIView):
             response = JsonResponse(
                 {"update": user.get_username(), "admin": True, "status": 1}, status=200
             )
-            response['Access-Control-Allow-Origin'] = "https://login.microsoftonline.com"
+            response["Access-Control-Allow-Origin"] = (
+                "https://login.microsoftonline.com"
+            )
             return response
 
         return JsonResponse({"update": user.get_username(), "status": 1}, status=200)
