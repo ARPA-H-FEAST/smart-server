@@ -1,0 +1,202 @@
+{
+	  "object_id": "https://biocomputeobject.org/FEAST_000006/2.0",
+	    "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
+	      "etag": "a0866bdc0fe6c19b8241da54ccd9871dbd8709fb8a3b409f07d85229d8ca3e1d",
+	        "provenance_domain": {
+			    "name": "dbGaP_phs000550.v1.p1_pancreas",
+			        "version": "2.0",
+				    "license": "https://opensource.org/license/mit",
+				        "created": "2024-12-10T15:07:10",
+					    "modified": "2025-02-03T19:28:19.447Z",
+					        "derived_from": "https://biocomputeobject.org/FEAST_000001/1.0",
+						    "contributors": [
+							          {
+									          "name": "Jonathon Keeney",
+										          "affiliation": "The George Washington University",
+											          "email": "keeneyjg@gwu.edu",
+												          "contribution": [
+														            "authoredBy",
+															              "createdBy"
+																              ],
+																	              "orcid": "https://orcid.org/0000-0002-7665-6204"
+																		            }
+																			        ]
+																				  },
+																				    "usability_domain": [
+																					        "This dataset was generated as part of the FEAST project, an ARPA-H sponsored project to establish an infrastructure for interrogating medical datasets across distributed medical facilities in the Biomedical Data Fabric (BDF) program. There are multiple institutions participating in the project, and each institution is making one or more datasets available. The dataset described here is part of the data that George Washington University is making available to the project, via controlled access to dbGaP.",
+																						    "Through our access to dbGaP, we sought to establish an initial set of data to pilot our involvement in the project. These datasets were selected based on the following criteria: (1) restricted access to all forms of personalized data, (2) alignment with the research interests and questions posed by collaborating PIs, (3) inclusion of versatile data types, (4) reasonable dataset size, and (5) recent data release to ensure the use of the latest protocols and higher data quality.",
+																						        "This BCO describes phs000550.v1.p1 (pancreas). The process documented here involves retrieving the data from dbGaP, extracting the data from the archive (if necessary), then staging the data into a tarball for access in our dsViewer.",
+																							    "To improve searchability, the contents of the archive were extracted (using `tar -ztf dbgap-phs000550.tar.gz`) and are listed below:\nSRR606395/\nSRR606395/NC_000018.8\nSRR606395/NC_000007.12\nSRR606395/NC_000019.8\nSRR606395/NC_000009.10\nSRR606395/NC_000014.7\nSRR606395/NC_000011.8\nSRR606395/NC_000017.9\nSRR606395/NC_001807.4\nSRR606395/NC_000002.10\nSRR606395/NC_000022.9\nSRR606395/NC_000013.9\nSRR606395/NC_000003.10\nSRR606395/NC_000008.9\nSRR606395/NC_000015.8\nSRR606395/NC_000023.9\nSRR606395/SRR606395.sra.vdbcache\nSRR606395/NC_000021.7\nSRR606395/NC_000005.8\nSRR606395/NC_000024.8\nSRR606395/NC_000004.10\nSRR606395/NC_000010.9\nSRR606395/NC_000012.10\nSRR606395/SRR606395.sra\nSRR606395/NC_000016.8\nSRR606395/NC_000020.9\nSRR606395/NC_000001.9\nSRR606395/NC_000006.10"
+																							      ],
+																							        "description_domain": {
+																									    "keywords": [
+																										          "ARPA-H",
+																											        "dbGaP",
+																												      "FEAST",
+																												            "HIVE",
+																													          "pancreas",
+																														        "cancer"
+																															    ],
+																															        "xref": [
+																																	      {
+																																		              "namespace": "dbgap",
+																																			              "name": "dbGaP",
+																																				              "ids": [
+																																						                "SRR606393",
+																																								          "SRR606394",
+																																									            "SRR606395",
+																																										              "SRR606396",
+																																											                "SRR606397",
+																																													          "SRR606398",
+																																														            "SRR606399",
+																																															              "SRR606400",
+																																																                "SRR606401"
+																																																		        ],
+																																																			        "access_time": "2024-11-15T05:00:00.000Z"
+																																																				      }
+																																																				          ],
+																																																					      "platform": [
+																																																						            "Linux Rocky 8"
+																																																							        ],
+																																																								    "pipeline_steps": [
+																																																									          {
+																																																											          "step_number": 1,
+																																																												          "name": "Download data",
+																																																													          "description": "This dataset was picked as an exemplar for being of interest to GW researchers and small in size. The dataset comprises RNA-seq and whole genome sequence data from 4 patients with 14 variables (SAMPID, BODY_SITE, ANALYTE_TYPE, IS_TUMOR, PRIMARY_METASTATIC_TUMOR, PRIMARY_TUMOR_LOCATION, TUMOR_STAGE, TUMOR_TREATMENT, SUBJID, AGE, SEX, RACE, STATUS, SAMPLE_USE, CONSENT, and RESEARCH_TYPE).\n\nStep 1 references the download script, which pulls all accessions associated with phs000550. The accessions that were used to generate this script were pulled from the SRA Run Selector Accession List:\nhttps://trace.ncbi.nlm.nih.gov/Traces/study/?acc=phs000550&o=acc_s%3Aa",
+																																																														          "output_list": [
+																																																																            {
+																																																																		                "uri": "file:///data/arpah/downloads/dbGaP/phs000550"
+																																																																				          }
+																																																																					          ],
+																																																																						          "input_list": [
+																																																																								            {
+																																																																										                "filename": "sra-phs000550.sh",
+																																																																												            "access_time": "2024-11-15T05:00:00.000Z",
+																																																																													                "uri": "file:///data/arpah/downloads/dbGaP/phs000550/sra-phs000550.sh"
+																																																																															          }
+																																																																																          ]
+																																																																																	        },
+																																																																																		      {
+																																																																																			              "step_number": 2,
+																																																																																				              "name": "Stage Data for dsViewer",
+																																																																																					              "description": "This follows the protocol for preparing data for the GW dsViewer (https://github.com/ARPA-H-FEAST/management/issues/74). It will make a tarball of the data, which can then be presented on the front end website after the next data push.",
+																																																																																						              "version": "1.0",
+																																																																																							              "prerequisite": [
+																																																																																									                {
+																																																																																												            "name": "make-tarball.py",
+																																																																																													                "uri": {
+																																																																																																              "filename": "make-tarball.py",
+																																																																																																	                    "access_time": "2024-11-15T17:00:00.000Z",
+																																																																																																			                  "uri": "file:///software/arpah/tarball-maker/make-tarball.py"
+																																																																																																					              }
+																																																																																																						                }
+																																																																																																								        ],
+																																																																																																									        "output_list": [
+																																																																																																											          {
+																																																																																																													              "filename": "dbgap-phs000550.tar.gz",
+																																																																																																														                  "access_time": "2024-11-15T17:00:00.000Z",
+																																																																																																																              "uri": "file:///data/arpah/generated/tarballs/dbgap-phs000550.tar.gz"
+																																																																																																																	                }
+																																																																																																																			        ],
+																																																																																																																				        "input_list": [
+																																																																																																																						          {
+																																																																																																																								              "access_time": "2024-11-15T17:00:00.000Z",
+																																																																																																																									                  "uri": "file:///data/arpah/downloads/dbGaP/phs000550"
+																																																																																																																											            }
+																																																																																																																												            ]
+																																																																																																																													          }
+																																																																																																																														      ]
+																																																																																																																														        },
+																																																																																																																															  "parametric_domain": [
+																																																																																																																																      {
+																																																																																																																																	            "step": "1",
+																																																																																																																																		          "param": "--max-size",
+																																																																																																																																			        "value": "100GB"
+																																																																																																																																				    },
+																																																																																																																																				        {
+																																																																																																																																						      "step": "1",
+																																																																																																																																						            "param": "flag",
+																																																																																																																																							          "value": "-v"
+																																																																																																																																								      }
+																																																																																																																																								        ],
+																																																																																																																																									  "io_domain": {
+																																																																																																																																										      "input_subdomain": [
+																																																																																																																																											            {
+																																																																																																																																													            "uri": {
+																																																																																																																																															              "uri": "https://www.ncbi.nlm.nih.gov/Traces/study/?acc=phs000550&o=acc_s%3Aa",
+																																																																																																																																																                "access_time": "2024-11-15T05:00:00.000Z"
+																																																																																																																																																		        }
+																																																																																																																																																			      }
+																																																																																																																																																			          ],
+																																																																																																																																																				      "output_subdomain": [
+																																																																																																																																																					            {
+																																																																																																																																																							            "mediatype": "application/octet-stream",
+																																																																																																																																																								            "uri": {
+																																																																																																																																																										              "uri": "file:///data/generated/arpah/dbgap/phphs000550/",
+																																																																																																																																																											                "access_time": "2024-11-15T17:00:00.000Z"
+																																																																																																																																																													        }
+																																																																																																																																																														      },
+																																																																																																																																																														            {
+																																																																																																																																																																            "mediatype": "application/gzip",
+																																																																																																																																																																	            "uri": {
+																																																																																																																																																																			              "uri": "file:///data/arpah/generated/tarballs/dbgap-phs000550.tar.gz",
+																																																																																																																																																																				                "filename": "dbgap-phs000550.tar.gz",
+																																																																																																																																																																						          "access_time": "2024-11-15T17:00:00.000Z"
+																																																																																																																																																																							          }
+																																																																																																																																																																								        }
+																																																																																																																																																																									    ]
+																																																																																																																																																																									      },
+																																																																																																																																																																									        "execution_domain": {
+																																																																																																																																																																											    "script": [
+																																																																																																																																																																												          {
+																																																																																																																																																																														          "uri": {
+																																																																																																																																																																																            "filename": "sra-phs000550.sh",
+																																																																																																																																																																																	              "uri": "file:///data/arpah/downloads/dbGaP/phs000550/sra-phs000550.sh"
+																																																																																																																																																																																		              }
+																																																																																																																																																																																			            }
+																																																																																																																																																																																				        ],
+																																																																																																																																																																																					    "script_driver": "shell",
+																																																																																																																																																																																					        "software_prerequisites": [
+																																																																																																																																																																																							      {
+																																																																																																																																																																																								              "name": "sratoolkit",
+																																																																																																																																																																																									              "version": "3.0.0",
+																																																																																																																																																																																										              "uri": {
+																																																																																																																																																																																												                "uri": "https://github.com/ncbi/sra-tools/wiki/01.-Downloading-SRA-Toolkit"
+																																																																																																																																																																																														        }
+																																																																																																																																																																																															      }
+																																																																																																																																																																																															          ],
+																																																																																																																																																																																																      "external_data_endpoints": [
+																																																																																																																																																																																																	            {
+																																																																																																																																																																																																			            "name": "dbGaP",
+																																																																																																																																																																																																				            "url": "https://dbgap.ncbi.nlm.nih.gov/"
+																																																																																																																																																																																																					          }
+																																																																																																																																																																																																						      ],
+																																																																																																																																																																																																						          "environment_variables": {}
+																																																																																																																																																																																																							    },
+																																																																																																																																																																																																							      "extension_domain": [
+																																																																																																																																																																																																								          {
+																																																																																																																																																																																																										        "extension_schema": "https://raw.githubusercontent.com/ARPA-H-FEAST/emr_schemas/refs/heads/main/schemas/feast-extension-schema.json?token=GHSAT0AAAAAACYKFMDRFDVFQTD5RNFOM5E4Z2DSFUA",
+																																																																																																																																																																																																											      "dataset_extension": {
+																																																																																																																																																																																																												              "additional_license": {
+																																																																																																																																																																																																														                "data_license": "https://creativecommons.org/licenses/by/4.0/",
+																																																																																																																																																																																																																          "script_license": "https://www.gnu.org/licenses/gpl-3.0.en.html"
+																																																																																																																																																																																																																	          },
+																																																																																																																																																																																																																		          "body_sites": [
+																																																																																																																																																																																																																				            "liver",
+																																																																																																																																																																																																																					              "blood",
+																																																																																																																																																																																																																						                "pancreas"
+																																																																																																																																																																																																																								        ],
+																																																																																																																																																																																																																									        "record-format": "fastq",
+																																																																																																																																																																																																																										        "biospecimen_repository": [
+																																																																																																																																																																																																																												          "Pancreatic_Adenocarcinoma"
+																																																																																																																																																																																																																													          ],
+																																																																																																																																																																																																																														          "dataset_categories": [
+																																																																																																																																																																																																																																            {
+																																																																																																																																																																																																																																		                "category_name": "access_group",
+																																																																																																																																																																																																																																				            "category_value": "dbgap"
+																																																																																																																																																																																																																																					              }
+																																																																																																																																																																																																																																						              ]
+																																																																																																																																																																																																																																							            }
+																																																																																																																																																																																																																																								        }
+																																																																																																																																																																																																																																									  ]
+}

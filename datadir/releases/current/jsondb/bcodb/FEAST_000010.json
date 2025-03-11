@@ -1,0 +1,226 @@
+{
+	  "object_id": "https://biocomputeobject.org/FEAST_000010/1.0",
+	    "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
+	      "etag": "72396cc9a4b917c4645a212211f5e05ddb7cb8003814cddc8c5514d29df15533",
+	        "provenance_domain": {
+			    "name": "dbGaP_phs001697.v1.p1_lung",
+			        "version": "1.0",
+				    "license": "https://opensource.org/license/mit",
+				        "created": "2025-02-24T17:37:03",
+					    "modified": "2025-02-24T19:29:46.535Z",
+					        "contributors": [
+							      {
+								              "name": "Luke Johnson",
+									              "affiliation": "GWU",
+										              "email": "luke.johnson@gwu.edu",
+											              "contribution": [
+													                "authoredBy",
+															          "createdBy"
+																          ]
+																	        },
+																		      {
+																			              "name": "Jonathon Keeney",
+																				              "affiliation": "GWU",
+																					              "email": "keeneyjg@gwu.edu",
+																						              "contribution": [
+																								                "authoredBy",
+																										          "createdBy"
+																											          ]
+																												        }
+																													    ]
+																													      },
+																													        "usability_domain": [
+																															    "This dataset was generated as part of the FEAST project, an ARPA-H sponsored project to establish an infrastructure for interrogating medical datasets across distributed medical facilities in the Biomedical Data Fabric (BDF) program. There are multiple institutions participating in the project, and each institution is making one or more datasets available. The dataset described here is part of the data that George Washington University is making available to the project, via controlled access to dbGaP.",
+																															        "Through our access to dbGaP, we sought to establish an initial set of data to pilot our involvement in the project. These datasets were selected based on the following criteria: (1) restricted access to all forms of personalized data, (2) alignment with the research interests and questions posed by collaborating PIs, (3) inclusion of versatile data types, (4) reasonable dataset size, and (5) recent data release to ensure the use of the latest protocols and higher data quality.",
+																																    "This BCO describes phs001697.v1.p1 (lung)."
+																																      ],
+																																        "description_domain": {
+																																		    "keywords": [
+																																			          "ARPA-H",
+																																				        "dbGaP",
+																																					      "FEAST",
+																																					            "HIVE",
+																																						          "lung",
+																																							        "cancer"
+																																								    ],
+																																								        "xref": [
+																																										      {
+																																											              "namespace": "dbgap",
+																																												              "name": "dbGaP",
+																																													              "access_time": "2025-02-24T05:00:00.000Z",
+																																														              "ids": [
+																																																                "SRR14002676",
+																																																		          "SRR14002677",
+																																																			            "SRR14002678",
+																																																				              "SRR14002679",
+																																																					                "SRR14002680",
+																																																							          "SRR14002681",
+																																																								            "SRR14002682",
+																																																									              "SRR14002683",
+																																																										                "SRR14002684",
+																																																												          "SRR14002685",
+																																																													            "SRR14002687",
+																																																														              "SRR14002688",
+																																																															                "SRR14002689",
+																																																																	          "SRR14002690",
+																																																																		            "SRR14002691",
+																																																																			              "SRR14002692",
+																																																																				                "SRR14002693",
+																																																																						          "SRR14002694",
+																																																																							            "SRR14002695",
+																																																																								              "SRR14002696",
+																																																																									                "SRR14002741",
+																																																																											          "SRR14002742",
+																																																																												            "SRR14002743",
+																																																																													              "SRR14002744",
+																																																																														                "SRR14002745",
+																																																																																          "SRR14002746",
+																																																																																	            "SRR14002747",
+																																																																																		              "SRR14002748",
+																																																																																			                "SRR14002749",
+																																																																																					          "SRR14002750",
+																																																																																						            "SRR14002751",
+																																																																																							              "SRR14002752",
+																																																																																								                "SRR14002754",
+																																																																																										          "SRR14002755",
+																																																																																											            "SRR14002756",
+																																																																																												              "SRR14002757",
+																																																																																													                "SRR14002758",
+																																																																																															          "SRR14002759",
+																																																																																																            "SRR14002760",
+																																																																																																	              "SRR14002761",
+																																																																																																		                "SRR14002762",
+																																																																																																				          "SRR14002763",
+																																																																																																					            "SRR14002764",
+																																																																																																						              "SRR14002765",
+																																																																																																							                "SRR14002766",
+																																																																																																									          "SRR14002767",
+																																																																																																										            "SRR14002768",
+																																																																																																											              "SRR14002769",
+																																																																																																												                "SRR14002770",
+																																																																																																														          "SRR14002771",
+																																																																																																															            "SRR14002772",
+																																																																																																																              "SRR14002773",
+																																																																																																																	                "SRR14002774",
+																																																																																																																			          "SRR14002775",
+																																																																																																																				            "SRR14002776",
+																																																																																																																					              "SRR14002777",
+																																																																																																																						                "SRR14002778",
+																																																																																																																								          "SRR14002779",
+																																																																																																																									            "SRR14002780",
+																																																																																																																										              "SRR14002781",
+																																																																																																																											                "SRR14002782",
+																																																																																																																													          "SRR14002783",
+																																																																																																																														            "SRR14002784",
+																																																																																																																															              "SRR14002785"
+																																																																																																																																              ]
+																																																																																																																																	            }
+																																																																																																																																		        ],
+																																																																																																																																			    "platform": [
+																																																																																																																																				          "Linux Rocky 8"
+																																																																																																																																					      ],
+																																																																																																																																					          "pipeline_steps": [
+																																																																																																																																							        {
+																																																																																																																																									        "step_number": 1,
+																																																																																																																																										        "name": "Data Download",
+																																																																																																																																											        "description": "This dataset was picked as an exemplar for being of interest to GW researchers and small in size. Contains whole genome sequencing of lung cancers from never smoker subjects from Institut universitaire de cardiologie et de pneumologie de Québec - Université Laval (IUCPQ-UL) (N=125), Université Côte d'Azur (Nice) (N=47), the Environment And Genetics in Lung cancer Etiology (EAGLE) study (N=27), Yale University (N=22), and Moffitt Cancer Cente (N=11).\n",
+																																																																																																																																												        "input_list": [
+																																																																																																																																														          {
+																																																																																																																																																              "uri": "file:///data/arpah/downloads/dbGaP/sra-phs001697.sh"
+																																																																																																																																																	                }
+																																																																																																																																																			        ],
+																																																																																																																																																				        "output_list": [
+																																																																																																																																																						          {
+																																																																																																																																																								              "access_time": "2025-02-24T05:00:00.000Z",
+																																																																																																																																																									                  "uri": "file:///data/arpah/downloads/dbGaP/phs001697"
+																																																																																																																																																											            }
+																																																																																																																																																												            ]
+																																																																																																																																																													          }
+																																																																																																																																																														      ]
+																																																																																																																																																														        },
+																																																																																																																																																															  "parametric_domain": [
+																																																																																																																																																																      {
+																																																																																																																																																																	            "step": "1",
+																																																																																																																																																																		          "param": "--max-size",
+																																																																																																																																																																			        "value": "100GB"
+																																																																																																																																																																				    },
+																																																																																																																																																																				        {
+																																																																																																																																																																						      "step": "1",
+																																																																																																																																																																						            "param": "flag",
+																																																																																																																																																																							          "value": "-v"
+																																																																																																																																																																								      }
+																																																																																																																																																																								        ],
+																																																																																																																																																																									  "io_domain": {
+																																																																																																																																																																										      "input_subdomain": [
+																																																																																																																																																																											            {
+																																																																																																																																																																													            "uri": {
+																																																																																																																																																																															              "uri": "https://www.ncbi.nlm.nih.gov/Traces/study/?acc=phs001697&search=GRU&o=acc_s%3Aa",
+																																																																																																																																																																																                "access_time": "2025-02-24T05:00:00.000Z"
+																																																																																																																																																																																		        }
+																																																																																																																																																																																			      }
+																																																																																																																																																																																			          ],
+																																																																																																																																																																																				      "output_subdomain": [
+																																																																																																																																																																																					            {
+																																																																																																																																																																																							            "mediatype": "application/octet-stream",
+																																																																																																																																																																																								            "uri": {
+																																																																																																																																																																																										              "uri": "file:///data/arpah/downloads/dbGaP/phs001697",
+																																																																																																																																																																																											                "access_time": "2025-02-24T05:00:00.000Z"
+																																																																																																																																																																																													        }
+																																																																																																																																																																																														      }
+																																																																																																																																																																																														          ]
+																																																																																																																																																																																															    },
+																																																																																																																																																																																															      "execution_domain": {
+																																																																																																																																																																																																          "script": [
+																																																																																																																																																																																																		        {
+																																																																																																																																																																																																				        "uri": {
+																																																																																																																																																																																																						          "uri": "file:///data/arpah/downloads/dbGaP/sra-phs001697.sh",
+																																																																																																																																																																																																							            "filename": "sra-phs001697.sh"
+																																																																																																																																																																																																								            }
+																																																																																																																																																																																																									          }
+																																																																																																																																																																																																										      ],
+																																																																																																																																																																																																										          "script_driver": "shell",
+																																																																																																																																																																																																											      "software_prerequisites": [
+																																																																																																																																																																																																												            {
+																																																																																																																																																																																																														            "name": "sratoolkit",
+																																																																																																																																																																																																															            "version": "3.2.0",
+																																																																																																																																																																																																																            "uri": {
+																																																																																																																																																																																																																		              "uri": "https://github.com/ncbi/sra-tools/wiki/01.-Downloading-SRA-Toolkit",
+																																																																																																																																																																																																																			                "access_time": "2025-02-24T05:00:00.000Z"
+																																																																																																																																																																																																																					        }
+																																																																																																																																																																																																																						      }
+																																																																																																																																																																																																																						          ],
+																																																																																																																																																																																																																							      "external_data_endpoints": [
+																																																																																																																																																																																																																								            {
+																																																																																																																																																																																																																										            "name": "dbGaP",
+																																																																																																																																																																																																																											            "url": "https://dbgap.ncbi.nlm.nih.gov/"
+																																																																																																																																																																																																																												          }
+																																																																																																																																																																																																																													      ],
+																																																																																																																																																																																																																													          "environment_variables": {}
+																																																																																																																																																																																																																														    },
+																																																																																																																																																																																																																														      "extension_domain": [
+																																																																																																																																																																																																																															          {
+																																																																																																																																																																																																																																	        "extension_schema": "https://raw.githubusercontent.com/ARPA-H-FEAST/emr_schemas/refs/heads/main/schemas/feast-extension-schema.json?token=GHSAT0AAAAAACYKFMDRFDVFQTD5RNFOM5E4Z2DSFUA",
+																																																																																																																																																																																																																																		      "dataset_extension": {
+																																																																																																																																																																																																																																			              "additional_license": {
+																																																																																																																																																																																																																																					                "data_license": "https://creativecommons.org/licenses/by/4.0/",
+																																																																																																																																																																																																																																							          "script_license": "https://www.gnu.org/licenses/gpl-3.0.en.html"
+																																																																																																																																																																																																																																								          },
+																																																																																																																																																																																																																																									          "body_site": [
+																																																																																																																																																																																																																																											            "lung"
+																																																																																																																																																																																																																																												            ],
+																																																																																																																																																																																																																																													            "patient-count": 232,
+																																																																																																																																																																																																																																														            "number-of-variables": 16,
+																																																																																																																																																																																																																																															            "record-format": "fastq",
+																																																																																																																																																																																																																																																            "biospecimen_repository": [
+																																																																																																																																																																																																																																																		              "Lung neoplasms"
+																																																																																																																																																																																																																																																			              ],
+																																																																																																																																																																																																																																																				              "dataset_categories": [
+																																																																																																																																																																																																																																																						                {
+																																																																																																																																																																																																																																																									            "category_name": "access_group",
+																																																																																																																																																																																																																																																										                "category_value": "dbgap"
+																																																																																																																																																																																																																																																												          }
+																																																																																																																																																																																																																																																													          ]
+																																																																																																																																																																																																																																																														        }
+																																																																																																																																																																																																																																																															    }
+																																																																																																																																																																																																																																																															      ]
+}

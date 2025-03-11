@@ -1,0 +1,183 @@
+{
+	  "object_id": "https://biocomputeobject.org/FEAST_000004/1.0",
+	    "etag": "cddbd741b569172bf3e8ab8ee1c21e822bb640078ecd5ca8384005653dd7f111",
+	      "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
+	        "provenance_domain": {
+			    "name": "GW Data Center Cancer Dataset",
+			        "version": "1.0",
+				    "license": "https://creativecommons.org/licenses/by/4.0/",
+				        "created": "2014-12-20T12:05:05.000Z",
+					    "modified": "2024-12-20T19:00:09.310Z",
+					        "contributors": [
+							      {
+								              "name": "Jonathon Keeney",
+									              "affiliation": "The George Washington University",
+										              "email": "keeneyjg@gwu.edu",
+											              "contribution": [
+													                "authoredBy",
+															          "createdBy"
+																          ]
+																	        },
+																		      {
+																			              "name": "Robel Kahsay",
+																				              "affiliation": "The George Washington University",
+																					              "contribution": [
+																							                "createdBy"
+																									        ]
+																										      },
+																										            {
+																												            "name": "Jorge Sepulveda",
+																													            "affiliation": "The George Washington University",
+																														            "contribution": [
+																																              "createdBy"
+																																	              ]
+																																		            }
+																																			        ]
+																																				  },
+																																				    "usability_domain": [
+																																					        "This dataset was generated as part of the FEAST project, an ARPA-H sponsored project to establish an infrastructure for interrogating medical datasets across distributed medical facilities in the Biomedical Data Fabric (BDF) program. There are multiple institutions participating in the project, and each institution is making one or more datasets available. The dataset described here is part of the data that George Washington University is making available to the project, via controlled access to dbGaP.",
+																																						    "This dataset was provided by the George Washington University Caboodle instance, and is comprised of medical records of individuals with various cancer diagnoses. Data have been thoroughly de-identified pursuant to the HIPAA Safe Harbor provision. Data in this dataset is in the form of a duckDB. More descriptive information is available (via access control) at https://gwu0-my.sharepoint.com/personal/jsepulveda_gwu_edu/_layouts/15/Doc.aspx?sourcedoc=%7B97f942fc-1c3f-4205-9c4a-d7994523bfd9%7D&action=edit&wd=target%28DataHarmonization.one%7C2fe38810-41b8-4b94-ab68-bbd4138c616f%2FDiagnoses%7Cdfe54756-8c29-4726-acf9-c406b1038885%2F%29&wdorigin=NavigationUrl"
+																																						      ],
+																																						        "extension_domain": [
+																																								    {
+																																									          "extension_schema": "https://raw.githubusercontent.com/ARPA-H-FEAST/emr_schemas/refs/heads/main/schemas/feast-extension-schema.json?token=",
+																																										        "dataset_extension": {
+																																												        "additional_license": {
+																																														          "data_license": "https://creativecommons.org/licenses/by/4.0/",
+																																															            "script_license": "https://www.gnu.org/licenses/gpl-3.0.en.html"
+																																																            },
+																																																	            "body_sites": [
+																																																			              "prostate"
+																																																				              ],
+																																																					              "record-format": "duckdb",
+																																																						              "dataset_categories": [
+																																																								                {
+																																																											            "category_name": "access_group",
+																																																												                "category_value": "GW"
+																																																														          }
+																																																															          ]
+																																																																        }
+																																																																	    }
+																																																																	      ],
+																																																																	        "description_domain": {
+																																																																			    "keywords": [
+																																																																				          "ARPA-H",
+																																																																					        "FEAST",
+																																																																						      "HIVE",
+																																																																						            "prostate cancer",
+																																																																							          "carcinma",
+																																																																								        "adenocarcinoma"
+																																																																									    ],
+																																																																									        "platform": [
+																																																																											      "Linux Rocky 8.10"
+																																																																											          ],
+																																																																												      "pipeline_steps": [
+																																																																													            {
+																																																																															            "step_number": 1,
+																																																																																            "name": "Data acquisition",
+																																																																																	            "description": "Data were directly sent to our servers from other, internal servers at George Washington University via scp, and staged for subsequent de-identification.",
+																																																																																		            "version": "1.0",
+																																																																																			            "input_list": [
+																																																																																					              {
+																																																																																							                  "access_time": "2024-12-20T05:00:00.000Z",
+																																																																																									              "uri": "uri:urn:b71e5745-48d9-4233-89ab-fdf135f4a87a"
+																																																																																										                }
+																																																																																												        ],
+																																																																																													        "output_list": [
+																																																																																															          {
+																																																																																																	              "access_time": "2024-12-20T05:00:00.000Z",
+																																																																																																		                  "uri": "file:///data/arpah/downloads/GWDC/"
+																																																																																																				            }
+																																																																																																					            ]
+																																																																																																						          },
+																																																																																																							        {
+																																																																																																									        "step_number": 2,
+																																																																																																										        "name": "De-identification",
+																																																																																																											        "description": "Raw data were de-identified to make usable to our research community using scripts generated by our group. More information on the tool usage and its configuration are here: https://github.com/ARPA-H-FEAST/management/issues/67",
+																																																																																																												        "version": "1.0",
+																																																																																																													        "prerequisite": [
+																																																																																																															          {
+																																																																																																																	              "name": "Configuration File",
+																																																																																																																		                  "uri": {
+																																																																																																																					                "filename": "config.json",
+																																																																																																																							              "access_time": "2024-12-20T05:00:00.000Z",
+																																																																																																																								                    "uri": "/software/arpah/object-maker/conf/config.json "
+																																																																																																																										                }
+																																																																																																																												          },
+																																																																																																																													            {
+																																																																																																																															                "name": "De-identification script",
+																																																																																																																																	            "uri": {
+																																																																																																																																			                  "filename": "deid-files.py",
+																																																																																																																																					                "access_time": "2024-12-20T05:00:00.000Z",
+																																																																																																																																							              "uri": "file:///software/arpah/deider/deid-files.py"
+																																																																																																																																								                  }
+																																																																																																																																										            }
+																																																																																																																																											            ],
+																																																																																																																																												            "input_list": [
+																																																																																																																																														              {
+																																																																																																																																																                  "access_time": "2024-12-20T05:01:00.000Z",
+																																																																																																																																																		              "uri": "file:///data/arpah/downloads/GWDC/"
+																																																																																																																																																			                }
+																																																																																																																																																					        ],
+																																																																																																																																																						        "output_list": [
+																																																																																																																																																								          {
+																																																																																																																																																										              "access_time": "2024-12-20T05:02:00.000Z",
+																																																																																																																																																											                  "uri": "file:///data/arpah/generated/GWDC/deided/caboodle/"
+																																																																																																																																																													            }
+																																																																																																																																																														            ]
+																																																																																																																																																															          }
+																																																																																																																																																																      ]
+																																																																																																																																																																        },
+																																																																																																																																																																	  "execution_domain": {
+																																																																																																																																																																		      "script": [
+																																																																																																																																																																			            {
+																																																																																																																																																																					            "uri": {
+																																																																																																																																																																							              "filename": "deid-files.py",
+																																																																																																																																																																								                "uri": "file:///software/arpah/deider/deid-files.py",
+																																																																																																																																																																										          "access_time": "2024-12-20T05:00:00.000Z"
+																																																																																																																																																																											          }
+																																																																																																																																																																												        }
+																																																																																																																																																																													    ],
+																																																																																																																																																																													        "script_driver": "manual",
+																																																																																																																																																																														    "software_prerequisites": [
+																																																																																																																																																																															          {
+																																																																																																																																																																																	          "name": "Python",
+																																																																																																																																																																																		          "version": "3.12.7",
+																																																																																																																																																																																			          "uri": {
+																																																																																																																																																																																					            "filename": "python3",
+																																																																																																																																																																																						              "uri": "https://www.python.org/downloads/release/python-3127/",
+																																																																																																																																																																																							                "access_time": "2024-12-20T05:00:00.000Z"
+																																																																																																																																																																																									        }
+																																																																																																																																																																																										      }
+																																																																																																																																																																																										          ],
+																																																																																																																																																																																											      "external_data_endpoints": [],
+																																																																																																																																																																																											          "environment_variables": {}
+																																																																																																																																																																																												    },
+																																																																																																																																																																																												      "parametric_domain": [
+																																																																																																																																																																																													          {
+																																																																																																																																																																																															        "step": "2",
+																																																																																																																																																																																																      "param": "Command line flag",
+																																																																																																																																																																																																            "value": "-s"
+																																																																																																																																																																																																	        }
+																																																																																																																																																																																																		  ],
+																																																																																																																																																																																																		    "io_domain": {
+																																																																																																																																																																																																			        "input_subdomain": [
+																																																																																																																																																																																																					      {
+																																																																																																																																																																																																						              "uri": {
+																																																																																																																																																																																																								                "uri": "file:///data/arpah/downloads/GWDC/current/prostate_cancer/",
+																																																																																																																																																																																																										          "access_time": "2024-12-20T05:00:00.000Z"
+																																																																																																																																																																																																											          }
+																																																																																																																																																																																																												        }
+																																																																																																																																																																																																													    ],
+																																																																																																																																																																																																													        "output_subdomain": [
+																																																																																																																																																																																																															      {
+																																																																																																																																																																																																																              "mediatype": "application/gzip",
+																																																																																																																																																																																																																	              "uri": {
+																																																																																																																																																																																																																			                "uri": "https://api.feast.xxx.yyy/generated/duckdb.tar.gz",
+																																																																																																																																																																																																																					          "filename": "duckdb.tar.gz",
+																																																																																																																																																																																																																						            "access_time": "2024-12-20T05:02:00.000Z"
+																																																																																																																																																																																																																							            }
+																																																																																																																																																																																																																								          }
+																																																																																																																																																																																																																									      ]
+																																																																																																																																																																																																																									        }
+}
