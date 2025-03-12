@@ -22,12 +22,11 @@ for bco_file in os.listdir():
     output_subdomain = bco["io_domain"]["output_subdomain"]
     description_domain = bco["description_domain"]
 
-    filename = ""
+    filenames = []
     for output_object in output_subdomain:
         if "uri" in output_object.keys() and "filename" in output_object["uri"]:
-            filename = output_object["uri"]["filename"]
-            break
-    if not filename:
+            filenames.append(output_object["uri"]["filename"])
+    if not filenames:
         print(f"---> Malformed BCO {bco_file}<--- : No associated filename found")
         continue
     keywords = description_domain.get("keywords", None)
@@ -70,29 +69,24 @@ for bco_file in os.listdir():
     # print(f"Described file: {filename}")
     # print(f"Keywords found: {keywords}")
     # print(f"*" * 80)
-    if filename[-2:] == "gz":
-        try:
-            BCOFileDescriptor.objects.update_or_create(
-                bcoid=bco_file.strip(".json"),
-                file_represented=filename,
-                bco_file_path=BCO_ROOT,
-                tar_path=TAR_PATH,
-                keywords=keywords,
-                body_sites=body_sites,
-                access_categories=access_categories,
-            )
-        except Exception as e:
-            print("*"*80)
-            print("*"*80)
-            print(f"FATAL ERROR: {e}")
-            print(f"...on BCO {bco_file}")
-            print("---> MANUAL INTERVENTION REQUIRED <---")
-            print("*"*80)
-            print("*"*80)
-            continue
-    else:
-        print(
-            f"---> BCO File description for {filename}. Not a tarball or gzipped; skipping"
+    try:
+        BCOFileDescriptor.objects.update_or_create(
+            bcoid=bco_file.strip(".json"),
+            files_represented=filenames,
+            bco_file_path=BCO_ROOT,
+            tar_path=TAR_PATH,
+            keywords=keywords,
+            body_sites=body_sites,
+            access_categories=access_categories,
         )
+    except Exception as e:
+        print("*" * 80)
+        print("*" * 80)
+        print(f"FATAL ERROR: {e}")
+        print(f"...on BCO {bco_file}")
+        print("---> MANUAL INTERVENTION REQUIRED <---")
+        print("*" * 80)
+        print("*" * 80)
+        continue
 
 os.chdir(cwd)

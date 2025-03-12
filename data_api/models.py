@@ -23,5 +23,5 @@ class BCOFileDescriptor(models.Model):
     access_categories = models.JSONField(
         null=True, default=list
     )  # extension_domain/dataset_categories
-    file_represented = models.CharField(max_length=1000, unique=True)
+    files_represented = models.JSONField(null=True, default=list)
     tar_path = models.FilePathField(path=TAR_PATH)
