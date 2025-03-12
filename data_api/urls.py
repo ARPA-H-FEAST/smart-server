@@ -16,4 +16,5 @@ logger = logging.getLogger()
 
 urlpatterns = [
     path("search/", views.get_available_files, name="Available files list"),
+    path("detail/", views.get_file_detail, name="File detail view"),
 ]
