@@ -59,6 +59,10 @@ for bco_file in os.listdir():
         )
         sys.exit(3)
 
+    usability_string = " ".join(bco["usability_domain"])
+    if len(usability_string) > 497:
+        usability_string = usability_string[:498] + "..."
+
     access_categories = []
     for dc in dataset_categories:
         if set(dc.keys()).intersection({"category_name", "category_value"}):
@@ -66,18 +70,17 @@ for bco_file in os.listdir():
     # print(f"*" * 80)
     # print(f"BCO Name: {bco_file}")
     # print(f"BCO path: {REL_PATH}/{bco_file}")
-    # print(f"Described file: {filename}")
+    # print(f"Described file: {filenames}")
     # print(f"Keywords found: {keywords}")
     # print(f"*" * 80)
     try:
         BCOFileDescriptor.objects.update_or_create(
             bcoid=bco_file.strip(".json"),
             files_represented=filenames,
-            bco_file_path=BCO_ROOT,
-            tar_path=TAR_PATH,
             keywords=keywords,
             body_sites=body_sites,
             access_categories=access_categories,
+            usability_domain=usability_string,
         )
     except Exception as e:
         print("*" * 80)
