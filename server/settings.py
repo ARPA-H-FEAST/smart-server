@@ -129,6 +129,8 @@ OAUTH2_PROVIDER = {
     "OIDC_ENABLED": True,
     "OIDC_ISS_ENDPOINT": "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/oauth",
     "OIDC_RSA_PRIVATE_KEY": get_rsa_key(),
+    "ACCESS_TOKEN_EXPIRE_SECONDS": 3600 * 10000,  # 10000 hours should suffice
+    "ID_TOKEN_EXPIRE_SECONDS": 3600 * 10000,  # Ditto
     "SCOPES": {
         "openid": "OpenID Connect scope",
         "read": "Read scope",
