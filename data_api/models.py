@@ -6,16 +6,9 @@ from django.conf import settings
 
 from pathlib import Path
 
-RELEASED_DATA_PATH = settings.DATA_HOME / Path("releases/current/")
-
-BCO_PATH = RELEASED_DATA_PATH / "jsondb/bcodb"
-TAR_PATH = RELEASED_DATA_PATH / "tarballs/"
-
-
 # Create your models here.
 class BCOFileDescriptor(models.Model):
     bcoid = models.CharField(max_length=255)
-    bco_file_path = models.FilePathField(path=BCO_PATH)
     keywords = models.JSONField(null=False, default=list)  # description_domain/keywords
     body_sites = models.JSONField(
         null=True, default=list
@@ -24,4 +17,4 @@ class BCOFileDescriptor(models.Model):
         null=True, default=list
     )  # extension_domain/dataset_categories
     files_represented = models.JSONField(null=True, default=list)
-    tar_path = models.FilePathField(path=TAR_PATH)
+    usability_domain = models.CharField(max_length=500, default="No description provided")

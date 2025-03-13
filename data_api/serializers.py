@@ -10,8 +10,9 @@ class BCOandFileSerializer(serializers.ModelSerializer):
         model = BCOFileDescriptor
         fields = [
             "bcoid",
-            "file_represented",
+            "files_represented",
             "keywords",
             "body_sites",
             "access_categories",
+            "usability_domain",
         ]
