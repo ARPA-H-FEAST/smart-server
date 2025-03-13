@@ -1,21 +1,24 @@
 from django.shortcuts import render
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
+
+from wsgiref.util import FileWrapper
 
 from .models import BCOFileDescriptor
 from .serializers import BCOandFileSerializer
 
 import json
 import logging
+import os
 
 # Create your views here.
 
 logger = logging.getLogger()
 
 DATA_HOME = settings.DATA_HOME
-BCO_HOME = DATA_HOME / "releases/current/jsondb/bcodb/"
-TARBALL_FILE_HOME = DATA_HOME / "releases/current/tarballs/"
+BCO_HOME = DATA_HOME / "jsondb/bcodb/"
+TARBALL_FILE_HOME = DATA_HOME / "tarballs/"
 
 
 @login_required
@@ -44,12 +47,39 @@ def get_file_detail(request):
     bcoid = json.loads(request.body)["bcoid"]
     logger.debug(f"===> Got a request for BCO information on {bcoid} from user {user}")
 
-    bco = BCOFileDescriptor.objects.get(bcoid=bcoid)
-    logger.debug(f"Found BCO data: {BCOandFileSerializer(bco).data}")
+    bco_model = BCOFileDescriptor.objects.get(bcoid=bcoid)
+    logger.debug(f"Found BCO data: {BCOandFileSerializer(bco_model).data}")
+
+    logger.debug(f"---> Searching directory {BCO_HOME} for file {bcoid}.json")
+
+    with open(os.path.join(BCO_HOME, f"{bcoid}.json"), "r") as fp:
+        bco = json.load(fp)
 
     response = {
-        "bco": "TBD",
-        "fileobjlist": [""],
+        "bco": bco,
+        "fileobjlist": [{"filename": f} for f in bco_model.files_represented],
     }
 
     return JsonResponse(response, safe=False)
+
+@login_required
+def download(request):
+    user = request.user
+    file_info = json.loads(request.body)
+
+    logger.debug(f"---> Download: Found request info {file_info}")
+
+    if settings.DJANGO_MODE == "dev":
+        
+        file_name = file_info["filename"]
+        file_path = TARBALL_FILE_HOME / f"{file_name}"
+
+        logger.debug(f"DEV SERVER: Attempting to serve {file_name}")
+
+        if not os.path.isfile(file_path):
+            return JsonResponse({"error": f"File {file_name} not found"}, status=404, safe=False)
+
+        try:
+            return FileResponse(open(file_path, "rb"), filename=file_name)
+        except Exception as e:
+            logger.debug(f"---->>>> EXCEPTION: {e}")
