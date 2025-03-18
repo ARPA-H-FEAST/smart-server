@@ -1,0 +1,122 @@
+{
+    "object_id": "https://biocomputeobject.org/FEAST_000012/1.0",
+    "spec_version": "https://w3id.org/ieee/ieee-2791-schema/2791object.json",
+    "etag": "72396cc9a4b917c4645a212211f5e05ddb7cb8003814cddc8c5514d29df15533",
+    "provenance_domain": {
+        "name": "NBCC De-Identified Data",
+        "version": "1.0",
+        "license": "Proprietary - Permissioned access only",
+        "created": "2025-03-18",
+        "modified": "2025-03-18",
+        "contributors": [
+            {
+                "name": "Patrick McNeely",
+                "affiliation": "GWU",
+                "email": "pmcneely@gwu.edu",
+                "contribution": [
+                    "createdBy"
+                ]
+            },
+            {
+                "name": "Robel Kahsay",
+                "affiliation": "GWU",
+                "email": "rykahsay@gwu.edu",
+                "contribution": [
+                    "createdBy"
+                ]
+            }
+        ]
+    },
+    "usability_domain": [
+        "This BCO describes de-identified data collected by the National Breast Cancer Coalition (NBCC)",
+        "Data are made available within the FEAST ecosystem in a de-identified state by permission from the NBCC."
+    ],
+    "description_domain": {
+        "keywords": [
+            "ARPA-H",
+            "FEAST",
+            "NBCC",
+            "breast cancer",
+            "cancer"
+        ],
+        "xref": [
+        ],
+        "platform": [
+            "Linux Rocky 8"
+        ],
+        "pipeline_steps": [
+            {
+                "step_number": 1,
+                "name": "Data Download",
+                "description": "This dataset was picked as an exemplar for being of interest to GW researchersat the instantiation of the FEAST BDF program. Contains synthetic patient information derived from the MITRE Synthea program",
+                "output_list": [
+                    {
+                        "access_time": "2025-03-18",
+                        "uri": "file:///data/arpah/imported/nbcc/*"
+                    }
+                ]
+            }
+        ]
+    },
+    "parametric_domain": [
+        {
+            "step": "1",
+            "param": "--max-size",
+            "value": "100GB"
+        },
+        {
+            "step": "1",
+            "param": "flag",
+            "value": "-v"
+        }
+    ],
+    "io_domain": {
+        "input_subdomain": [
+        ],
+        "output_subdomain": [
+			{
+			"mediatype": "application/json",
+			"uri": {
+				"uri": "file:///data/arpah/imported/nbcc/*",
+				"filename": "nbcc/*",
+				"access_time": "2024-11-15T17:00:00.000Z"
+			}
+			}
+        ]
+    },
+    "execution_domain": {
+        "script": [
+            {
+                "uri": {
+                    "uri": "file:///data/arpah/imported/nbcc/*",
+                    "filename": "*"
+                }
+            }
+        ]
+    },
+    "extension_domain": [
+        {
+            "extension_schema": "https://raw.githubusercontent.com/ARPA-H-FEAST/emr_schemas/refs/heads/main/schemas/feast-extension-schema.json?token=GHSAT0AAAAAACYKFMDRFDVFQTD5RNFOM5E4Z2DSFUA",
+            "dataset_extension": {
+                "additional_license": {
+                    "data_license": "https://creativecommons.org/licenses/by/4.0/",
+                    "script_license": "https://www.gnu.org/licenses/gpl-3.0.en.html"
+                },
+                "body_sites": [
+                    "All"
+                ],
+                "patient-count": "Unknown",
+                "number-of-variables": "Variable",
+                "record-format": "Unknown",
+                "biospecimen_repository": [
+                ],
+                "dataset_categories": [
+                    {
+                        "category_name": "access_group",
+                        "category_value": "nbcc"
+                    }
+                ]
+            }
+        }
+    ]
+}
