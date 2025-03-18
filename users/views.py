@@ -307,7 +307,7 @@ def whoami_view(request):
     if not user.is_authenticated:
         return JsonResponse(
             {
-                "status": 1,
+                "status": 0,
                 "msg": "Not authenticated",
             }
         )

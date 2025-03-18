@@ -30,7 +30,7 @@ def get_available_files(request):
     files_available = BCOFileDescriptor.objects.all()
     file_list = [BCOandFileSerializer(f).data for f in files_available]
 
-    logger.debug(f"---> Found files {file_list}")
+    # logger.debug(f"---> Found files {file_list}")
 
     response = {
         "status": 0,
@@ -62,6 +62,7 @@ def get_file_detail(request):
 
     return JsonResponse(response, safe=False)
 
+
 @login_required
 def download(request):
     user = request.user
@@ -70,14 +71,16 @@ def download(request):
     logger.debug(f"---> Download: Found request info {file_info}")
 
     if settings.DJANGO_MODE == "dev":
-        
+
         file_name = file_info["filename"]
         file_path = TARBALL_FILE_HOME / f"{file_name}"
 
         logger.debug(f"DEV SERVER: Attempting to serve {file_name}")
 
         if not os.path.isfile(file_path):
-            return JsonResponse({"error": f"File {file_name} not found"}, status=404, safe=False)
+            return JsonResponse(
+                {"error": f"File {file_name} not found"}, status=404, safe=False
+            )
 
         try:
             return FileResponse(open(file_path, "rb"), filename=file_name)
