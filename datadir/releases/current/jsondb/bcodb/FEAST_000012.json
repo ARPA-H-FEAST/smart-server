@@ -28,8 +28,9 @@
         ]
     },
     "usability_domain": [
-        "This BCO describes de-identified data collected by the National Breast Cancer Coalition (NBCC)",
-        "Data are made available within the FEAST ecosystem in a de-identified state by permission from the NBCC."
+        "This dataset comes from the National Breast Cancer Coalition (NBCC). Data have been thoroughly de-identified pursuant to the HIPAA Safe Harbor provision.",
+        "Data in this dataset include SNPs, as well as descriptive information (ancestries, family records, research questions, and traits), and ",
+        "metadata (user info, login accounts, file uploads, and IDs)."
     ],
     "description_domain": {
         "keywords": [
@@ -113,7 +114,7 @@
                 "dataset_categories": [
                     {
                         "category_name": "access_group",
-                        "category_value": "nbcc"
+                        "category_value": "NBCC"
                     }
                 ]
             }
