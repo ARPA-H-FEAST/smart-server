@@ -28,8 +28,9 @@
     ]
   },
   "usability_domain": [
-    "This dataset was generated as part of the FEAST project, an ARPA-H sponsored project to establish an infrastructure for interrogating medical datasets across distributed medical facilities in the Biomedical Data Fabric (BDF) program. There are multiple institutions participating in the project, and each institution is making one or more datasets available. The dataset described here is part of the data that George Washington University is making available to the project, via controlled access to dbGaP.",
-    "This dataset comes from the National Breast Cancer Coalition (NBCC). Data have been thoroughly de-identified pursuant to the HIPAA Safe Harbor provision. Data in this dataset include SNPs, as well as descriptive information (ancestries, family records, research questions, and traits), and metadata (user info, login accounts, file uploads, and IDs)."
+    "This dataset comes from the National Breast Cancer Coalition (NBCC). Data have been thoroughly de-identified pursuant to the HIPAA Safe Harbor provision.",
+    "Data in this dataset include SNPs, as well as descriptive information (ancestries, family records, research questions, and traits), and ",
+    "metadata (user info, login accounts, file uploads, and IDs)."
   ],
   "extension_domain": [
     {
