@@ -118,12 +118,16 @@ def query_fhir(request):
     method = request.method
     query_args_string = request.GET.get("q", None)
     logger.debug(f"Found query args {query_args_string}")
+    if settings.DJANGO_MODE == "dev":
+        FHIR_URL = "http://localhost:8080/fhir/"
+    else:
+        FHIR_URL = "http://feast-fhir-302:8081/fhir/"
     if query_args_string is None:
         return JsonResponse({"response": "no query text provided"}, safe=False)
     match method:
         case "GET":
             fhir_response = requests.request(
-                method="GET", url=f"http://feast-fhir-302:8081/fhir/{query_args_string}"
+                method="GET", url=f"{FHIR_URL}{query_args_string}"
             )
             response_body = fhir_response.json()
             _ = response_body.pop("link", None)
@@ -139,7 +143,7 @@ def query_fhir(request):
                     "Content-Type": "application/json",
                 },
                 method="POST",
-                url=f"http://feast-fhir-302:8081/fhir/{query_args_string}",
+                url=f"{FHIR_URL}{query_args_string}",
                 data=json_body,
             )
             _ = response_body.pop("link", None)
