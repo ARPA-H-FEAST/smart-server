@@ -203,36 +203,56 @@ def login_view(request):
     if request.method != "POST":
         return JsonResponse({"msg": "False"}, status=599)
     data = json.loads(request.body)
-    # logger.debug(f"---> Caught request! Data?: {data}")
-    username = data.get("email")
-    password = data.get("password")
+    logger.debug(f"---> Caught request! Data?: {data}")
+    username = data.get("email", None)
+    password = data.get("password", None)
+    third_party = data.get("tp", None)
 
-    if username is None or password is None:
-        return JsonResponse(
-            {"msg": "Please provide username and password.", "status": 0}, status=400
-        )
+    user = None
 
-    # Failed authentication yields an HTTP 400 error code
-    user = authenticate(request, username=username, password=password)
+    if third_party:
+        # Do stuff
+        logger.debug("===> Got a third party request! <====")
+        iss = data.get("iss", None)
+        access_token = data.get("access_token", None)
+        logger.debug(f"Found ISS: {iss}\nAccess token: {access_token}")
+        auth_url = "https://graph.microsoft.com/oidc/userinfo/"
+        headers = {"Authorization": f"Bearer {access_token}"}
+        response = requests.get(auth_url, headers=headers)
+        if response.status_code != 200:
+            return JsonResponse(
+                {
+                    "msg": f"GW SSO user authentication failed with status {response.status_code}"
+                },
+                status=response.status_code,
+            )
+        user_info = response.json()
+        logger.debug(f"Response:\n{user_info}")
+        user = User.objects.filter(username=user_info["email"]).first()
+
+        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+
+        logger.debug(f"---> User is {user}.")
+
+    else:
+        if username is None or password is None:
+            return JsonResponse(
+                {"msg": "Please provide username and password.", "status": 0}, status=400
+            )
+
+        # Failed authentication yields an HTTP 400 error code
+        user = authenticate(request, username=username, password=password)
+
+        if user is None:
+            return JsonResponse({"msg": "Invalid credentials.", "status": 0}, status=401)
+
+        login(request, user)
 
     if user is None:
-        return JsonResponse({"msg": "Invalid credentials.", "status": 0}, status=403)
+        return JsonResponse({"msg": "Server error: Missing user"}, status=500)
 
-    # log_info(request, user)
+    logger.debug("*"*80)
 
-    # logger.debug(f"Got user: {user}")
-
-    users = User.objects.all()
-    # for u in users:
-    #     logger.debug(f"DB User: {u} ---> Authenticated? {u.is_authenticated}")
-
-    login(request, user)
-
-    # users = User.objects.all()
-    # for u in users:
-    #     logger.debug(
-    #         f"Refreshed (?) DB User: {u} ---> Authenticated? {u.is_authenticated}"
-    #     )
     user_category = user.get_category()
 
     if user.is_superuser:
@@ -244,9 +264,6 @@ def login_view(request):
             "isAuthenticated": True,
             "status": 1,
         }
-        # logger.debug("V" * 80)
-        # logger.debug(response_dict)
-        # logger.debug("^" * 80)
         return JsonResponse(
             response_dict,
             status=200,

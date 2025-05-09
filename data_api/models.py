@@ -6,6 +6,7 @@ from django.conf import settings
 
 from pathlib import Path
 
+
 # Create your models here.
 class BCOFileDescriptor(models.Model):
     bcoid = models.CharField(max_length=255)
@@ -17,4 +18,6 @@ class BCOFileDescriptor(models.Model):
         null=True, default=list
     )  # extension_domain/dataset_categories
     files_represented = models.JSONField(null=True, default=list)
-    usability_domain = models.CharField(max_length=500, default="No description provided")
+    usability_domain = models.CharField(
+        max_length=500, default="No description provided"
+    )

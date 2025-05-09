@@ -50,7 +50,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://feast.mgpc.biochemistry.gwu.edu",
 ]
 
-CORS_ORIGIN_ALLOW_ALL = True
+# CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
 CORS_ALLOW_HEADERS = [
