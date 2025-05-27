@@ -40,13 +40,13 @@
             "dbGaP",
             "FEAST",
             "HIVE",
-            "lung",
-            "cancer",
-            "lung cancer"
+            "Lung",
+            "Cancer",
+            "Lung cancer"
         ],
         "xref": [
             {
-                "namespace": "dbgap",
+                "namespace": "dbGaP",
                 "name": "dbGaP",
                 "access_time": "2025-02-24T05:00:00.000Z",
                 "ids": [
@@ -215,7 +215,7 @@
                     "script_license": "https://www.gnu.org/licenses/gpl-3.0.en.html"
                 },
                 "body_sites": [
-                    "lung"
+                    "Lung"
                 ],
                 "patient-count": 232,
                 "number-of-variables": 16,
@@ -226,7 +226,8 @@
                 "dataset_categories": [
                     {
                         "category_name": "access_group",
-                        "category_value": "dbgap"
+                        "category_value": "dbGaP",
+                        "category_faq": "https://hivelab.biochemistry.gwu.edu/wiki/Database_of_Genotypes_and_Phenotypes_(dbGaP)_Data"
                     }
                 ]
             }

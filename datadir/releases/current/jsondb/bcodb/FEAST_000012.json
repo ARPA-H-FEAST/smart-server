@@ -37,8 +37,8 @@
             "ARPA-H",
             "FEAST",
             "NBCC",
-            "breast cancer",
-            "cancer"
+            "Breast Cancer",
+            "Cancer"
         ],
         "xref": [
         ],
@@ -104,7 +104,8 @@
                     "script_license": "https://www.gnu.org/licenses/gpl-3.0.en.html"
                 },
                 "body_sites": [
-                    "All"
+                    "All",
+                    "Breast"
                 ],
                 "patient-count": "Unknown",
                 "number-of-variables": "Variable",
@@ -114,7 +115,8 @@
                 "dataset_categories": [
                     {
                         "category_name": "access_group",
-                        "category_value": "NBCC"
+                        "category_value": "NBCC",
+                        "category_faq": "https://hivelab.biochemistry.gwu.edu/wiki/National_Breast_Cancer_Coalition_(NBCC)_Data"
                     }
                 ]
             }

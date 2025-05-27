@@ -40,13 +40,14 @@
           "script_license": "https://www.gnu.org/licenses/gpl-3.0.en.html"
         },
         "body_sites": [
-          "prostate"
+          "Prostate"
         ],
         "record-format": "tsv",
         "dataset_categories": [
           {
             "category_name": "access_group",
-            "category_value": "GW"
+            "category_value": "GWDC",
+            "category_faq": "https://hivelab.biochemistry.gwu.edu/wiki/GW_Data_Commons_(GWDC)_Data"
           }
         ]
       }
@@ -57,7 +58,7 @@
       "ARPA-H",
       "FEAST",
       "HIVE",
-      "prostate cancer"
+      "Prostate Cancer"
     ],
     "platform": [
       "Linux Rocky 8.10"

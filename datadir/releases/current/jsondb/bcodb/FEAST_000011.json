@@ -36,8 +36,8 @@
             "ARPA-H",
             "FEAST",
             "HIVE",
-            "synthetic",
-            "patient"
+            "Synthetic",
+            "Patient"
         ],
         "xref": [
         ],
@@ -113,7 +113,8 @@
                 "dataset_categories": [
                     {
                         "category_name": "access_group",
-                        "category_value": "synthea"
+                        "category_value": "Synthea",
+                        "category_faq": "https://hivelab.biochemistry.gwu.edu/wiki/Synthea_Data"
                     }
                 ]
             }
