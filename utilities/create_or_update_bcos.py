@@ -74,13 +74,16 @@ for bco_file in os.listdir():
     # print(f"Keywords found: {keywords}")
     # print(f"*" * 80)
     try:
+        defaults = {
+            "files_represented": filenames,
+            "keywords": keywords,
+            "body_sites": body_sites,
+            "access_categories": access_categories,
+            "usability_domain": usability_string,
+        }
         BCOFileDescriptor.objects.update_or_create(
             bcoid=bco_file.strip(".json"),
-            files_represented=filenames,
-            keywords=keywords,
-            body_sites=body_sites,
-            access_categories=access_categories,
-            usability_domain=usability_string,
+            defaults=defaults,
         )
     except Exception as e:
         print("*" * 80)
