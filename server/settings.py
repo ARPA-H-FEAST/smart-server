@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 import logging
 import mimetypes
+import os
 import tomli
 
 from pathlib import Path
@@ -35,8 +36,10 @@ DEBUG = config[DJANGO_MODE]["Debug"]
 
 if DJANGO_MODE == "dev":
     DATA_HOME = BASE_DIR / "datadir/releases/current/"
+    DB_HOME = os.path.expanduser("~/gwu-src/feast/data/")
 else:
     DATA_HOME = "/data/arpah/releases/current/"
+    DB_HOME = None  # XXX / FIXME
 
 ALLOWED_HOSTS = ["middleware", "127.0.0.1", "localhost"]
 
