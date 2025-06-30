@@ -11,6 +11,7 @@ class BCOandFileSerializer(serializers.ModelSerializer):
         fields = [
             "bcoid",
             "files_represented",
+            "db_support",
             "keywords",
             "body_sites",
             "access_categories",

@@ -3,23 +3,54 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, FileResponse
 
+
 from wsgiref.util import FileWrapper
 
 from .models import BCOFileDescriptor
 from .serializers import BCOandFileSerializer
 
+from .db_interfaces import (
+    DuckInterface, SQLiteInterface
+)
+
 import json
 import logging
 import os
+
+import duckdb
+import sqlite3 as sql
 
 # Create your views here.
 
 logger = logging.getLogger()
 
 DATA_HOME = settings.DATA_HOME
+DB_HOME = settings.DB_HOME
+
 BCO_HOME = DATA_HOME / "jsondb/bcodb/"
 TARBALL_FILE_HOME = DATA_HOME / "tarballs/"
 
+def config_to_connections(config):
+    connections = {}
+    for bco_id, dataset_config in config.items():
+        db_path = os.path.join(DB_HOME, dataset_config["db_location"])
+        db_class = dataset_config["db_class"]
+        if db_class == "duckdb":
+            connections[bco_id] = DuckInterface(db_path, dataset_config)
+        elif db_class == "sqlite3":
+            connections[bco_id] = SQLiteInterface(db_path, dataset_config)
+        else:
+            raise Exception(f"Unsupported DB connection {db_class}")
+    return connections
+
+# Read the DB home for a configuration file, if present.
+db_config_path = os.path.join(DB_HOME, "db_config.json")
+if os.path.isfile(db_config_path):
+    with open(db_config_path, "r") as fp:
+        config = json.load(fp)
+    DB_CONNECTORS = config_to_connections(config)
+else:
+    DB_CONNECTORS = {}
 
 @login_required
 def get_available_files(request):
@@ -55,10 +86,21 @@ def get_file_detail(request):
     with open(os.path.join(BCO_HOME, f"{bcoid}.json"), "r") as fp:
         bco = json.load(fp)
 
+    db_support = False
+    logger.debug(f"===> DB Conn keys: {DB_CONNECTORS.keys()}")
+    if bcoid in DB_CONNECTORS.keys():
+        db_support = True
+        # Retrieve first N samples for display
+        example_values = DB_CONNECTORS[bcoid].get_sample()
+        for v in example_values:
+            logger.debug(f"DB response: {v}")
     response = {
         "bco": bco,
         "fileobjlist": [{"filename": f} for f in bco_model.files_represented],
     }
+
+    if db_support:
+        response["db_entries"] = example_values
 
     return JsonResponse(response, safe=False)
 
