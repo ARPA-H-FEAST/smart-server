@@ -36,9 +36,9 @@ def config_to_connections(config):
         db_path = os.path.join(DB_HOME, dataset_config["db_location"])
         db_class = dataset_config["db_class"]
         if db_class == "duckdb":
-            connections[bco_id] = DuckInterface(db_path, dataset_config)
+            connections[bco_id] = DuckInterface(db_path, dataset_config, logger)
         elif db_class == "sqlite3":
-            connections[bco_id] = SQLiteInterface(db_path, dataset_config)
+            connections[bco_id] = SQLiteInterface(db_path, dataset_config, logger)
         else:
             raise Exception(f"Unsupported DB connection {db_class}")
     return connections
@@ -79,28 +79,23 @@ def get_file_detail(request):
     logger.debug(f"===> Got a request for BCO information on {bcoid} from user {user}")
 
     bco_model = BCOFileDescriptor.objects.get(bcoid=bcoid)
-    logger.debug(f"Found BCO data: {BCOandFileSerializer(bco_model).data}")
+    # logger.debug(f"Found BCO data: {BCOandFileSerializer(bco_model).data}")
 
-    logger.debug(f"---> Searching directory {BCO_HOME} for file {bcoid}.json")
+    # logger.debug(f"---> Searching directory {BCO_HOME} for file {bcoid}.json")
 
     with open(os.path.join(BCO_HOME, f"{bcoid}.json"), "r") as fp:
         bco = json.load(fp)
 
-    db_support = False
-    logger.debug(f"===> DB Conn keys: {DB_CONNECTORS.keys()}")
     if bcoid in DB_CONNECTORS.keys():
-        db_support = True
         # Retrieve first N samples for display
         example_values = DB_CONNECTORS[bcoid].get_sample()
-        for v in example_values:
-            logger.debug(f"DB response: {v}")
+    else:
+        example_values = None
     response = {
         "bco": bco,
         "fileobjlist": [{"filename": f} for f in bco_model.files_represented],
+        "db_entries": example_values,
     }
-
-    if db_support:
-        response["db_entries"] = example_values
 
     return JsonResponse(response, safe=False)
 
