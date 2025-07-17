@@ -10,7 +10,7 @@ from .models import BCOFileDescriptor
 from .serializers import BCOandFileSerializer
 
 from .db_interfaces import (
-    DuckInterface, SQLiteInterface
+    DBInterface
 )
 
 import json
@@ -26,6 +26,7 @@ logger = logging.getLogger()
 
 DATA_HOME = settings.DATA_HOME
 DB_HOME = settings.DB_HOME
+BASE_DIR = settings.BASE_DIR
 
 BCO_HOME = DATA_HOME / "jsondb/bcodb/"
 TARBALL_FILE_HOME = DATA_HOME / "tarballs/"
@@ -34,22 +35,17 @@ def config_to_connections(config):
     connections = {}
     for bco_id, dataset_config in config.items():
         db_path = os.path.join(DB_HOME, dataset_config["db_location"])
-        db_class = dataset_config["db_class"]
-        if db_class == "duckdb":
-            connections[bco_id] = DuckInterface(db_path, dataset_config, logger)
-        elif db_class == "sqlite3":
-            connections[bco_id] = SQLiteInterface(db_path, dataset_config, logger)
-        else:
-            raise Exception(f"Unsupported DB connection {db_class}")
+        connections[bco_id] = DBInterface(db_path, dataset_config, logger)
     return connections
 
 # Read the DB home for a configuration file, if present.
-db_config_path = os.path.join(DB_HOME, "db_config.json")
+db_config_path = os.path.join(BASE_DIR, "data_api/db_interfaces/db_config.json")
 if os.path.isfile(db_config_path):
     with open(db_config_path, "r") as fp:
         config = json.load(fp)
     DB_CONNECTORS = config_to_connections(config)
 else:
+    logger.debug(f"No DB connections defined at {db_config_path}")
     DB_CONNECTORS = {}
 
 @login_required
@@ -87,14 +83,19 @@ def get_file_detail(request):
         bco = json.load(fp)
 
     if bcoid in DB_CONNECTORS.keys():
+        dbi = DB_CONNECTORS[bcoid]
         # Retrieve first N samples for display
-        example_values = DB_CONNECTORS[bcoid].get_sample()
+        example_values = dbi.get_sample(size=20, output_format="json")
+        db_metadata = dbi.get_db_metadata()
     else:
         example_values = None
+        db_metadata = None
+
     response = {
         "bco": bco,
         "fileobjlist": [{"filename": f} for f in bco_model.files_represented],
         "db_entries": example_values,
+        "db_metadata": db_metadata
     }
 
     return JsonResponse(response, safe=False)

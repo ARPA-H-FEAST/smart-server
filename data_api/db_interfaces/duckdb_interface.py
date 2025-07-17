@@ -1,7 +1,7 @@
 import duckdb
 import pandas as pd
 
-SAMPLE_QUERY = "SELECT * FROM {} LIMIT 20;"
+SAMPLE_QUERY = "SELECT {} FROM {} LIMIT 20;"
 DESCRIPTION_QUERY = "DESCRIBE {};"
 
 class DuckInterface:
@@ -21,7 +21,9 @@ class DuckInterface:
 
     def get_sample(self):
         table = self.config["cannonical_table"]
-        df = self.cur.execute(SAMPLE_QUERY.format(table)).df().to_json(
+        columns = ",".join(self.config["key_columns"])
+
+        df = self.cur.execute(SAMPLE_QUERY.format(columns, table)).df().to_json(
             orient="records"
         )
         return df

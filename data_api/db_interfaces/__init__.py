@@ -1,2 +1,1 @@
-from .duckdb_interface import DuckInterface
-from .sqlite3_interface import SQLiteInterface
+from .db_interface import DBInterface
