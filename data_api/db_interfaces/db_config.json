@@ -20,7 +20,11 @@
             "ReliableSex", "CensusBlockGroupFipsCode", "LastImmunizationQueryInstantUtc",
             "MedicareHospiceEnrollmentStartDate", "MedicareHospiceEnrollmentEndDate"
         ],
-        "other_tables": {}
+        "other_tables": {},
+        "search_fields": {
+            "categorical": ["Ethnicity", "FirstRace", "SecondRace", "DeathDate"],
+            "numerical": ["AgeInYears"]
+        }
     },
     "FEAST_000012": {
         "dataset": "nbcc",
@@ -36,6 +40,11 @@
             "last_screening_year", "last_screening_age", "last_screening_idk",
             "last_screening_none", "cause_of_death", "age_at_death"
         ],
-        "other_tables": {}
+        "other_tables": {},
+        "search_fields": {
+            "categorical": ["relationship", "alive", "breast_cancer"],
+            "numerical": ["year_of_birth", "diagnosis_age"],
+            "ancestry": ["percentage"]
+        }
     }
 }
