@@ -8,13 +8,14 @@ SQL_QUERIES = {
     "GET_UNIQUE": "SELECT DISTINCT {} FROM {};",
     "MIN": "SELECT MIN({}) FROM {};",
     "MAX": "SELECT MAX({}) FROM {};",
-}
+    }
 
 DUCK_QUERIES = {
     "SAMPLE_QUERY": "SELECT {} FROM {}",
-    "DESCRIPTION_QUERY": "DESCRIBE {};",
-
-}
+    "GET_UNIQUE": "SELECT DISTINCT {} FROM {};",
+    "MIN": "SELECT MIN({}) FROM {};",
+    "MAX": "SELECT MAX({}) FROM {};",
+    }
 class DBInterface:
 
     def __init__(self, db_path, config, logger):
@@ -69,14 +70,18 @@ class DBInterface:
             "range_fields": range_fields,
         }
 
-    def get_sample(self, size=30, output_format="json"):
+    def get_sample(self, limit=30, offset=0, output_format="json", selection_string=None):
         table = self.config["cannonical_table"]
         columns = ",".join(self.config["key_columns"])
         query = self.queries["SAMPLE_QUERY"]
-        if size is None:
+        
+        if selection_string is not None:
+            query += selection_string
+
+        if limit is None:
             query += ";"
         else:
-            query += f" LIMIT {size};"
+            query += f" LIMIT {limit} OFFSET {offset};"
         df = pd.read_sql_query(query.format(columns, table), self.con)
         if output_format == "json":
             return df.to_json(orient="records")

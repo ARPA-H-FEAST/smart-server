@@ -15,7 +15,8 @@ logger = logging.getLogger()
 # router.register(r"whoami", views.whoami_view)
 
 urlpatterns = [
-    path("search/", views.get_available_files, name="Available files list"),
+    path("list/", views.get_available_files, name="Available files list"),
     path("detail/", views.get_file_detail, name="File detail view"),
+    path("search/", views.search, name="Access search API"),
     path("download/", views.download, name="Downloads"),
 ]

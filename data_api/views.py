@@ -3,8 +3,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, FileResponse
 
-
-from wsgiref.util import FileWrapper
+from collections import defaultdict
 
 from .models import BCOFileDescriptor
 from .serializers import BCOandFileSerializer
@@ -16,9 +15,6 @@ from .db_interfaces import (
 import json
 import logging
 import os
-
-import duckdb
-import sqlite3 as sql
 
 # Create your views here.
 
@@ -85,7 +81,7 @@ def get_file_detail(request):
     if bcoid in DB_CONNECTORS.keys():
         dbi = DB_CONNECTORS[bcoid]
         # Retrieve first N samples for display
-        example_values = dbi.get_sample(size=20, output_format="json")
+        example_values = dbi.get_sample(output_format="json")
         db_metadata = dbi.get_db_metadata()
     else:
         example_values = None
@@ -99,6 +95,48 @@ def get_file_detail(request):
     }
 
     return JsonResponse(response, safe=False)
+
+@login_required
+def search(request):
+
+    search_details = json.loads(request.body)
+    logger.debug(f"Got search details {search_details}")
+    bcoid = search_details["bcoid"]
+    filters = search_details["filters"]
+
+    logger.debug(f"Filters was {filters}")
+
+    if filters == []:
+        if bcoid in DB_CONNECTORS.keys():
+            dbi = DB_CONNECTORS[bcoid]
+            return JsonResponse(dbi.get_sample(), safe=False)
+        else:
+            return JsonResponse({}, safe=False)
+
+    search_query = " WHERE\n\t"
+    query_dict = defaultdict(list)
+    for filter_entry in filters:
+        column, value = filter_entry.split("|")
+        query_dict[column].append(f'"{value}"')
+    col_counter = 0
+    for col, values in query_dict.items():
+        if col_counter > 0:
+            search_query += "\tAND "
+        search_query += "{} IN ({})\n".format(col, ",".join(values))
+        col_counter += 1
+
+    logger.debug(f"Formed search query:\n{search_query}\n")
+    
+    if bcoid in DB_CONNECTORS.keys():
+        dbi = DB_CONNECTORS[bcoid]
+        example_values = dbi.get_sample(limit=None, selection_string=search_query)
+    else:
+        logger.error(f"Failed to find DB for {bcoid}")
+        example_values = {}
+
+    # logger.debug(f"Got DB response:\n{example_values}")
+
+    return JsonResponse(example_values, safe=False)
 
 
 @login_required
