@@ -18,7 +18,8 @@
             "IsHistoricalPatient", "DualStatusCode", "OriginalMedicareEntitlementReasonCode",
             "MedicarePartAEntitlementStartDate", "MedicarePartBEntitlementStartDate",
             "ReliableSex", "CensusBlockGroupFipsCode", "LastImmunizationQueryInstantUtc",
-            "MedicareHospiceEnrollmentStartDate", "MedicareHospiceEnrollmentEndDate"
+            "MedicareHospiceEnrollmentStartDate", "MedicareHospiceEnrollmentEndDate",
+            "DurableKey_e"
         ],
         "other_tables": {},
         "search_fields": {
