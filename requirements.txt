@@ -6,6 +6,7 @@ django-cors-headers
 django-filter
 django-guardian
 djangorestframework
+drf-yasg
 PyJWT
 pytz
 gunicorn
