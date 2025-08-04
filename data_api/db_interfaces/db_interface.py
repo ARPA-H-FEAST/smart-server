@@ -2,6 +2,7 @@ import sqlite3 as sql
 
 import duckdb
 import pandas as pd
+import json
 
 SQL_QUERIES = {
     "SAMPLE_QUERY": "SELECT {} FROM {}",
@@ -49,7 +50,7 @@ class DBInterface:
         for cat in indexed_info.keys():
             if cat == "categorical":
                 for field in indexed_info[cat]:
-                    self.logger.debug(f"===> Looking for unique field {field} in table {table}")
+                    # self.logger.debug(f"===> Looking for unique field {field} in table {table}")
                     uniques = self.cur.execute(self.queries["GET_UNIQUE"].format(field, table)).fetchall()
                     search_obj = {"name": field, "levels": [u[0] for u in uniques]}
                     search_fields.append(search_obj)
@@ -58,7 +59,7 @@ class DBInterface:
                 for field in indexed_info[cat]:
                     min = self.cur.execute(self.queries["MIN"].format(field, table)).fetchone()
                     max = self.cur.execute(self.queries["MAX"].format(field, table)).fetchone()
-                    self.logger.debug(f"===> Found MIN/MAX search levels for {field}: {min}/{max}")
+                    # self.logger.debug(f"===> Found MIN/MAX search levels for {field}: {min}/{max}")
                     range_fields.append({"name": field, "range": [min, max]})
             else:
                 # raise Exception(f"===> Please implement support for field {cat}!!")
@@ -84,7 +85,7 @@ class DBInterface:
             query += f" LIMIT {limit} OFFSET {offset};"
         df = pd.read_sql_query(query.format(columns, table), self.con)
         if output_format == "json":
-            return df.to_json(orient="records")
+            return json.loads(df.to_json(orient="records"))
         elif output_format == "pandas":
             return df
         else:
