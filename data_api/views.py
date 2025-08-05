@@ -24,6 +24,7 @@ from .adapters import (
     GenomicStudy,
     DiagnosticReport,
     Organization,
+    convert_gwdc_to_fhir,
 )
 
 from .swagger_configs import (
@@ -142,12 +143,7 @@ class GetFileDetail(APIView):
         params = json.loads(request.body)
         format = params.get("format", None)
         ui_required = params.get("ui_use", False)
-
-        logger.debug(f"===> Got a request for BCO information on {bcoid} from user {user}")
-
-        # logger.debug(f"Found BCO data: {BCOandFileSerializer(bco_model).data}")
-
-        # logger.debug(f"---> Searching directory {BCO_HOME} for file {bcoid}.json")
+        bcoid = params.get("bcoid", None)
 
         if bcoid in DB_CONNECTORS.keys():
             dbi = DB_CONNECTORS[bcoid]
@@ -162,7 +158,13 @@ class GetFileDetail(APIView):
                 for idx, sample in enumerate(example_values):
                     if idx > 0:
                         break
-                    fhir_sample = Patient(sample).to_json()
+                    if bcoid == "FEAST_000004":
+                        logger.debug(f"===> Reasoning over value\n\t{sample}")
+                        converted_sample = convert_gwdc_to_fhir(sample)
+                        logger.debug(f"===> Converted sample\n\t{converted_sample}")
+                        fhir_sample = [Patient(converted_sample).to_json()]
+                    else:
+                        fhir_sample = [{}]
                 example_values = fhir_sample
         else:
             example_values = None
@@ -175,8 +177,10 @@ class GetFileDetail(APIView):
                     "db_metadata": db_metadata,
                 }, safe=False
             )
+        logger.debug(f"===> Got a request for BCO information on {bcoid} from user {user}")
+        # logger.debug(f"Found BCO data: {BCOandFileSerializer(bco_model).data}")
+        # logger.debug(f"---> Searching directory {BCO_HOME} for file {bcoid}.json")
 
-        bcoid = params.get("bcoid", None)
         with open(os.path.join(BCO_HOME, f"{bcoid}.json"), "r") as fp:
             bco = json.load(fp)
         bco_model = BCOFileDescriptor.objects.get(bcoid=bcoid)
