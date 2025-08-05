@@ -25,7 +25,11 @@ def query_data_set_details(dataset_bco):
 def query_data_point(dataset_bco, start, stop):
 
     query_api = DATA_BASE_URL + "detail/"
-    response = requests.post(query_api, json={"bcoid": dataset_bco, "format": "fhir"})
+    response = requests.post(query_api, 
+                                json={
+                                    "bcoid": dataset_bco,
+                                    "format": "fhir"
+                                    })
 
     print(f"Got response! {response}")
 
@@ -47,7 +51,7 @@ if __name__ == "__main__":
 
         data = query_data_point(dataset_bco, 0, 1)
 
-        sample_data = json.loads(data["db_entries"])
+        sample_data = data["db_entries"]
         metadata = data["db_metadata"]
 
         sample_patients[dataset] = sample_data[0]
