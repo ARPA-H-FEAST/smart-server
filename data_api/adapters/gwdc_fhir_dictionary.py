@@ -3,7 +3,8 @@ GWDC_PROSTATE_PATIENT_DICT = {
     ### DROPPED ###
     # "SexAssignedAtBirth": "*Unspecified", 
     # "GenderIdentity": "*Unspecified", 
-    "PreferredLanguage": ["communication", "language", "English"], 
+    "PreferredLanguage": 
+        {"communication_preference": {"language": "English"}}, 
     # "Ethnicity": "Unknown", 
     # "FirstRace": "White", 
     # "SecondRace": "", 
@@ -56,17 +57,14 @@ GWDC_PROSTATE_DIAGNOSTIC_DICT = {
     # TODO?
 }
 
-def convert_record_to_fhir(record):
+def convert_gwdc_to_fhir(record):
     patient_record = {}
     for k, v in GWDC_PROSTATE_PATIENT_DICT.items():
         if type(v) is str:
-            patient_record[k] = record[k]
-        elif type(v) is list:
-            patient_record[k] = {}
-            tracker_pointer = patient_record[k]
-            for index, key in enumerate(v):
-                if index < len(v) - 1:
-                    # Why must FHIR be so over-specified ...
-                    patient_record[key] = {}
-                    ### TODO: Pick back up here
+            patient_record[v] = record[k]
+        elif type(v) is dict:
+            for sub_k, sub_v in v.items():
+                patient_record[sub_k] = sub_v
     patient_record["managing_organization"] = "GWDC-PROSTATE"
+    
+    return patient_record

@@ -4,3 +4,4 @@ from .fhir_adapters import (
     Organization,
     DiagnosticReport,
 )
+from .gwdc_fhir_dictionary import convert_gwdc_to_fhir
