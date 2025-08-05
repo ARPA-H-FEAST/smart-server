@@ -64,7 +64,7 @@ class Patient:
             # }]
 
     def to_json(self):
-        return json.dumps(self.__dict__)
+        return self.__dict__
 
 class DiagnosticReport:
 
