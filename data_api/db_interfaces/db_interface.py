@@ -54,7 +54,7 @@ class DBInterface:
                     uniques = self.cur.execute(self.queries["GET_UNIQUE"].format(field, table)).fetchall()
                     search_obj = {"name": field, "levels": [u[0] for u in uniques]}
                     search_fields.append(search_obj)
-                    self.logger.debug(f"===> Found unique search levels for {field}: {search_obj}")
+                    # self.logger.debug(f"===> Found unique search levels for {field}: {search_obj}")
             elif cat == "numerical":
                 for field in indexed_info[cat]:
                     min = self.cur.execute(self.queries["MIN"].format(field, table)).fetchone()
