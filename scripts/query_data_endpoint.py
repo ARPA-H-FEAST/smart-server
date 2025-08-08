@@ -4,6 +4,7 @@ import time
 
 DATA_BASE_URL = "http://localhost:8000/testing-ui/data-api/"
 
+
 def get_data_sets():
 
     query_api = DATA_BASE_URL + "access/get-files/"
@@ -11,6 +12,7 @@ def get_data_sets():
     data = response.json()
 
     return data
+
 
 def query_data_set_details(dataset_bco):
 
@@ -22,14 +24,11 @@ def query_data_set_details(dataset_bco):
 
     return data
 
+
 def query_data_point(dataset_bco, start, stop):
 
     query_api = DATA_BASE_URL + "detail/"
-    response = requests.post(query_api, 
-                                json={
-                                    "bcoid": dataset_bco,
-                                    "format": "fhir"
-                                    })
+    response = requests.post(query_api, json={"bcoid": dataset_bco, "format": "fhir"})
 
     print(f"Got response! {response}")
 
@@ -37,8 +36,9 @@ def query_data_point(dataset_bco, start, stop):
 
     return data
 
+
 if __name__ == "__main__":
-    
+
     data = get_data_sets()
 
     sample_patients = {}
@@ -70,8 +70,6 @@ if __name__ == "__main__":
 
     # # Focus on NBCC data
     # dataset = datasets["FEAST_000012"]
-
-
 
     # # Focus on GWDC data
     # dataset = datasets["FEAST_000004"]

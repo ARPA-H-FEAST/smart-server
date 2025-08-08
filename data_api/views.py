@@ -15,9 +15,7 @@ from collections import defaultdict
 from .models import BCOFileDescriptor
 from .serializers import BCOandFileSerializer
 
-from .db_interfaces import (
-    DBInterface
-)
+from .db_interfaces import DBInterface
 
 from .adapters import (
     Patient,
@@ -47,12 +45,14 @@ BASE_DIR = settings.BASE_DIR
 BCO_HOME = DATA_HOME / "jsondb/bcodb/"
 TARBALL_FILE_HOME = DATA_HOME / "tarballs/"
 
+
 def config_to_connections(config):
     connections = {}
     for bco_id, dataset_config in config.items():
         db_path = os.path.join(DB_HOME, dataset_config["db_location"])
         connections[bco_id] = DBInterface(db_path, dataset_config, logger)
     return connections
+
 
 # Read the DB home for a configuration file, if present.
 db_config_path = os.path.join(BASE_DIR, "data_api/db_interfaces/db_config.json")
@@ -65,11 +65,12 @@ else:
     DB_CONNECTORS = {}
 
 # @swagger_auto_schema(tags=["get_data_source"])
-# methods=["get", "post"], 
+# methods=["get", "post"],
 
 ### TODO: Swagger UI needs (1) class views (rest_framework.views APIViews work)
 ### and (2) explicit calls to `post`, `get`, etc. Seems inflexible and brittle, but
 ### sure ...
+
 
 def get_data_sources(request):
 
@@ -78,8 +79,9 @@ def get_data_sources(request):
     for bcoid, dbi in DB_CONNECTORS.items():
         logger.debug(f"{bcoid}: Got connection to dataset {dbi.config}")
         result[bcoid] = dbi.config["dataset"]
-    
+
     return JsonResponse({"results": result}, safe=False)
+
 
 @csrf_exempt
 def get_data_metadata_values(request):
@@ -94,9 +96,10 @@ def get_data_metadata_values(request):
     response = {
         "key_columns": config["key_columns"],
         "search_fields": config["search_fields"],
-        }
+    }
 
     return JsonResponse(response, safe=False)
+
 
 @login_required
 def get_available_files(request):
@@ -129,14 +132,15 @@ class GetFileDetail(APIView):
             required=["bcoid"],
             properties={
                 "bcoid": openapi.Schema(
-                    type=openapi.TYPE_STRING, description="BCO ID of dataset", default="FEAST_000012"
+                    type=openapi.TYPE_STRING,
+                    description="BCO ID of dataset",
+                    default="FEAST_000012",
                 )
-            }
+            },
         ),
         responses=get_file_detail_config(),
         operation_description="Get detailed information about a dataset",
     )
-
     def post(self, request):
 
         user = request.user
@@ -153,7 +157,7 @@ class GetFileDetail(APIView):
             if format == "fhir":
                 ## TODO: Convert DB values to FHIR
                 ## TODO: Mapping of DBs to FHIR-compliant fields
-                ## e.g., the following error: 
+                ## e.g., the following error:
                 # `Patient.__init__() got an unexpected keyword argument 'Sex'`
                 for idx, sample in enumerate(example_values):
                     if idx > 0:
@@ -175,9 +179,12 @@ class GetFileDetail(APIView):
                 {
                     "db_entries": example_values,
                     "db_metadata": db_metadata,
-                }, safe=False
+                },
+                safe=False,
             )
-        logger.debug(f"===> Got a request for BCO information on {bcoid} from user {user}")
+        logger.debug(
+            f"===> Got a request for BCO information on {bcoid} from user {user}"
+        )
         # logger.debug(f"Found BCO data: {BCOandFileSerializer(bco_model).data}")
         # logger.debug(f"---> Searching directory {BCO_HOME} for file {bcoid}.json")
 
@@ -189,13 +196,14 @@ class GetFileDetail(APIView):
             "bco": bco,
             "fileobjlist": [{"filename": f} for f in bco_model.files_represented],
             "db_entries": example_values,
-            "db_metadata": db_metadata
+            "db_metadata": db_metadata,
         }
 
         for k, v in response.items():
             logger.debug(f"Shipping {k}: {v}")
 
         return JsonResponse(response, safe=False)
+
 
 # def get_file_detail(request):
 #     user = request.user
@@ -221,7 +229,7 @@ class GetFileDetail(APIView):
 #         if format == "fhir":
 #             ## TODO: Convert DB values to FHIR
 #             ## TODO: Mapping of DBs to FHIR-compliant fields
-#             ## e.g., the following error: 
+#             ## e.g., the following error:
 #             # `Patient.__init__() got an unexpected keyword argument 'Sex'`
 #             for idx, sample in enumerate(example_values):
 #                 if idx > 0:
@@ -240,6 +248,7 @@ class GetFileDetail(APIView):
 #     }
 
 #     return JsonResponse(response, safe=False)
+
 
 @login_required
 def search(request):
@@ -271,7 +280,7 @@ def search(request):
         col_counter += 1
 
     logger.debug(f"Formed search query:\n{search_query}\n")
-    
+
     if bcoid in DB_CONNECTORS.keys():
         dbi = DB_CONNECTORS[bcoid]
         example_values = dbi.get_sample(limit=None, selection_string=search_query)

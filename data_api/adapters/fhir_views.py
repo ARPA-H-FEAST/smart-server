@@ -8,7 +8,4 @@ import logging
 import os
 
 
-
-def get_data_sources(request):
-
-    ...
+def get_data_sources(request): ...

@@ -9,14 +9,16 @@ SQL_QUERIES = {
     "GET_UNIQUE": "SELECT DISTINCT {} FROM {};",
     "MIN": "SELECT MIN({}) FROM {};",
     "MAX": "SELECT MAX({}) FROM {};",
-    }
+}
 
 DUCK_QUERIES = {
     "SAMPLE_QUERY": "SELECT {} FROM {}",
     "GET_UNIQUE": "SELECT DISTINCT {} FROM {};",
     "MIN": "SELECT MIN({}) FROM {};",
     "MAX": "SELECT MAX({}) FROM {};",
-    }
+}
+
+
 class DBInterface:
 
     def __init__(self, db_path, config, logger):
@@ -34,7 +36,7 @@ class DBInterface:
             raise Exception(f"Invalid DB configuration: Unknown DB {db_class}")
         self.config = config
         self.logger = logger
-    
+
     def __del__(self):
         if hasattr(self, "con"):
             self.con.close()
@@ -51,14 +53,20 @@ class DBInterface:
             if cat == "categorical":
                 for field in indexed_info[cat]:
                     # self.logger.debug(f"===> Looking for unique field {field} in table {table}")
-                    uniques = self.cur.execute(self.queries["GET_UNIQUE"].format(field, table)).fetchall()
+                    uniques = self.cur.execute(
+                        self.queries["GET_UNIQUE"].format(field, table)
+                    ).fetchall()
                     search_obj = {"name": field, "levels": [u[0] for u in uniques]}
                     search_fields.append(search_obj)
                     # self.logger.debug(f"===> Found unique search levels for {field}: {search_obj}")
             elif cat == "numerical":
                 for field in indexed_info[cat]:
-                    min = self.cur.execute(self.queries["MIN"].format(field, table)).fetchone()
-                    max = self.cur.execute(self.queries["MAX"].format(field, table)).fetchone()
+                    min = self.cur.execute(
+                        self.queries["MIN"].format(field, table)
+                    ).fetchone()
+                    max = self.cur.execute(
+                        self.queries["MAX"].format(field, table)
+                    ).fetchone()
                     # self.logger.debug(f"===> Found MIN/MAX search levels for {field}: {min}/{max}")
                     range_fields.append({"name": field, "range": [min, max]})
             else:
@@ -71,11 +79,13 @@ class DBInterface:
             "range_fields": range_fields,
         }
 
-    def get_sample(self, limit=30, offset=0, output_format="json", selection_string=None):
+    def get_sample(
+        self, limit=30, offset=0, output_format="json", selection_string=None
+    ):
         table = self.config["cannonical_table"]
         columns = ",".join(self.config["key_columns"])
         query = self.queries["SAMPLE_QUERY"]
-        
+
         if selection_string is not None:
             query += selection_string
 
@@ -90,6 +100,7 @@ class DBInterface:
             return df
         else:
             return df
+
 
 if __name__ == "__main__":
 
@@ -121,4 +132,3 @@ if __name__ == "__main__":
             #     print(f"{col} : {uniques[:50]}")
             # else:
             print(f"{col} : {uniques}")
-    

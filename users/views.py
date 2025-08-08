@@ -237,21 +237,24 @@ def login_view(request):
     else:
         if username is None or password is None:
             return JsonResponse(
-                {"msg": "Please provide username and password.", "status": 0}, status=400
+                {"msg": "Please provide username and password.", "status": 0},
+                status=400,
             )
 
         # Failed authentication yields an HTTP 400 error code
         user = authenticate(request, username=username, password=password)
 
         if user is None:
-            return JsonResponse({"msg": "Invalid credentials.", "status": 0}, status=401)
+            return JsonResponse(
+                {"msg": "Invalid credentials.", "status": 0}, status=401
+            )
 
         login(request, user)
 
     if user is None:
         return JsonResponse({"msg": "Server error: Missing user"}, status=500)
 
-    logger.debug("*"*80)
+    logger.debug("*" * 80)
 
     user_category = user.get_category()
 

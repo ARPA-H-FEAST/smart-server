@@ -4,6 +4,7 @@ import pandas as pd
 SAMPLE_QUERY = "SELECT {} FROM {} LIMIT 20;"
 DESCRIPTION_QUERY = "DESCRIBE {};"
 
+
 class DuckInterface:
 
     def __init__(self, db_path, config, logger):
@@ -23,8 +24,9 @@ class DuckInterface:
         table = self.config["cannonical_table"]
         columns = ",".join(self.config["key_columns"])
 
-        df = self.cur.execute(SAMPLE_QUERY.format(columns, table)).df().to_json(
-            orient="records"
+        df = (
+            self.cur.execute(SAMPLE_QUERY.format(columns, table))
+            .df()
+            .to_json(orient="records")
         )
         return df
-

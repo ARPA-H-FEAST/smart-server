@@ -66,7 +66,9 @@ for bco_file in os.listdir():
     access_categories = []
     for dc in dataset_categories:
         if set(dc.keys()).intersection({"category_name", "category_value"}):
-            access_categories.append({"name": dc["category_value"], "link": dc["category_faq"]})
+            access_categories.append(
+                {"name": dc["category_value"], "link": dc["category_faq"]}
+            )
     # print(f"*" * 80)
     # print(f"BCO Name: {bco_file}")
     # print(f"BCO path: {REL_PATH}/{bco_file}")
