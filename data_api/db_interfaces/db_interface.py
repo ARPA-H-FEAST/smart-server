@@ -4,6 +4,8 @@ import duckdb
 import pandas as pd
 import json
 
+from .fhir_converters import FHIR_CONVERTER
+
 SQL_QUERIES = {
     "SAMPLE_QUERY": "SELECT {} FROM {}",
     "GET_UNIQUE": "SELECT DISTINCT {} FROM {};",
@@ -34,6 +36,7 @@ class DBInterface:
             self.queries = SQL_QUERIES
         else:
             raise Exception(f"Invalid DB configuration: Unknown DB {db_class}")
+        self.fhir_converter = FHIR_CONVERTER[config["dataset"]]
         self.config = config
         self.logger = logger
 
@@ -80,12 +83,15 @@ class DBInterface:
         }
 
     def get_sample(
-        self, limit=30, offset=0, output_format="json", selection_string=None
+        self, limit=30, offset=0, output_format="json", selection_string=None,
+        data_type=None
     ):
         table = self.config["cannonical_table"]
-        columns = ",".join(self.config["key_columns"])
         query = self.queries["SAMPLE_QUERY"]
-
+        if output_format == "json":
+            columns = ",".join(self.config["key_columns"])
+        elif output_format == "fhir":
+            columns = ",".join(self.config["fhir_columns"])
         if selection_string is not None:
             query += selection_string
 
@@ -93,13 +99,21 @@ class DBInterface:
             query += ";"
         else:
             query += f" LIMIT {limit} OFFSET {offset};"
-        df = pd.read_sql_query(query.format(columns, table), self.con)
         if output_format == "json":
+            df = pd.read_sql_query(query.format(columns, table), self.con)
             return json.loads(df.to_json(orient="records"))
-        elif output_format == "pandas":
-            return df
-        else:
-            return df
+        elif output_format == "fhir":
+            self.logger.debug(f"Data type: {data_type} ::: FHIR Converter keys: {self.fhir_converter.keys()}")
+            if data_type not in self.fhir_converter.keys():
+                return ["Error", f"Data type {data_type} not found in DB records"]
+            data_rows = self.con.execute(query.format(columns, table)).fetchall()
+            return [self.fhir_converter[data_type](dr) for dr in data_rows]
+
+        # elif output_format == "pandas":
+        #     return df
+        # else:
+        #     return df
+
 
 
 if __name__ == "__main__":
