@@ -21,6 +21,7 @@
             "MedicareHospiceEnrollmentStartDate", "MedicareHospiceEnrollmentEndDate",
             "DurableKey_e"
         ],
+        "fhir_columns": ["Sex", "PreferredLanguage", "BirthDate", "DeathDate", "DurableKey_e"],
         "other_tables": {},
         "search_fields": {
             "categorical": ["Ethnicity", "FirstRace", "SecondRace", "DeathDate"],
@@ -41,6 +42,7 @@
             "last_screening_year", "last_screening_age", "last_screening_idk",
             "last_screening_none", "cause_of_death", "age_at_death"
         ],
+        "fhir_columns": ["sex", "year_of_birth", "alive", "nbcc_userinfo_id"],
         "other_tables": {},
         "search_fields": {
             "categorical": ["relationship", "alive", "breast_cancer"],
