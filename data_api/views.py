@@ -17,14 +17,6 @@ from .serializers import BCOandFileSerializer
 
 from .db_interfaces import DBInterface
 
-from .adapters import (
-    Patient,
-    GenomicStudy,
-    DiagnosticReport,
-    Organization,
-    convert_gwdc_to_fhir,
-)
-
 from .swagger_configs import (
     get_file_detail_config,
     get_file_detail_parameters,
@@ -149,30 +141,33 @@ class GetFileDetail(APIView):
         ui_required = params.get("ui_use", False)
         bcoid = params.get("bcoid", None)
 
-        if bcoid in DB_CONNECTORS.keys():
-            dbi = DB_CONNECTORS[bcoid]
+        if bcoid not in DB_CONNECTORS.keys():
+
+            with open(os.path.join(BCO_HOME, f"{bcoid}.json"), "r") as fp:
+                bco = json.load(fp)
+            bco_model = BCOFileDescriptor.objects.get(bcoid=bcoid)
+
+            return JsonResponse({
+                "bco": bco,
+                "fileobjlist": [{"filename": f} for f in bco_model.files_represented]
+            })
+
+        dbi = DB_CONNECTORS[bcoid]
+        db_metadata = dbi.get_db_metadata()
+
+        if format == "fhir":
+            ## TODO: Convert DB values to FHIR
+            ## TODO: Mapping of DBs to FHIR-compliant fields
+            ## e.g., the following error:
+            # `Patient.__init__() got an unexpected keyword argument 'Sex'`
+            entries = dbi.get_sample(output_format="fhir", data_type="patient")
+            return JsonResponse({
+                "db_entries": entries,
+                "db_metadata": db_metadata
+            })
+        else:
             # Retrieve first N samples for display
             example_values = dbi.get_sample()
-            db_metadata = dbi.get_db_metadata()
-            if format == "fhir":
-                ## TODO: Convert DB values to FHIR
-                ## TODO: Mapping of DBs to FHIR-compliant fields
-                ## e.g., the following error:
-                # `Patient.__init__() got an unexpected keyword argument 'Sex'`
-                for idx, sample in enumerate(example_values):
-                    if idx > 0:
-                        break
-                    if bcoid == "FEAST_000004":
-                        logger.debug(f"===> Reasoning over value\n\t{sample}")
-                        converted_sample = convert_gwdc_to_fhir(sample)
-                        logger.debug(f"===> Converted sample\n\t{converted_sample}")
-                        fhir_sample = [Patient(converted_sample).to_json()]
-                    else:
-                        fhir_sample = [{}]
-                example_values = fhir_sample
-        else:
-            example_values = None
-            db_metadata = None
 
         if not ui_required:
             return JsonResponse(
@@ -187,7 +182,6 @@ class GetFileDetail(APIView):
         )
         # logger.debug(f"Found BCO data: {BCOandFileSerializer(bco_model).data}")
         # logger.debug(f"---> Searching directory {BCO_HOME} for file {bcoid}.json")
-
         with open(os.path.join(BCO_HOME, f"{bcoid}.json"), "r") as fp:
             bco = json.load(fp)
         bco_model = BCOFileDescriptor.objects.get(bcoid=bcoid)
@@ -199,8 +193,8 @@ class GetFileDetail(APIView):
             "db_metadata": db_metadata,
         }
 
-        for k, v in response.items():
-            logger.debug(f"Shipping {k}: {v}")
+        # for k, v in response.items():
+        #     logger.debug(f"Shipping {k}: {v}")
 
         return JsonResponse(response, safe=False)
 
