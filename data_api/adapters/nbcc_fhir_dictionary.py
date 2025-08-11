@@ -1,55 +1,31 @@
-GWDC_PROSTATE_PATIENT_DICT = {
-    "Sex": "gender",
-    ### DROPPED ###
-    # "SexAssignedAtBirth": "*Unspecified",
-    # "GenderIdentity": "*Unspecified",
-    "PreferredLanguage": ["communication", "language", "English"],
-    # "Ethnicity": "Unknown",
-    # "FirstRace": "White",
-    # "SecondRace": "",
-    # "ThirdRace": "",
-    # "FourthRace": "",
-    # "FifthRace": "",
-    # "MultiRacial": 0,
-    # "AgeInYears": 78,
-    "BirthDate": "birthdate",
-    "DeathDate": "deceasedtime",
-    # "DeathLocation": "*Not Applicable",
-    # "Status": "Alive",
-    # "City": "ARLINGTON",
-    # "County": "*Unspecified",
-    # "StateOrProvince": "Virginia",
-    # "StateOrProvinceAbbreviation": "VA",
-    # "Country": "United States of America",
-    # "PostalCode": "22205",
-    # "SexualOrientation": "*Unspecified",
-    # "MaritalStatus": "Married",
-    # "Religion": "None",
-    # "SmokingStatus": "Never Assessed",
-    # "PrimaryFinancialClass": "",
-    # "HighestLevelOfEducation": "*Unspecified",
-    # "IsCancerPatient": 1,
-    # "CountryOfOrigin": "*Unspecified",
-    # "IndigenousStatus": "*Unspecified",
-    # "OmbEthnicity": "Unknown",
-    # "OmbRace": "Unknown",
-    # "Test": 0,
-    # "IsValid": 1,
-    # "StartDate": 1639094400000,
-    # "EndDate": 4102963200000,
-    # "IsCurrent": True,
-    # "PreliminaryCauseOfDeathDiagnosisKey": -1,
-    # "IsHistoricalPatient": 0,
-    # "DualStatusCode": "",
-    # "OriginalMedicareEntitlementReasonCode": "",
-    # "MedicarePartAEntitlementStartDate": None,
-    # "MedicarePartBEntitlementStartDate": None,
-    # "ReliableSex": "Male",
-    # "CensusBlockGroupFipsCode": "*Unspecified",
-    # "LastImmunizationQueryInstantUtc": None,
-    # "MedicareHospiceEnrollmentStartDate": None,
-    # "MedicareHospiceEnrollmentEndDate": None,
-    "DurableKey_e": "identifier",
+NBCC_PATIENT_DICT = {
+    "nbcc_userinfo_id": "identifier",
+    "year_of_birth": "birthdate",
+    "year_of_death": "deceasedtime",
+    # "relationship": "" - In an extension domain?
+    "alive": "",
+    "sex": "",
+    "siblingtype": "",
+    "breast_cancer": "",
+    "diagnosis_year": "",
+    "diagnosis_age": "",
+    "diagnosis_idk": "",
+    "stage": "",
+    "er": "",
+    "pr": "",
+    "other_diagnosis_descriptors": "",
+    "receptors_idk": "",
+    "recurrence": "",
+    "recurrence_year": "",
+    "recurrence_age": "",
+    "recurrence_idk": "",
+    "recurrence_kind": "",
+    "last_screening_year": "",
+    "last_screening_age": "",
+    "last_screening_idk": "",
+    "last_screening_none": "",
+    "cause_of_death": "",
+    "age_at_death": "",
 }
 
 GWDC_PROSTATE_DIAGNOSTIC_DICT = {
@@ -57,17 +33,20 @@ GWDC_PROSTATE_DIAGNOSTIC_DICT = {
 }
 
 
-def convert_record_to_fhir(record):
-    patient_record = {}
-    for k, v in GWDC_PROSTATE_PATIENT_DICT.items():
-        if type(v) is str:
-            patient_record[k] = record[k]
-        elif type(v) is list:
-            patient_record[k] = {}
-            tracker_pointer = patient_record[k]
-            for index, key in enumerate(v):
-                if index < len(v) - 1:
-                    # Why must FHIR be so over-specified ...
-                    patient_record[key] = {}
-                    ### TODO: Pick back up here
-    patient_record["managing_organization"] = "GWDC-PROSTATE"
+def convert_nbcc_to_fhir(record):
+    
+    # patient_record = {}
+    # for k, v in NBCC_PATIENT_DICT.items():
+    #     if type(v) is str:
+    #         patient_record[k] = record[k]
+    #     elif type(v) is list:
+    #         patient_record[k] = {}
+    #         tracker_pointer = patient_record[k]
+    #         for index, key in enumerate(v):
+    #             if index < len(v) - 1:
+    #                 # Why must FHIR be so over-specified ...
+    #                 patient_record[key] = {}
+    #                 ### TODO: Pick back up here
+    # patient_record["managing_organization"] = "NBCC-BREAST"
+    print(f"\n**** NBCC: Processing {record}\n")
+    return {"identifier": 42}

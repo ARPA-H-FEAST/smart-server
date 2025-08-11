@@ -3,7 +3,7 @@ GWDC_PROSTATE_PATIENT_DICT = {
     ### DROPPED ###
     # "SexAssignedAtBirth": "*Unspecified",
     # "GenderIdentity": "*Unspecified",
-    "PreferredLanguage": {"communication_preference": {"language": "English"}},
+    "PreferredLanguage": {"communication_preference": lambda x: {"language": x}},
     # "Ethnicity": "Unknown",
     # "FirstRace": "White",
     # "SecondRace": "",
@@ -64,7 +64,7 @@ def convert_gwdc_to_fhir(record):
             patient_record[v] = record[k]
         elif type(v) is dict:
             for sub_k, sub_v in v.items():
-                patient_record[sub_k] = sub_v
+                patient_record[sub_k] = sub_v(record[k])
     patient_record["managing_organization"] = "GWDC-PROSTATE"
 
     return patient_record
