@@ -4,10 +4,16 @@ import duckdb
 import pandas as pd
 import json
 
-from .fhir_converters import FHIR_CONVERTER
+try:
+    ## Import in Django
+    from .fhir_converters import FHIR_CONVERTER
+except:
+    ## Import for command line
+    from fhir_converters import FHIR_CONVERTER
 
 SQL_QUERIES = {
     "SAMPLE_QUERY": "SELECT {} FROM {}",
+    "RANDOM_SAMPLE": "SELECT * FROM {} WHERE {} in (SELECT {} FROM {} ORDER BY RANDOM() LIMIT {});",
     "GET_UNIQUE": "SELECT DISTINCT {} FROM {};",
     "MIN": "SELECT MIN({}) FROM {};",
     "MAX": "SELECT MAX({}) FROM {};",
@@ -15,6 +21,7 @@ SQL_QUERIES = {
 
 DUCK_QUERIES = {
     "SAMPLE_QUERY": "SELECT {} FROM {}",
+    "RANDOM_SAMPLE": "SELECT * FROM {} WHERE {} in (SELECT {} FROM {} ORDER BY RANDOM() LIMIT {});",
     "GET_UNIQUE": "SELECT DISTINCT {} FROM {};",
     "MIN": "SELECT MIN({}) FROM {};",
     "MAX": "SELECT MAX({}) FROM {};",
@@ -107,7 +114,24 @@ class DBInterface:
             if data_type not in self.fhir_converter.keys():
                 return ["Error", f"Data type {data_type} not found in DB records"]
             data_rows = self.con.execute(query.format(columns, table)).fetchall()
+            self.logger.debug(f"===> Found {len(data_rows)} data points")
             return [self.fhir_converter[data_type](dr) for dr in data_rows]
+
+    def get_random_sample(self):
+        table = self.config["cannonical_table"]
+        query = self.queries["RANDOM_SAMPLE"]
+        random_sampling_config = self.config["random_sampling_keys"]
+        
+        column_headers = self.config["key_columns"]
+        
+        formatted_query = query.format(
+            table, random_sampling_config[0], random_sampling_config[0], 
+            table, random_sampling_config[1])
+        # self.logger.debug(f"Executing query: {formatted_query}")
+        # print(f"Executing query: {formatted_query}")
+
+        random_data = self.con.execute(formatted_query).fetchall()
+        return random_data, column_headers
 
         # elif output_format == "pandas":
         #     return df
@@ -135,14 +159,23 @@ if __name__ == "__main__":
 
     for name, dbi in connections.items():
         print(f"---- {name} ----")
-        df = dbi.get_sample(size=None, output_format="pandas")
-        d_types = []
-        uniques = {}
-        for col in df.columns:
-            d_types.append(df[col].dtype)
-            print(f"{col}: {df[col].dtype}")
-            uniques = df[col].unique()
-            # if len(uniques) > 50:
-            #     print(f"{col} : {uniques[:50]}")
-            # else:
-            print(f"{col} : {uniques}")
+        random_data, column_headers = dbi.get_random_sample()
+        print(f"{name}: Collected {len(random_data)} samples")
+        
+        with open(f"{name}-RandomSamples.csv", "w") as fp:
+            fp.write(",".join(column_headers) + "\n")
+            for line in random_data:
+                fp.write(",".join([str(l) for l in line]) + "\n")
+        fp.close()
+
+        # df = dbi.get_sample(size=None, output_format="pandas")
+        # d_types = []
+        # uniques = {}
+        # for col in df.columns:
+        #     d_types.append(df[col].dtype)
+        #     print(f"{col}: {df[col].dtype}")
+        #     uniques = df[col].unique()
+        #     # if len(uniques) > 50:
+        #     #     print(f"{col} : {uniques[:50]}")
+        #     # else:
+        #     print(f"{col} : {uniques}")

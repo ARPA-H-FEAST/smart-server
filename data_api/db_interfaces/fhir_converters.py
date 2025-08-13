@@ -1,6 +1,13 @@
-from ..adapters import (
-    Patient,
-)
+try:
+    ## Import in Django
+    from .fhir_adapters import (
+        Patient,
+    )
+except:
+    ## Import for command line
+    from fhir_adapters import (
+        Patient,
+    )
 
 def gwdc_patient(record):
     return Patient({
