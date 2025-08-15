@@ -192,7 +192,7 @@ class GetDatasetDetail(APIView):
 
         user = request.user
         params = json.loads(request.body)
-        format = params.get("format", "fhir")
+        format = params.get("format", None)
         ui_required = params.get("ui_use", False)
         bcoid = params.get("bcoid", None)
 
@@ -207,7 +207,7 @@ class GetDatasetDetail(APIView):
 
             return JsonResponse({
                 "bco": bco,
-                "fileobjlist": [{"filename": f} for f in bco_model.files_represented]
+                "fileobjlist": [{"filename": f} for f in bco_model.files_represented],
             })
 
         dbi = DB_CONNECTORS[bcoid]
