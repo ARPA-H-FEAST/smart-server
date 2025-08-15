@@ -18,8 +18,10 @@ from .serializers import BCOandFileSerializer
 from .db_interfaces import DBInterface
 
 from .swagger_configs import (
-    get_file_detail_config,
-    get_file_detail_parameters,
+    get_dataset_detail_config,
+    get_dataset_metadata_config,
+    get_datasets_config,
+    get_bco_config,
 )
 
 import json
@@ -63,34 +65,87 @@ else:
 ### and (2) explicit calls to `post`, `get`, etc. Seems inflexible and brittle, but
 ### sure ...
 
+class GetBCO(APIView):
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["bcoid"],
+            properties={
+                "bcoid": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="BCO ID of dataset",
+                    default="FEAST_000012",
+                )
+            },
+        ),
+        responses=get_bco_config(),
+        operation_description="Retrieve the BCO defining dataset provenance",
+    )
 
-def get_data_sources(request):
+    def post(self, request):
 
-    result = {}
+        bcoid = json.loads(request.body)["bcoid"]
 
-    for bcoid, dbi in DB_CONNECTORS.items():
-        logger.debug(f"{bcoid}: Got connection to dataset {dbi.config}")
-        result[bcoid] = dbi.config["dataset"]
+        if not bcoid:
+            return JsonResponse({"error": "No BCO found in query"}, safe=False, status=400)
+        
+        with open(os.path.join(BCO_HOME, f"{bcoid}.json"), "r") as fp:
+            bco = json.load(fp)
 
-    return JsonResponse({"results": result}, safe=False)
+        return JsonResponse(bco)
 
+class GetDataSets(APIView):
+    @swagger_auto_schema(
+        responses=get_datasets_config(),
+        operation_description="Get detailed information about a dataset",
+    )
+    # The only "GET" in this workflow
+    def get(self, request):
 
-@csrf_exempt
-def get_data_metadata_values(request):
+        result = {}
 
-    bcoid = json.loads(request.body)["bcoid"]
+        for bcoid, dbi in DB_CONNECTORS.items():
+            logger.debug(f"{bcoid}: Got connection to dataset {dbi.config}")
+            result[bcoid] = dbi.config["dataset"]
 
-    if bcoid not in DB_CONNECTORS.keys():
-        # Error handling
-        return JsonResponse({"error": "failure"})
+        return JsonResponse({"results": result}, safe=False)
 
-    config = DB_CONNECTORS[bcoid].config
-    response = {
-        "key_columns": config["key_columns"],
-        "search_fields": config["search_fields"],
-    }
+class GetDatasetMetadata(APIView):
 
-    return JsonResponse(response, safe=False)
+    @swagger_auto_schema(
+        # manual_parameters=get_file_detail_parameters(),
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["bcoid"],
+            properties={
+                "bcoid": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="BCO ID of dataset",
+                    default="FEAST_000012",
+                )
+            },
+        ),
+        responses=get_dataset_metadata_config(),
+        operation_description="Get detailed information about a dataset",
+    )
+
+    def post(self, request):
+        bcoid = json.loads(request.body)["bcoid"]
+
+        if not bcoid:
+            return JsonResponse({"error": "No BCO ID provided"}, safe=False, status=400)
+
+        if bcoid not in DB_CONNECTORS.keys():
+            # Error handling
+            return JsonResponse({"error": f"Unknown BCO ID {bcoid} provided"}, safe=False, status=400)
+
+        config = DB_CONNECTORS[bcoid].config
+        response = {
+            "key_columns": config["key_columns"],
+            "search_fields": config["search_fields"],
+        }
+
+        return JsonResponse(response, safe=False)
 
 
 @login_required
@@ -115,7 +170,7 @@ def get_available_files(request):
 
 # @login_required
 # @csrf_exempt
-class GetFileDetail(APIView):
+class GetDatasetDetail(APIView):
 
     @swagger_auto_schema(
         # manual_parameters=get_file_detail_parameters(),
@@ -130,16 +185,19 @@ class GetFileDetail(APIView):
                 )
             },
         ),
-        responses=get_file_detail_config(),
+        responses=get_dataset_detail_config(),
         operation_description="Get detailed information about a dataset",
     )
     def post(self, request):
 
         user = request.user
         params = json.loads(request.body)
-        format = params.get("format", None)
+        format = params.get("format", "fhir")
         ui_required = params.get("ui_use", False)
         bcoid = params.get("bcoid", None)
+
+        if bcoid is None:
+            return JsonResponse({"error": "No BCO ID query parameter provided"}, safe=False, status=400)
 
         if bcoid not in DB_CONNECTORS.keys():
 
