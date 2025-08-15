@@ -5,7 +5,6 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from . import views
-from .views import GetFileDetail
 
 import logging
 import os
@@ -30,15 +29,16 @@ class SchemaGenerator(OpenAPISchemaGenerator):
 
 
 swagger_patterns = [
-    path("detail/", GetFileDetail.as_view(), name="File detail view"),
+    path("dataset-detail/", views.GetDatasetDetail.as_view(), name="File detail view"),
     path(
-        "get-files/", views.get_data_sources, name="API data source list access"
+        "datasets/", views.GetDataSets.as_view(), name="API data source list access"
     ),
     path(
-        "ds-metadata/",
-        views.get_data_metadata_values,
+        "dataset-metadata/",
+        views.GetDatasetMetadata.as_view(),
         name="API data source metadata access",
     ),
+    path("dataset-bco/", views.GetBCO.as_view(), name="BCO Access"),
 ]
 
 schema_view = get_schema_view(
