@@ -168,7 +168,7 @@ if __name__ == "__main__":
             for line in random_data:
                 fp.write(",".join([str(l) for l in line]) + "\n")
                 line_count += 1
-                if line_count > 10:
+                if line_count > 9:
                     break
         fp.close()
 
