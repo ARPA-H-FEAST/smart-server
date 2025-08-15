@@ -164,8 +164,12 @@ if __name__ == "__main__":
         
         with open(f"{name}-RandomSamples.csv", "w") as fp:
             fp.write(",".join(column_headers) + "\n")
+            line_count = 0
             for line in random_data:
                 fp.write(",".join([str(l) for l in line]) + "\n")
+                line_count += 1
+                if line_count > 10:
+                    break
         fp.close()
 
         # df = dbi.get_sample(size=None, output_format="pandas")
