@@ -199,51 +199,6 @@ class GetFileDetail(APIView):
         return JsonResponse(response, safe=False)
 
 
-# def get_file_detail(request):
-#     user = request.user
-#     params = json.loads(request.body)
-#     bcoid = params.get("bcoid", None)
-#     format = params.get("format", None)
-
-#     logger.debug(f"===> Got a request for BCO information on {bcoid} from user {user}")
-
-#     bco_model = BCOFileDescriptor.objects.get(bcoid=bcoid)
-#     # logger.debug(f"Found BCO data: {BCOandFileSerializer(bco_model).data}")
-
-#     # logger.debug(f"---> Searching directory {BCO_HOME} for file {bcoid}.json")
-
-#     with open(os.path.join(BCO_HOME, f"{bcoid}.json"), "r") as fp:
-#         bco = json.load(fp)
-
-#     if bcoid in DB_CONNECTORS.keys():
-#         dbi = DB_CONNECTORS[bcoid]
-#         # Retrieve first N samples for display
-#         example_values = dbi.get_sample()
-#         db_metadata = dbi.get_db_metadata()
-#         if format == "fhir":
-#             ## TODO: Convert DB values to FHIR
-#             ## TODO: Mapping of DBs to FHIR-compliant fields
-#             ## e.g., the following error:
-#             # `Patient.__init__() got an unexpected keyword argument 'Sex'`
-#             for idx, sample in enumerate(example_values):
-#                 if idx > 0:
-#                     break
-#                 fhir_sample = Patient(sample).to_json()
-#             example_values = fhir_sample
-#     else:
-#         example_values = None
-#         db_metadata = None
-
-#     response = {
-#         "bco": bco,
-#         "fileobjlist": [{"filename": f} for f in bco_model.files_represented],
-#         "db_entries": example_values,
-#         "db_metadata": db_metadata
-#     }
-
-#     return JsonResponse(response, safe=False)
-
-
 @login_required
 def search(request):
 

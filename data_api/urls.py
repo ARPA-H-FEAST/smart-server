@@ -32,10 +32,10 @@ class SchemaGenerator(OpenAPISchemaGenerator):
 swagger_patterns = [
     path("detail/", GetFileDetail.as_view(), name="File detail view"),
     path(
-        "access/get-files/", views.get_data_sources, name="API data source list access"
+        "get-files/", views.get_data_sources, name="API data source list access"
     ),
     path(
-        "access/ds-metadata/",
+        "ds-metadata/",
         views.get_data_metadata_values,
         name="API data source metadata access",
     ),

@@ -7,7 +7,7 @@ DATA_BASE_URL = "http://localhost:8000/testing-ui/data-api/"
 
 def get_data_sets():
 
-    query_api = DATA_BASE_URL + "access/get-files/"
+    query_api = DATA_BASE_URL + "get-files/"
     response = requests.get(query_api)
     data = response.json()
 
@@ -16,7 +16,7 @@ def get_data_sets():
 
 def query_data_set_details(dataset_bco):
 
-    query_api = DATA_BASE_URL + "access/ds-metadata/"
+    query_api = DATA_BASE_URL + "ds-metadata/"
     response = requests.post(query_api, json={"bcoid": dataset_bco})
     data = response.json()
 
