@@ -13,7 +13,7 @@ except:
 
 SQL_QUERIES = {
     "SAMPLE_QUERY": "SELECT {} FROM {}",
-    "RANDOM_SAMPLE": "SELECT * FROM {} WHERE {} in (SELECT {} FROM {} ORDER BY RANDOM() LIMIT {});",
+    "RANDOM_SAMPLE": "SELECT {} FROM {} WHERE {} in (SELECT {} FROM {} ORDER BY RANDOM() LIMIT {});",
     "GET_UNIQUE": "SELECT DISTINCT {} FROM {};",
     "MIN": "SELECT MIN({}) FROM {};",
     "MAX": "SELECT MAX({}) FROM {};",
@@ -21,7 +21,7 @@ SQL_QUERIES = {
 
 DUCK_QUERIES = {
     "SAMPLE_QUERY": "SELECT {} FROM {}",
-    "RANDOM_SAMPLE": "SELECT * FROM {} WHERE {} in (SELECT {} FROM {} ORDER BY RANDOM() LIMIT {});",
+    "RANDOM_SAMPLE": "SELECT {} FROM {} WHERE {} in (SELECT {} FROM {} ORDER BY RANDOM() LIMIT {});",
     "GET_UNIQUE": "SELECT DISTINCT {} FROM {};",
     "MIN": "SELECT MIN({}) FROM {};",
     "MAX": "SELECT MAX({}) FROM {};",
@@ -123,12 +123,13 @@ class DBInterface:
         random_sampling_config = self.config["random_sampling_keys"]
         
         column_headers = self.config["key_columns"]
-        
+
         formatted_query = query.format(
-            table, random_sampling_config[0], random_sampling_config[0], 
-            table, random_sampling_config[1])
+            ",".join(column_headers), table, random_sampling_config[0], 
+            random_sampling_config[0], table, random_sampling_config[1]
+        )
         # self.logger.debug(f"Executing query: {formatted_query}")
-        # print(f"Executing query: {formatted_query}")
+        print(f"Executing query: {formatted_query}")
 
         random_data = self.con.execute(formatted_query).fetchall()
         return random_data, column_headers
