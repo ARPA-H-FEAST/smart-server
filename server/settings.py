@@ -39,7 +39,7 @@ if DJANGO_MODE == "dev":
     DB_HOME = os.path.expanduser("~/gwu-src/feast/data/")
 else:
     DATA_HOME = "/data/arpah/releases/current/"
-    DB_HOME = None  # XXX / FIXME
+    DB_HOME = "/data/arpah/processed/"  # XXX / FIXME
 
 ALLOWED_HOSTS = ["middleware", "127.0.0.1", "localhost"]
 
