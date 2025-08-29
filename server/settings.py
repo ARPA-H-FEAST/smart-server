@@ -182,7 +182,7 @@ REST_FRAMEWORK = {
 ROOT_URLCONF = "server.urls"
 
 SWAGGER_SETTINGS = {
-    "DEFAULT_API_URL": "/predictmod/yasg/",
+    "DEFAULT_API_URL": "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/yasg/",
 }
 
 TEMPLATES = [
