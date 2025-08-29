@@ -47,6 +47,9 @@ APPEND_SLASH = False
 
 AUTH_USER_MODEL = "users.User"
 
+STATIC_URL = "/testing-ui/yasg/"
+STATIC_ROOT = "/testing-ui/static/"
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://smart-feast",
