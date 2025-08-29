@@ -124,62 +124,59 @@ def query_fhir(request):
         FHIR_URL = "http://feast-fhir-302:8081/fhir/"
     if query_args_string is None:
         return JsonResponse({"response": "no query text provided"}, safe=False)
-    match method:
-        case "GET":
-            fhir_response = requests.request(
-                method="GET", url=f"{FHIR_URL}{query_args_string}"
-            )
-            response_body = fhir_response.json()
-            _ = response_body.pop("link", None)
-            logger.debug(
-                f"Got server response: {response_body}\n\n(Type {type(response_body)})"
-            )
-            return JsonResponse(response_body, safe=False)
-        case "POST":
-            json_body = request.body.decode("utf-8")
-            logger.debug(f"---> Got JSON info {json_body}")
-            fhir_response = requests.request(
-                headers={
-                    "Content-Type": "application/json",
-                },
-                method="POST",
-                url=f"{FHIR_URL}{query_args_string}",
-                data=json_body,
-            )
-            _ = response_body.pop("link", None)
-            response_body = fhir_response.json()
-            logger.debug(
-                f"Got server response: {response_body}\n\n(Type {type(response_body)})"
-            )
-            return JsonResponse(response_body, safe=False)
-        case _:
-            ...
+    if method == "GET":
+        fhir_response = requests.request(
+            method="GET", url=f"{FHIR_URL}{query_args_string}"
+        )
+        response_body = fhir_response.json()
+        _ = response_body.pop("link", None)
+        logger.debug(
+            f"Got server response: {response_body}\n\n(Type {type(response_body)})"
+        )
+        return JsonResponse(response_body, safe=False)
+    elif method == "POST":
+        json_body = request.body.decode("utf-8")
+        logger.debug(f"---> Got JSON info {json_body}")
+        fhir_response = requests.request(
+            headers={
+                "Content-Type": "application/json",
+            },
+            method="POST",
+            url=f"{FHIR_URL}{query_args_string}",
+            data=json_body,
+        )
+        _ = response_body.pop("link", None)
+        response_body = fhir_response.json()
+        logger.debug(
+            f"Got server response: {response_body}\n\n(Type {type(response_body)})"
+        )
+        return JsonResponse(response_body, safe=False)
+    else:
+        ...
 
 
 def fhir_metadata(request):
     method = request.method
     logger.debug(f"---> Got request of method {method}")
     # logger.debug(f"META keys are\n{request.META.keys()}")
-    match method:
-        case "GET":
-            # hardcoded reponse to confirm FHIR server is there
-            fhir_response = requests.request(
-                method="GET", url="http://localhost:8081/fhir/metadata/"
-            )
-            compliance_statement = fhir_response.json()
-            # logger.debug(f"Got JSON compliance string {compliance_statement}")
-            return JsonResponse(compliance_statement, safe=False)
-        case "POST":
-            return JsonResponse({"result": "Post not yet supported"}, safe=False)
+    if method == "GET":
+        # hardcoded reponse to confirm FHIR server is there
+        fhir_response = requests.request(
+            method="GET", url="http://localhost:8081/fhir/metadata/"
+        )
+        compliance_statement = fhir_response.json()
+        # logger.debug(f"Got JSON compliance string {compliance_statement}")
+        return JsonResponse(compliance_statement, safe=False)
+    elif method == "POST":
+        return JsonResponse({"result": "Post not yet supported"}, safe=False)
 
 
 def fhir_openapi(request):
     method = request.method
-    match method:
-        case "GET":
-            swagger_response = requests.request(
-                method="GET", url="http://localhost:8081/fhir/swagger-ui/"
-            )
-            return HttpResponse(swagger_response)
-        case _:
-            ...
+    if method == "GET":
+        swagger_response = requests.request(
+            method="GET", url="http://localhost:8081/fhir/swagger-ui/"
+        )
+        return HttpResponse(swagger_response)
+    else:
+        ...
