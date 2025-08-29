@@ -181,6 +181,10 @@ REST_FRAMEWORK = {
 
 ROOT_URLCONF = "server.urls"
 
+SWAGGER_SETTINGS = {
+    "DEFAULT_API_URL": "/predictmod/yasg/",
+}
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
