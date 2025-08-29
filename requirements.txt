@@ -13,3 +13,4 @@ pytz
 gunicorn
 requests
 tomli
+whitenoise
