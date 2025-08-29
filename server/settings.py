@@ -47,8 +47,8 @@ APPEND_SLASH = False
 
 AUTH_USER_MODEL = "users.User"
 
-STATIC_URL = "/testing-ui/yasg/"
-STATIC_ROOT = "/testing-ui/static/"
+STATIC_URL = "/testing-ui/static/"
+STATIC_ROOT = "static/"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -252,8 +252,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = "static/"
-STATIC_ROOT = BASE_DIR / STATIC_URL
+# STATIC_URL = "static/"
+# STATIC_ROOT = BASE_DIR / STATIC_URL
 # STATICFILES_DIRS = [
 #     BASE_DIR / "static",
 #     BASE_DIR / "static/assets",
