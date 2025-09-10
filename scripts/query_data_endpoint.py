@@ -3,6 +3,7 @@ import requests
 import time
 
 DATA_BASE_URL = "http://localhost:8000/testing-ui/data-api/"
+# DATA_BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/data-api/"
 
 
 def get_data_sets():
@@ -20,17 +21,15 @@ def query_data_set_details(dataset_bco):
     response = requests.post(query_api, json={"bcoid": dataset_bco})
     data = response.json()
 
-    print(f"Query {dataset_bco}: Got:\n{data}")
-
     return data
 
 
-def query_data_point(dataset_bco, start, stop):
+def query_data_point(dataset_bco, sample_offset, limit):
 
     query_api = DATA_BASE_URL + "dataset-detail/"
-    response = requests.post(query_api, json={"bcoid": dataset_bco, "format": "fhir"})
-
-    print(f"Got response! {response}")
+    response = requests.post(query_api, 
+        json={"bcoid": dataset_bco, "sample_limit": limit, "sample_offset": sample_offset}
+    )
 
     data = response.json()
 
@@ -41,32 +40,52 @@ if __name__ == "__main__":
 
     data = get_data_sets()
 
-    sample_patients = {}
+    print("*"*80)
+    print(f"---> Found data sets {data}")
+    print("*"*80)
+
+    sample_patient = {}
 
     datasets = data["results"]
+
+    single_dataset_key = list(datasets.keys())[0]
+
     start = time.time()
-    for dataset_bco, dataset in datasets.items():
-        print(f"{dataset_bco}: {dataset}")
-        response = query_data_set_details(dataset_bco)
 
-        data = query_data_point(dataset_bco, 0, 1)
+    dataset_bco = single_dataset_key
+    dataset = datasets[dataset_bco]
 
-        sample_data = data["db_entries"]
-        metadata = data["db_metadata"]
+    print(f"{dataset_bco}: {dataset}")
+    response = query_data_set_details(dataset_bco)
 
-        sample_patients[dataset] = sample_data[0]
+    print("*"*80)
+    print(f"Dataset metadata response:")
+    for k, v in response.items():
+        print(f"{k}:\n{v}\n")
+    print("*"*80)
 
-        # print("*"*80)
-        # print(f"============= {dataset}: SAMPLE DATA =============")
-        # print(type(sample_data))
-        # print("*"*80)
-        # print(f"============= {dataset}: METADATA =============")
-        # print(type(metadata))
-        # print("*"*80)
+    sample_offset = 0
+    sample_limit = 50
+
+    data = query_data_point(dataset_bco, sample_offset=sample_offset, limit=sample_limit)
+
+    sample_data = data["db_entries"]
+    metadata = data["db_metadata"]
+    print("*"*80)
+    print(f"Dataset sample response:")
+    for k, v in data.items():
+        if k == "db_entries":
+            print(f"\nFound {len(v)} DB entries. Printing only the first sample.")
+            print(f"{v[0]}\n")
+        else:
+            print(f"{k}:\n{v}\n")
+    print("*"*80)
+
+    sample_patient[dataset] = sample_data[0]
 
     print(f"Query roundtrip required {time.time() - start:.3f} s")
 
-    print(sample_patients)
+    print(sample_patient)
 
     # # Focus on NBCC data
     # dataset = datasets["FEAST_000012"]
