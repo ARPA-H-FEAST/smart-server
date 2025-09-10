@@ -185,6 +185,7 @@ class GetDatasetDetail(APIView):
                     default="FEAST_000012",
                 )
             },
+            optional=["sample_limit", "sample_offset"]
         ),
         responses=get_dataset_detail_config(),
         operation_description="Get detailed information about a dataset",
@@ -193,7 +194,7 @@ class GetDatasetDetail(APIView):
 
         user = request.user
         params = json.loads(request.body)
-        format = params.get("format", None)
+        format = params.get("format", "fhir")
         ui_required = params.get("ui_use", False)
         bcoid = params.get("bcoid", None)
 
@@ -211,6 +212,9 @@ class GetDatasetDetail(APIView):
                 "fileobjlist": [{"filename": f} for f in bco_model.files_represented],
             })
 
+        sample_limit = params.get("sample_limit", 30)
+        sample_offset = params.get("sample_offset", 0)
+
         dbi = DB_CONNECTORS[bcoid]
         db_metadata = dbi.get_db_metadata()
 
@@ -219,20 +223,26 @@ class GetDatasetDetail(APIView):
             ## TODO: Mapping of DBs to FHIR-compliant fields
             ## e.g., the following error:
             # `Patient.__init__() got an unexpected keyword argument 'Sex'`
-            entries = dbi.get_sample(output_format="fhir", data_type="patient")
+            entries = dbi.get_sample(
+                output_format="fhir", data_type="patient", limit=sample_limit, offset=sample_offset
+            )
             return JsonResponse({
                 "db_entries": entries,
-                "db_metadata": db_metadata
+                "db_metadata": db_metadata,
+                "sample_start": sample_offset,
+                "sample_count": sample_limit,
             })
         else:
             # Retrieve first N samples for display
-            example_values = dbi.get_sample()
+            example_values = dbi.get_sample(limit=sample_limit, offset=sample_offset)
 
         if not ui_required:
             return JsonResponse(
                 {
                     "db_entries": example_values,
                     "db_metadata": db_metadata,
+                    "sample_start": sample_offset,
+                    "sample_count": sample_limit,
                 },
                 safe=False,
             )
@@ -250,6 +260,8 @@ class GetDatasetDetail(APIView):
             "fileobjlist": [{"filename": f} for f in bco_model.files_represented],
             "db_entries": example_values,
             "db_metadata": db_metadata,
+            "sample_start": sample_offset,
+            "sample_count": sample_offset,
         }
 
         # for k, v in response.items():
