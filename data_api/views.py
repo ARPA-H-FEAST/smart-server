@@ -37,8 +37,8 @@ DB_HOME = settings.DB_HOME
 BASE_DIR = settings.BASE_DIR
 
 ### TODO / FIXME
-BCO_HOME = DATA_HOME + "jsondb/bcodb/"
-TARBALL_FILE_HOME = DATA_HOME + "tarballs/"
+BCO_HOME = DATA_HOME / "jsondb/bcodb/"
+TARBALL_FILE_HOME = DATA_HOME / "tarballs/"
 
 
 def config_to_connections(config):
