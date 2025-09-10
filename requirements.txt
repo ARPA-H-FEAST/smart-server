@@ -1,11 +1,16 @@
 black
+duckdb
 Django
 django-oauth-toolkit
 django-cors-headers
 django-filter
 django-guardian
 djangorestframework
+drf-yasg
+pandas
 PyJWT
+pytz
 gunicorn
 requests
 tomli
+whitenoise

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 import logging
 import mimetypes
+import os
 import tomli
 
 from pathlib import Path
@@ -35,14 +36,19 @@ DEBUG = config[DJANGO_MODE]["Debug"]
 
 if DJANGO_MODE == "dev":
     DATA_HOME = BASE_DIR / "datadir/releases/current/"
+    DB_HOME = os.path.expanduser("~/gwu-src/feast/data/")
 else:
-    DATA_HOME = "/data/arpah/releases/current/"
+    DATA_HOME = Path("/data/arpah/releases/current/")
+    DB_HOME = Path("/data/arpah/processed/")  # XXX / FIXME
 
 ALLOWED_HOSTS = ["middleware", "127.0.0.1", "localhost"]
 
 APPEND_SLASH = False
 
 AUTH_USER_MODEL = "users.User"
+
+STATIC_URL = "/testing-ui/static/"
+STATIC_ROOT = "static/"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -107,6 +113,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "drf_yasg",
     "ui.apps.UiConfig",
     "users.apps.UsersConfig",
     "data_api.apps.DataApiConfig",
@@ -146,6 +153,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "oauth2_provider.middleware.OAuth2TokenMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -176,6 +184,10 @@ REST_FRAMEWORK = {
 }
 
 ROOT_URLCONF = "server.urls"
+
+SWAGGER_SETTINGS = {
+    "DEFAULT_API_URL": "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/yasg/",
+}
 
 TEMPLATES = [
     {
@@ -240,8 +252,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = "static/"
-STATIC_ROOT = BASE_DIR / STATIC_URL
+# STATIC_URL = "static/"
+# STATIC_ROOT = BASE_DIR / STATIC_URL
 # STATICFILES_DIRS = [
 #     BASE_DIR / "static",
 #     BASE_DIR / "static/assets",

@@ -21,3 +21,4 @@ class BCOFileDescriptor(models.Model):
     usability_domain = models.CharField(
         max_length=500, default="No description provided"
     )
+    db_support = models.CharField(max_length=500, null=True)

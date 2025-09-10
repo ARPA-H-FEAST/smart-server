@@ -1,0 +1,55 @@
+{
+    "FEAST_000004": {
+        "dataset": "gwdc_prostate",
+        "db_class": "duckdb",
+        "db_location": "GWDC/GDWC.duckdb",
+        "cannonical_table": "PatientDim_PRCA",
+        "patients": 424,
+        "key_columns": [
+            "Sex", "SexAssignedAtBirth", "GenderIdentity", "PreferredLanguage",
+            "Ethnicity", "FirstRace", "SecondRace", "ThirdRace", "FourthRace",
+            "FifthRace", "MultiRacial", "AgeInYears", "BirthDate", "DeathDate",
+            "DeathInstant", "DeathLocation", "Status", "City", "County", "StateOrProvince",
+            "StateOrProvinceAbbreviation", "Country", "PostalCode", "SexualOrientation",
+            "MaritalStatus", "Religion", "SmokingStatus", "PrimaryFinancialClass",
+            "HighestLevelOfEducation", "IsCancerPatient", "CountryOfOrigin",
+            "IndigenousStatus", "OmbEthnicity", "OmbRace", "Test", "IsValid",
+            "StartDate", "EndDate", "IsCurrent", "PreliminaryCauseOfDeathDiagnosisKey",
+            "IsHistoricalPatient", "DualStatusCode", "OriginalMedicareEntitlementReasonCode",
+            "MedicarePartAEntitlementStartDate", "MedicarePartBEntitlementStartDate",
+            "ReliableSex", "CensusBlockGroupFipsCode", "LastImmunizationQueryInstantUtc",
+            "MedicareHospiceEnrollmentStartDate", "MedicareHospiceEnrollmentEndDate",
+            "DurableKey_e"
+        ],
+        "fhir_columns": ["Sex", "PreferredLanguage", "BirthDate", "DeathDate", "DurableKey_e"],
+        "random_sampling_keys": ["DurableKey_e", 10],
+        "other_tables": {},
+        "search_fields": {
+            "categorical": ["Ethnicity", "FirstRace", "SecondRace", "DeathDate"],
+            "numerical": ["AgeInYears"]
+        }
+    },
+    "FEAST_000012": {
+        "dataset": "nbcc",
+        "db_class": "sqlite3",
+        "db_location": "nbcc/nbcc_db/nbcc.db",
+        "cannonical_table": "family_records",
+        "patients": 25546,
+        "key_columns": ["nbcc_userinfo_id", "year_of_birth", "year_of_death", "relationship",
+            "alive", "sex", "siblingtype", "breast_cancer", "diagnosis_year",
+            "diagnosis_age", "diagnosis_idk", "stage", "er", "pr",
+            "other_diagnosis_descriptors", "receptors_idk", "recurrence",
+            "recurrence_year", "recurrence_age", "recurrence_idk", "recurrence_kind",
+            "last_screening_year", "last_screening_age", "last_screening_idk",
+            "last_screening_none", "cause_of_death", "age_at_death"
+        ],
+        "fhir_columns": ["sex", "year_of_birth", "alive", "nbcc_userinfo_id"],
+        "random_sampling_keys": ["nbcc_userinfo_id", 10],
+        "other_tables": {},
+        "search_fields": {
+            "categorical": ["relationship", "alive", "breast_cancer"],
+            "numerical": ["year_of_birth", "diagnosis_age"],
+            "ancestry": ["percentage"]
+        }
+    }
+}

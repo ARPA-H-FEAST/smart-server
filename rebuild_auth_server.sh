@@ -8,5 +8,6 @@ docker rm feast-smart
 docker rmi feast-smart
 docker build -t feast-smart -f dockerfile .
 
-docker run --restart always -d -p 127.0.0.1:4244:8000 --network smart-net --name feast-smart feast-smart
+### TODO / FIXME: Dynamic mount based on local/remote deployment?
+docker run --restart always -d -p 127.0.0.1:4244:8000 -v /data/arpah/:/data/arpah/ --network smart-net --name feast-smart feast-smart
 

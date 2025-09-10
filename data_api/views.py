@@ -1,12 +1,28 @@
 from django.shortcuts import render
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, FileResponse
 
-from wsgiref.util import FileWrapper
+from django.views.decorators.csrf import csrf_exempt
+
+from django.http import JsonResponse, FileResponse
+from rest_framework.views import APIView
+
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
+from collections import defaultdict
 
 from .models import BCOFileDescriptor
 from .serializers import BCOandFileSerializer
+
+from .db_interfaces import DBInterface
+
+from .swagger_configs import (
+    get_dataset_detail_config,
+    get_dataset_metadata_config,
+    get_datasets_config,
+    get_bco_config,
+)
 
 import json
 import logging
@@ -17,8 +33,120 @@ import os
 logger = logging.getLogger()
 
 DATA_HOME = settings.DATA_HOME
+DB_HOME = settings.DB_HOME
+BASE_DIR = settings.BASE_DIR
+
+### TODO / FIXME
 BCO_HOME = DATA_HOME / "jsondb/bcodb/"
 TARBALL_FILE_HOME = DATA_HOME / "tarballs/"
+
+
+def config_to_connections(config):
+    connections = {}
+    for bco_id, dataset_config in config.items():
+        db_path = os.path.join(DB_HOME, dataset_config["db_location"])
+        connections[bco_id] = DBInterface(db_path, dataset_config, logger)
+    return connections
+
+
+# Read the DB home for a configuration file, if present.
+db_config_path = os.path.join(BASE_DIR, "data_api/db_interfaces/db_config.json")
+if os.path.isfile(db_config_path):
+    with open(db_config_path, "r") as fp:
+        config = json.load(fp)
+    DB_CONNECTORS = config_to_connections(config)
+else:
+    logger.debug(f"No DB connections defined at {db_config_path}")
+    DB_CONNECTORS = {}
+
+# @swagger_auto_schema(tags=["get_data_source"])
+# methods=["get", "post"],
+
+### TODO: Swagger UI needs (1) class views (rest_framework.views APIViews work)
+### and (2) explicit calls to `post`, `get`, etc. Seems inflexible and brittle, but
+### sure ...
+
+class GetBCO(APIView):
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["bcoid"],
+            properties={
+                "bcoid": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="BCO ID of dataset",
+                    default="FEAST_000012",
+                )
+            },
+        ),
+        responses=get_bco_config(),
+        operation_description="Retrieve the BCO defining dataset provenance",
+    )
+
+    def post(self, request):
+
+        bcoid = json.loads(request.body)["bcoid"]
+
+        if not bcoid:
+            return JsonResponse({"error": "No BCO found in query"}, safe=False, status=400)
+        
+        with open(os.path.join(BCO_HOME, f"{bcoid}.json"), "r") as fp:
+            bco = json.load(fp)
+
+        return JsonResponse(bco)
+
+class GetDataSets(APIView):
+    @swagger_auto_schema(
+        responses=get_datasets_config(),
+        operation_description="Get detailed information about a dataset",
+    )
+    # The only "GET" in this workflow
+    def get(self, request):
+
+        result = {}
+
+        for bcoid, dbi in DB_CONNECTORS.items():
+            logger.debug(f"{bcoid}: Got connection to dataset {dbi.config}")
+            result[bcoid] = dbi.config["dataset"]
+
+        return JsonResponse({"results": result}, safe=False)
+
+class GetDatasetMetadata(APIView):
+
+    @swagger_auto_schema(
+        # manual_parameters=get_file_detail_parameters(),
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["bcoid"],
+            properties={
+                "bcoid": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="BCO ID of dataset",
+                    default="FEAST_000012",
+                )
+            },
+        ),
+        responses=get_dataset_metadata_config(),
+        operation_description="Get detailed information about a dataset",
+    )
+
+    def post(self, request):
+        bcoid = json.loads(request.body)["bcoid"]
+
+        if not bcoid:
+            return JsonResponse({"error": "No BCO ID provided"}, safe=False, status=400)
+
+        if bcoid not in DB_CONNECTORS.keys():
+            # Error handling
+            return JsonResponse({"error": f"Unknown BCO ID {bcoid} provided"}, safe=False, status=400)
+
+        config = DB_CONNECTORS[bcoid].config
+        response = {
+            "key_columns": config["key_columns"],
+            "search_fields": config["search_fields"],
+        }
+
+        return JsonResponse(response, safe=False)
 
 
 @login_required
@@ -41,26 +169,148 @@ def get_available_files(request):
     return JsonResponse(response, safe=False)
 
 
+# @login_required
+# @csrf_exempt
+class GetDatasetDetail(APIView):
+
+    @swagger_auto_schema(
+        # manual_parameters=get_file_detail_parameters(),
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["bcoid"],
+            properties={
+                "bcoid": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="BCO ID of dataset",
+                    default="FEAST_000012",
+                )
+            },
+            optional=["sample_limit", "sample_offset"]
+        ),
+        responses=get_dataset_detail_config(),
+        operation_description="Get detailed information about a dataset",
+    )
+    def post(self, request):
+
+        user = request.user
+        params = json.loads(request.body)
+        format = params.get("format", "fhir")
+        ui_required = params.get("ui_use", False)
+        bcoid = params.get("bcoid", None)
+
+        if bcoid is None:
+            return JsonResponse({"error": "No BCO ID query parameter provided"}, safe=False, status=400)
+
+        if bcoid not in DB_CONNECTORS.keys():
+
+            with open(os.path.join(BCO_HOME, f"{bcoid}.json"), "r") as fp:
+                bco = json.load(fp)
+            bco_model = BCOFileDescriptor.objects.get(bcoid=bcoid)
+
+            return JsonResponse({
+                "bco": bco,
+                "fileobjlist": [{"filename": f} for f in bco_model.files_represented],
+            })
+
+        sample_limit = params.get("sample_limit", 30)
+        sample_offset = params.get("sample_offset", 0)
+
+        dbi = DB_CONNECTORS[bcoid]
+        db_metadata = dbi.get_db_metadata()
+
+        if format == "fhir":
+            ## TODO: Convert DB values to FHIR
+            ## TODO: Mapping of DBs to FHIR-compliant fields
+            ## e.g., the following error:
+            # `Patient.__init__() got an unexpected keyword argument 'Sex'`
+            entries = dbi.get_sample(
+                output_format="fhir", data_type="patient", limit=sample_limit, offset=sample_offset
+            )
+            return JsonResponse({
+                "db_entries": entries,
+                "db_metadata": db_metadata,
+                "sample_start": sample_offset,
+                "sample_count": sample_limit,
+            })
+        else:
+            # Retrieve first N samples for display
+            example_values = dbi.get_sample(limit=sample_limit, offset=sample_offset)
+
+        if not ui_required:
+            return JsonResponse(
+                {
+                    "db_entries": example_values,
+                    "db_metadata": db_metadata,
+                    "sample_start": sample_offset,
+                    "sample_count": sample_limit,
+                },
+                safe=False,
+            )
+        logger.debug(
+            f"===> Got a request for BCO information on {bcoid} from user {user}"
+        )
+        # logger.debug(f"Found BCO data: {BCOandFileSerializer(bco_model).data}")
+        # logger.debug(f"---> Searching directory {BCO_HOME} for file {bcoid}.json")
+        with open(os.path.join(BCO_HOME, f"{bcoid}.json"), "r") as fp:
+            bco = json.load(fp)
+        bco_model = BCOFileDescriptor.objects.get(bcoid=bcoid)
+
+        response = {
+            "bco": bco,
+            "fileobjlist": [{"filename": f} for f in bco_model.files_represented],
+            "db_entries": example_values,
+            "db_metadata": db_metadata,
+            "sample_start": sample_offset,
+            "sample_count": sample_offset,
+        }
+
+        # for k, v in response.items():
+        #     logger.debug(f"Shipping {k}: {v}")
+
+        return JsonResponse(response, safe=False)
+
+
 @login_required
-def get_file_detail(request):
-    user = request.user
-    bcoid = json.loads(request.body)["bcoid"]
-    logger.debug(f"===> Got a request for BCO information on {bcoid} from user {user}")
+def search(request):
 
-    bco_model = BCOFileDescriptor.objects.get(bcoid=bcoid)
-    logger.debug(f"Found BCO data: {BCOandFileSerializer(bco_model).data}")
+    search_details = json.loads(request.body)
+    logger.debug(f"Got search details {search_details}")
+    bcoid = search_details["bcoid"]
+    filters = search_details["filters"]
 
-    logger.debug(f"---> Searching directory {BCO_HOME} for file {bcoid}.json")
+    logger.debug(f"Filters was {filters}")
 
-    with open(os.path.join(BCO_HOME, f"{bcoid}.json"), "r") as fp:
-        bco = json.load(fp)
+    if filters == []:
+        if bcoid in DB_CONNECTORS.keys():
+            dbi = DB_CONNECTORS[bcoid]
+            return JsonResponse(dbi.get_sample(), safe=False)
+        else:
+            return JsonResponse({}, safe=False)
 
-    response = {
-        "bco": bco,
-        "fileobjlist": [{"filename": f} for f in bco_model.files_represented],
-    }
+    search_query = " WHERE\n\t"
+    query_dict = defaultdict(list)
+    for filter_entry in filters:
+        column, value = filter_entry.split("|")
+        query_dict[column].append(f'"{value}"')
+    col_counter = 0
+    for col, values in query_dict.items():
+        if col_counter > 0:
+            search_query += "\tAND "
+        search_query += "{} IN ({})\n".format(col, ",".join(values))
+        col_counter += 1
 
-    return JsonResponse(response, safe=False)
+    logger.debug(f"Formed search query:\n{search_query}\n")
+
+    if bcoid in DB_CONNECTORS.keys():
+        dbi = DB_CONNECTORS[bcoid]
+        example_values = dbi.get_sample(limit=None, selection_string=search_query)
+    else:
+        logger.error(f"Failed to find DB for {bcoid}")
+        example_values = {}
+
+    # logger.debug(f"Got DB response:\n{example_values}")
+
+    return JsonResponse(example_values, safe=False)
 
 
 @login_required
