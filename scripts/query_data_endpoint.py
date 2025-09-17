@@ -2,8 +2,8 @@ import json
 import requests
 import time
 
-DATA_BASE_URL = "http://localhost:8000/testing-ui/data-api/"
-# DATA_BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/data-api/"
+# DATA_BASE_URL = "http://localhost:8000/testing-ui/data-api/"
+DATA_BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/data-api/"
 
 
 def get_data_sets():
