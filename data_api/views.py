@@ -195,6 +195,7 @@ class GetDatasetDetail(APIView):
         user = request.user
         params = json.loads(request.body)
         format = params.get("format", "fhir")
+        response_shape = params.get("shape", "string")
         ui_required = params.get("ui_use", False)
         bcoid = params.get("bcoid", None)
 
@@ -212,7 +213,7 @@ class GetDatasetDetail(APIView):
                 "fileobjlist": [{"filename": f} for f in bco_model.files_represented],
             })
 
-        sample_limit = params.get("sample_limit", 30)
+        sample_limit = params.get("sample_limit", 1)
         sample_offset = params.get("sample_offset", 0)
 
         dbi = DB_CONNECTORS[bcoid]
@@ -226,6 +227,11 @@ class GetDatasetDetail(APIView):
             entries = dbi.get_sample(
                 output_format="fhir", data_type="patient", limit=sample_limit, offset=sample_offset
             )
+            if response_shape == "string":
+                entries = entries[0]
+                # XXX 
+                # / TODO Error checking if returning a string
+                #  and the sample size is > 1
             return JsonResponse({
                 "db_entries": entries,
                 "db_metadata": db_metadata,

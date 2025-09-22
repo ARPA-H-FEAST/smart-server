@@ -2,8 +2,8 @@ import json
 import requests
 import time
 
-# DATA_BASE_URL = "http://localhost:8000/testing-ui/data-api/"
-DATA_BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/data-api/"
+DATA_BASE_URL = "http://localhost:8000/testing-ui/data-api/"
+# DATA_BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/data-api/"
 
 
 def get_data_sets():
@@ -24,7 +24,7 @@ def query_data_set_details(dataset_bco):
     return data
 
 
-def query_data_point(dataset_bco, sample_offset, limit):
+def query_data_point(dataset_bco, sample_offset=0 , limit=1):
 
     query_api = DATA_BASE_URL + "dataset-detail/"
     response = requests.post(query_api, 
@@ -67,25 +67,24 @@ if __name__ == "__main__":
     sample_offset = 0
     sample_limit = 50
 
-    data = query_data_point(dataset_bco, sample_offset=sample_offset, limit=sample_limit)
+    # Collect a solitary data point
+    data = query_data_point(dataset_bco)
+    # Uncomment below line to get many data points
+    # data = query_data_point(dataset_bco, shape=list, sample_offset=sample_offset, limit=sample_limit)
 
     sample_data = data["db_entries"]
     metadata = data["db_metadata"]
     print("*"*80)
     print(f"Dataset sample response:")
     for k, v in data.items():
-        if k == "db_entries":
-            print(f"\nFound {len(v)} DB entries. Printing only the first sample.")
-            print(f"{v[0]}\n")
-        else:
-            print(f"{k}:\n{v}\n")
+        print(f"{k}:\n{v}\n")
     print("*"*80)
 
-    sample_patient[dataset] = sample_data[0]
+    # sample_patient[dataset] = sample_data[0]
 
     print(f"Query roundtrip required {time.time() - start:.3f} s")
 
-    print(sample_patient)
+    # print(sample_patient)
 
     # # Focus on NBCC data
     # dataset = datasets["FEAST_000012"]
