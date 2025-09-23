@@ -2,8 +2,8 @@ import json
 import requests
 import time
 
-DATA_BASE_URL = "http://localhost:8000/testing-ui/data-api/"
-# DATA_BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/data-api/"
+# DATA_BASE_URL = "http://localhost:8000/testing-ui/data-api/"
+DATA_BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/data-api/"
 
 
 def get_data_sets():
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     # data = query_data_point(dataset_bco, shape=list, sample_offset=sample_offset, limit=sample_limit)
 
     sample_data = data["db_entries"]
-    metadata = data["db_metadata"]
+    # metadata = data["db_metadata"]
     print("*"*80)
     print(f"Dataset sample response:")
     for k, v in data.items():
