@@ -4,8 +4,6 @@ import os
 import requests
 import time
 
-import tomli
-
 from pathlib import Path
 
 # BASE_URL = "http://localhost:8000/testing-ui/"
@@ -18,13 +16,13 @@ def get_auth_token():
     fp = None
     client_info = None
 
-    if os.path.isfile("secrets.toml"):    
-        with open("secrets.toml", "rb") as fp:
-            client_info = tomli.load(fp)
+    if os.path.isfile("secrets.json"):    
+        with open("secrets.json", "r") as fp:
+            client_info = json.load(fp)
     else:
-        path = Path(__file__).parent.parent / "server/secrets.toml"
-        with open(path, "rb") as fp:
-            client_info = tomli.load(fp)
+        path = Path(__file__).parent.parent / "server/secrets.json"
+        with open(path, "r") as fp:
+            client_info = json.load(fp)
     credential = f"{client_info['clientID']}:{client_info['clientSecret']}"
     encoded_credential = base64.b64encode(credential.encode("utf-8"))
 
@@ -104,8 +102,6 @@ if __name__ == "__main__":
 
     access_token = auth_response["access_token"]
     # access_token = None
-
-    time.sleep(1)
 
     data = get_data_sets(access_token)
 
