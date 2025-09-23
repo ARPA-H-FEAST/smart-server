@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 # from django.contrib.auth.mixins import ProtectedResourceView
 # NB See [SO](https://stackoverflow.com/a/55224844)
 # This is the class-view equivalent in DOT
-# from oauth2_provider.views.generic import ProtectedResourceView
+from oauth2_provider.views.generic import ProtectedResourceView
 
 # ...and this class, from [here](https://django-oauth-toolkit.readthedocs.io/en/latest/views/mixins.html), 
 # seems pretty clearly broken out of the box...
