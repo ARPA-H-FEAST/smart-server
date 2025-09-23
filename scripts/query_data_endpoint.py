@@ -9,7 +9,7 @@ import tomli
 from pathlib import Path
 
 # BASE_URL = "http://localhost:8000/testing-ui/"
-BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/testing-ui"
+BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/"
 DATA_BASE_URL = BASE_URL + "data-api/"
 AUTH_BASE_URL = BASE_URL + "oauth/token/"
 
