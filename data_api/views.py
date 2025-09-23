@@ -234,7 +234,7 @@ class GetDatasetDetail(APIView):
                 #  and the sample size is > 1
             return JsonResponse({
                 "db_entries": entries,
-                "db_metadata": db_metadata,
+                # "db_metadata": db_metadata,
                 "sample_start": sample_offset,
                 "sample_count": sample_limit,
             })
