@@ -1,34 +1,96 @@
+import base64
 import json
+import os
 import requests
 import time
 
-# DATA_BASE_URL = "http://localhost:8000/testing-ui/data-api/"
-DATA_BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/data-api/"
+import tomli
 
+from pathlib import Path
 
-def get_data_sets():
+# BASE_URL = "http://localhost:8000/testing-ui/"
+BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/testing-ui"
+DATA_BASE_URL = BASE_URL + "data-api/"
+AUTH_BASE_URL = BASE_URL + "oauth/token/"
+
+def get_auth_token():
+
+    fp = None
+    client_info = None
+
+    if os.path.isfile("secrets.toml"):    
+        with open("secrets.toml", "rb") as fp:
+            client_info = tomli.load(fp)
+    else:
+        path = Path(__file__).parent.parent / "server/secrets.toml"
+        with open(path, "rb") as fp:
+            client_info = tomli.load(fp)
+    credential = f"{client_info['clientID']}:{client_info['clientSecret']}"
+    encoded_credential = base64.b64encode(credential.encode("utf-8"))
+
+    credential_string = encoded_credential.decode("utf-8")
+
+    print(f"Credential: {credential_string}")
+
+    headers = {
+        "Authorization": f"Basic {credential_string}",
+        "Cache-Control": "no-cache",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    response = requests.post(
+        AUTH_BASE_URL,
+        json={"grant_type": "client_credentials"},
+        headers=headers,
+        )
+    
+    auth_response = response.json()
+
+    print(f"AUTH: Got response {auth_response}")
+
+    return auth_response
+
+def get_data_sets(access_token):
 
     query_api = DATA_BASE_URL + "datasets/"
-    response = requests.get(query_api)
+
+    print("*"*80)
+    print(f"Query API: {query_api}")
+    print(f'Auth string: "Authorization: Bearer {access_token}"')
+    print("*"*80)
+
+    response = requests.get(query_api, headers={"Authorization": f"Bearer {access_token}"})
+    
+    print("*"*80)
+    print(f"Got response: {response}")
+    print("*"*80)
+
     data = response.json()
 
     return data
 
 
-def query_data_set_details(dataset_bco):
+def query_data_set_details(access_token, dataset_bco):
 
     query_api = DATA_BASE_URL + "dataset-metadata/"
-    response = requests.post(query_api, json={"bcoid": dataset_bco})
+    response = requests.post(
+        query_api,
+        json={"bcoid": dataset_bco},
+        headers={"Authorization": f"Bearer {access_token}"}
+        )
     data = response.json()
 
     return data
 
 
-def query_data_point(dataset_bco, sample_offset=0 , limit=1):
+def query_data_point(access_token, dataset_bco, sample_offset=0 , limit=1):
 
     query_api = DATA_BASE_URL + "dataset-detail/"
     response = requests.post(query_api, 
-        json={"bcoid": dataset_bco, "sample_limit": limit, "sample_offset": sample_offset}
+        json={
+            "bcoid": dataset_bco, 
+            "sample_limit": limit, 
+            "sample_offset": sample_offset},
+        headers={"Authorization": f"Bearer {access_token}"}
     )
 
     data = response.json()
@@ -38,7 +100,14 @@ def query_data_point(dataset_bco, sample_offset=0 , limit=1):
 
 if __name__ == "__main__":
 
-    data = get_data_sets()
+    auth_response = get_auth_token()
+
+    access_token = auth_response["access_token"]
+    # access_token = None
+
+    time.sleep(1)
+
+    data = get_data_sets(access_token)
 
     print("*"*80)
     print(f"---> Found data sets {data}")
@@ -56,7 +125,7 @@ if __name__ == "__main__":
     dataset = datasets[dataset_bco]
 
     print(f"{dataset_bco}: {dataset}")
-    response = query_data_set_details(dataset_bco)
+    response = query_data_set_details(access_token, dataset_bco)
 
     print("*"*80)
     print(f"Dataset metadata response:")
@@ -68,7 +137,7 @@ if __name__ == "__main__":
     sample_limit = 50
 
     # Collect a solitary data point
-    data = query_data_point(dataset_bco)
+    data = query_data_point(access_token, dataset_bco)
     # Uncomment below line to get many data points
     # data = query_data_point(dataset_bco, shape=list, sample_offset=sample_offset, limit=sample_limit)
 

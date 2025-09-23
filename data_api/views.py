@@ -1,7 +1,14 @@
 from django.shortcuts import render
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+# from django.contrib.auth.mixins import ProtectedResourceView
+# NB See [SO](https://stackoverflow.com/a/55224844)
+# This is the class-view equivalent in DOT
+# from oauth2_provider.views.generic import ProtectedResourceView
 
+# ...and this class, from [here](https://django-oauth-toolkit.readthedocs.io/en/latest/views/mixins.html), 
+# seems pretty clearly broken out of the box...
+# import oauth2_provider.views.mixins.ClientProtectedResourceMixin as ProtectedResourceView
 from django.views.decorators.csrf import csrf_exempt
 
 from django.http import JsonResponse, FileResponse
@@ -95,7 +102,9 @@ class GetBCO(APIView):
 
         return JsonResponse(bco)
 
-class GetDataSets(APIView):
+# TODO: Moving to `ProtectedView` (aka, credentialling) 
+# breaks the response into two
+class GetDataSets(ProtectedResourceView, APIView):
     @swagger_auto_schema(
         responses=get_datasets_config(),
         operation_description="Get detailed information about a dataset",
@@ -111,7 +120,7 @@ class GetDataSets(APIView):
 
         return JsonResponse({"results": result}, safe=False)
 
-class GetDatasetMetadata(APIView):
+class GetDatasetMetadata(ProtectedResourceView, APIView):
 
     @swagger_auto_schema(
         # manual_parameters=get_file_detail_parameters(),
@@ -171,7 +180,7 @@ def get_available_files(request):
 
 # @login_required
 # @csrf_exempt
-class GetDatasetDetail(APIView):
+class GetDatasetDetail(ProtectedResourceView, APIView):
 
     @swagger_auto_schema(
         # manual_parameters=get_file_detail_parameters(),
