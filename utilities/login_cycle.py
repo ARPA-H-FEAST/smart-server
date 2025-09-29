@@ -8,7 +8,7 @@ import secrets
 
 base_url = "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/"
 login_info = {"email": "pmcneely@gwu.edu", "password": "pass123!"}
-redirect_uri = "https://feast.mgpc.biochemistry.gwu.edu/gw-feast/callback/"
+redirect_uri = "https://feast.mgpc.biochemistry.gwu.edu/gwdc/callback/"
 client_id = "5sUQbms4tORbBZQeuy8qh6I5SO2fS86y4rniQKOj"
 
 # Create session

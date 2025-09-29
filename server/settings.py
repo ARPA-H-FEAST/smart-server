@@ -78,9 +78,9 @@ CSRF_TRUSTED_ORIGINS = [
     "https://feast.mgpc.biochemistry.gwu.edu",
 ]
 
-# LOGIN_URL = "https://feast.mgpc.biochemistry.gwu.edu/gw-feast/callback/"
+# LOGIN_URL = "https://feast.mgpc.biochemistry.gwu.edu/gwdc/callback/"
 # LOGIN_URL = "https://feast.mgpc.biochemistry.gwu.edu/dsviewer/login/"
-LOGIN_URL = "http://localhost:3000/gw-feast/callback/"
+LOGIN_URL = "http://localhost:3000/gwdc/callback/"
 
 if DEBUG:
     LOGGING = {
