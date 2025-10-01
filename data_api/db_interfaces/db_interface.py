@@ -51,17 +51,18 @@ class DBInterface:
         if hasattr(self, "con"):
             self.con.close()
 
-    def get_db_metadata(self):
+    def get_db_metadata(self, table=None):
 
         indexed_info = self.config["search_fields"]
 
         search_fields = []
         range_fields = []
-        table = self.config["cannonical_table"]
+        table_alias = self.config["entry_table"] if table is None else table
+        table = self.config["searchable_tables"][table_alias]
 
-        for cat in indexed_info.keys():
+        for cat in indexed_info[table_alias].keys():
             if cat == "categorical":
-                for field in indexed_info[cat]:
+                for field in indexed_info[table_alias][cat]:
                     # self.logger.debug(f"===> Looking for unique field {field} in table {table}")
                     uniques = self.cur.execute(
                         self.queries["GET_UNIQUE"].format(field, table)
@@ -70,7 +71,7 @@ class DBInterface:
                     search_fields.append(search_obj)
                     # self.logger.debug(f"===> Found unique search levels for {field}: {search_obj}")
             elif cat == "numerical":
-                for field in indexed_info[cat]:
+                for field in indexed_info[table_alias][cat]:
                     min = self.cur.execute(
                         self.queries["MIN"].format(field, table)
                     ).fetchone()
@@ -90,15 +91,17 @@ class DBInterface:
         }
 
     def get_sample(
-        self, limit=30, offset=0, output_format="json", selection_string=None,
+        self, table=None, limit=30, offset=0, output_format="json", selection_string=None,
         data_type=None
     ):
-        table = self.config["cannonical_table"]
+        table_alias = self.config["entry_table"] if table is None else table
+        table = self.config["searchable_tables"][table_alias]
         query = self.queries["SAMPLE_QUERY"]
         if output_format == "json":
-            columns = ",".join(self.config["key_columns"])
+            columns = ",".join(self.config["key_columns"][table_alias])
         elif output_format == "fhir":
-            columns = ",".join(self.config["fhir_columns"])
+            columns = ",".join(self.config["fhir_columns"][table_alias])
+
         if selection_string is not None:
             query += selection_string
 
@@ -118,11 +121,11 @@ class DBInterface:
             return [self.fhir_converter[data_type](dr) for dr in data_rows]
 
     def get_random_sample(self):
-        table = self.config["cannonical_table"]
+        table = self.config["entry_table"]
         query = self.queries["RANDOM_SAMPLE"]
         random_sampling_config = self.config["random_sampling_keys"]
         
-        column_headers = self.config["key_columns"]
+        column_headers = self.config["key_columns"][table]
 
         formatted_query = query.format(
             ",".join(column_headers), table, random_sampling_config[0], 
