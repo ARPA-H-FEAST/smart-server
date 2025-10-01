@@ -2,11 +2,15 @@ try:
     ## Import in Django
     from .fhir_adapters import (
         Patient,
+        DiagnosticReport,
+        GenomicStudy,
     )
 except:
     ## Import for command line
     from fhir_adapters import (
         Patient,
+        DiagnosticReport,
+        GenomicStudy,
     )
 
 def gwdc_patient(record):
@@ -21,7 +25,35 @@ def nbcc_patient(record):
         "deceasedtime": record[2], "identifier": record[3],
     }).to_json()
 
+def gwdc_diagnosis(record):
+    return DiagnosticReport({
+
+    })
+
+def nbcc_diagnosis(record):
+    return DiagnosticReport({
+
+    })
+
+def gwdc_genomicStudy(record):
+    return GenomicStudy({
+
+    })
+
+def nbcc_genomicStudy(record):
+    return GenomicStudy({
+
+    })
+
 FHIR_CONVERTER = {
-    "gwdc_prostate": {"patient": gwdc_patient},
-    "nbcc": {"patient": nbcc_patient}
+    "gwdc_prostate": {
+        "patient": gwdc_patient,
+        "diagnosis": gwdc_diagnosis,
+        # "genomicStudy": gwdc_genomicStudy,  TODO?
+    },
+    "nbcc": {
+        "patient": nbcc_patient,
+        "diagnosis": nbcc_diagnosis,
+        "genomicStudy": nbcc_genomicStudy,
+    }
 }
