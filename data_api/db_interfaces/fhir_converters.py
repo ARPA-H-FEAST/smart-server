@@ -13,6 +13,8 @@ except:
         GenomicStudy,
     )
 
+import datetime
+
 def gwdc_patient(record):
     return Patient({
         "gender": record[0], "communication_preference": {"language": record[1]},
@@ -27,12 +29,16 @@ def nbcc_patient(record):
 
 def gwdc_diagnosis(record):
     return DiagnosticReport({
-
+        "identifier": "gwdc", "status": "final", "category": record[2], "code": record[3],
+        "subject": record[0], "effective": datetime.datetime(record[5]), "performer": record[1], 
+        "encounter": record[4], "result": record[6], "interpreter": record[7],
     })
 
 def nbcc_diagnosis(record):
     return DiagnosticReport({
-
+        "identifier": "nbcc", "status": "final", "category": record[0], "code": record[4],
+        "subject": record[9], "performer": "nbcc", "result": record[3], "annotation": (record[7], record[8]),
+        "supporting_info": (record[5], record[6]), "effective": datetime.datetime(record[1])
     })
 
 def gwdc_genomicStudy(record):
