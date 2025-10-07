@@ -12,8 +12,7 @@
         "patients": 424,
         "key_columns": {
             "Patient": [
-                "PreferredLanguage", "Ethnicity", "FirstRace", "SecondRace", "ThirdRace", 
-                "FourthRace", "FifthRace", "MultiRacial", "AgeInYears", "BirthDate", "DeathDate",
+                "PreferredLanguage", "Ethnicity", "FirstRace", "MultiRacial", "AgeInYears", "BirthDate", "DeathDate",
                 "DeathInstant", "DeathLocation", "Status", "City", "County", "StateOrProvince",
                 "StateOrProvinceAbbreviation", "Country", "PostalCode", "SexualOrientation",
                 "MaritalStatus", "Religion", "SmokingStatus", "PrimaryFinancialClass",
@@ -24,17 +23,20 @@
                 "MedicarePartAEntitlementStartDate", "MedicarePartBEntitlementStartDate",
                 "CensusBlockGroupFipsCode", "LastImmunizationQueryInstantUtc",
                 "MedicareHospiceEnrollmentStartDate", "MedicareHospiceEnrollmentEndDate",
-                "ReliableSex", "Sex", "SexAssignedAtBirth", "GenderIdentity", 
-                "DurableKey_e"
+                "ReliableSex", "Sex", "SexAssignedAtBirth", "GenderIdentity", "SecondRace", "ThirdRace", 
+                "FourthRace", "FifthRace", "DurableKey_e"
             ],
             "Lab Component": {},
             "Diagnosis": {}
         },
         "fhir_columns": {
             "Patient": ["Sex", "PreferredLanguage", "BirthDate", "DeathDate", "DurableKey_e"],
-            "Lab Component": [],
-            "Diagnosis": []
-        },
+            "Lab Component": ["", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+            "Diagnosis": [
+                "PatientKey", "DepartmentKey", "Type", "SubType", "EncounterKey", 
+                "EndDateKey", "DiagnosisKey", "DocumentedByEmployeeKey"
+                ]
+            },
         "random_sampling_keys": ["DurableKey_e", 10],
         "other_tables": {},
         "search_fields": {
@@ -67,13 +69,16 @@
                 "last_screening_year", "last_screening_age", "last_screening_idk",
                 "last_screening_none", "cause_of_death", "age_at_death"
             ],
-            "Diagnosis": {},
-            "Genomic Sequence": {}
+            "Diagnosis": [],
+            "Genomic Sequence": []
         },
         "fhir_columns": {
             "Patient": ["sex", "year_of_birth", "alive", "nbcc_userinfo_id"],
-            "Diagnosis": {},
-            "Genomic Sequence": {}
+            "Diagnosis": ["breast_cancer", "diagnosis_year", "diagnosis_age",
+                "diagnosis_idk", "stage", "er", "pr", "other_diagnosis_descriptors",
+                "receptors_idk", "nbcc_userinfo_id"
+            ],
+            "Genomic Sequence": []
         },
         "random_sampling_keys": ["nbcc_userinfo_id", 10],
         "other_tables": {},
