@@ -302,23 +302,23 @@ def search(request):
         else:
             return JsonResponse({}, safe=False)
 
-    search_query = " WHERE\n\t"
+    # search_query = " WHERE\n\t"
     query_dict = defaultdict(list)
     for filter_entry in filters:
         column, value = filter_entry.split("|")
         query_dict[column].append(f'"{value}"')
-    col_counter = 0
-    for col, values in query_dict.items():
-        if col_counter > 0:
-            search_query += "\tAND "
-        search_query += "{} IN ({})\n".format(col, ",".join(values))
-        col_counter += 1
+    # col_counter = 0
+    # for col, values in query_dict.items():
+    #     if col_counter > 0:
+    #         search_query += "\tAND "
+    #     search_query += "{} IN ({})\n".format(col, ",".join(values))
+    #     col_counter += 1
 
-    logger.debug(f"Formed search query:\n{search_query}\n")
+    # logger.debug(f"Formed search query:\n{search_query}\n")
 
     if bcoid in DB_CONNECTORS.keys():
         dbi = DB_CONNECTORS[bcoid]
-        example_values = dbi.get_sample(limit=None, selection_string=search_query)
+        example_values = dbi.get_sample(query_dict=query_dict)
     else:
         logger.error(f"Failed to find DB for {bcoid}")
         example_values = {}

@@ -27,6 +27,32 @@ DUCK_QUERIES = {
     "MAX": "SELECT MAX({}) FROM {};",
 }
 
+def duck_select(filters: dict):
+    query_str = " WHERE\n\t"
+    col_counter = 0
+    for column, values in filters.items():
+        value_counter = 0
+        if col_counter > 0:
+            query_str += "\tAND "
+        for v in values:
+            if value_counter > 0:
+                query_str += "\tOR "
+            query_str += "{} LIKE '%{}%'\n".format(column, v.replace('"',""))
+            value_counter += 1
+        col_counter += 1
+
+    return query_str
+
+def sql_select(filters: dict):
+    query_str = " WHERE\n\t"
+    col_counter = 0
+    for column, values in filters.items():
+        if col_counter > 0:
+            query_str += "\tAND "
+        query_str += "{} IN ({})\n".format(column, ",".join(values))
+        col_counter += 1
+
+    return query_str
 
 class DBInterface:
 
@@ -37,10 +63,14 @@ class DBInterface:
             self.con = duckdb.connect(db_path)
             self.cur = self.con.cursor()
             self.queries = DUCK_QUERIES
+            self.select_function = duck_select
+
         elif db_class == "sqlite3":
             self.con = sql.connect(db_path, check_same_thread=False)
             self.cur = self.con.cursor()
             self.queries = SQL_QUERIES
+            self.select_function = sql_select
+
         else:
             raise Exception(f"Invalid DB configuration: Unknown DB {db_class}")
         self.fhir_converter = FHIR_CONVERTER[config["dataset"]]
@@ -91,7 +121,7 @@ class DBInterface:
         }
 
     def get_sample(
-        self, table=None, limit=30, offset=0, output_format="json", selection_string=None,
+        self, table=None, limit=30, offset=0, output_format="json", query_dict=None,
         data_type=None
     ):
         table_alias = self.config["entry_table"] if table is None else table
@@ -102,23 +132,35 @@ class DBInterface:
         elif output_format == "fhir":
             columns = ",".join(self.config["fhir_columns"][table_alias])
 
-        if selection_string is not None:
-            query += selection_string
+        if query_dict is not None:
+            query += self.select_function(query_dict)
 
         if limit is None:
             query += ";"
         else:
             query += f" LIMIT {limit} OFFSET {offset};"
+        self.logger.debug(f"=> Template query:\n{query}")
+
+        final_query = query.format(columns, table)
+        self.logger.debug(f"=> Final query:\n{final_query}")
         if output_format == "json":
             df = pd.read_sql_query(query.format(columns, table), self.con)
-            return json.loads(df.to_json(orient="records"))
+            response = {
+                "data": df.to_dict(orient="records"),
+                "pagination": {"sample_size": limit, "offset": offset},
+            }
+            return response
         elif output_format == "fhir":
             self.logger.debug(f"Data type: {data_type} ::: FHIR Converter keys: {self.fhir_converter.keys()}")
             if data_type not in self.fhir_converter.keys():
                 return ["Error", f"Data type {data_type} not found in DB records"]
             data_rows = self.con.execute(query.format(columns, table)).fetchall()
             self.logger.debug(f"===> Found {len(data_rows)} data points")
-            return [self.fhir_converter[data_type](dr) for dr in data_rows]
+            response = {
+                "data": [self.fhir_converter[data_type](dr) for dr in data_rows],
+                "pagination": {"sample_size": limit, "offset": offset},
+                }
+            return response
 
     def get_random_sample(self):
         table = self.config["entry_table"]
