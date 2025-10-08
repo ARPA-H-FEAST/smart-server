@@ -237,7 +237,7 @@ class GetDatasetDetail(ProtectedResourceView, APIView):
                 output_format="fhir", data_type="patient", limit=sample_limit, offset=sample_offset
             )
             if response_shape == "string":
-                entries = entries[0]
+                entries["data"] = entries["data"][0]
                 # XXX 
                 # / TODO Error checking if returning a string
                 #  and the sample size is > 1
