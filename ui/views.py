@@ -10,6 +10,8 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core import serializers
 
+from oauth2_provider.decorators import protected_resource
+
 import json
 import jwt
 import logging
@@ -113,10 +115,12 @@ def get_fhir_endpoints(request):
     return JsonResponse(AVAILABLE_FHIR_ENDPOINTS, safe=False)
 
 
-@login_required
-def query_fhir(request):
+# @login_required
+@csrf_exempt
+@protected_resource()
+def query_fhir(request, query_args_string):
     method = request.method
-    query_args_string = request.GET.get("q", None)
+    # query_args_string = request.GET.get("q", None)
     logger.debug(f"Found query args {query_args_string}")
     if settings.DJANGO_MODE == "dev":
         FHIR_URL = "http://localhost:8080/fhir/"
@@ -135,17 +139,17 @@ def query_fhir(request):
         )
         return JsonResponse(response_body, safe=False)
     elif method == "POST":
-        json_body = request.body.decode("utf-8")
+        json_body = json.loads(request.body.decode("utf-8"))
         logger.debug(f"---> Got JSON info {json_body}")
         fhir_response = requests.request(
             headers={
-                "Content-Type": "application/json",
+                "Content-Type": "application/fhir+json",
             },
             method="POST",
             url=f"{FHIR_URL}{query_args_string}",
             data=json_body,
         )
-        _ = response_body.pop("link", None)
+        # _ = response_body.pop("link", None)
         response_body = fhir_response.json()
         logger.debug(
             f"Got server response: {response_body}\n\n(Type {type(response_body)})"
