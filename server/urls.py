@@ -28,10 +28,10 @@ logger = logging.getLogger()
 # logger.debug(f"---> OAuth URLS: {oauth2_urls}")
 
 urlpatterns = [
-    path("testing-ui/users/", include("users.urls")),
-    path("testing-ui/oauth/", include(oauth2_urls)),
-    path("testing-ui/api/", include("ui.urls")),
-    path("testing-ui/data-api/", include("data_api.urls")),
+    path("fhir-api/users/", include("users.urls")),
+    path("fhir-api/oauth/", include(oauth2_urls)),
+    path("fhir-api/api/", include("ui.urls")),
+    path("fhir-api/data-api/", include("data_api.urls")),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

@@ -20,8 +20,8 @@ sys.path.append(str(PROJECT_ROOT))
 
 from data_api.db_interfaces import DBInterface, FHIR_CONVERTER
 
-BASE_URL = "http://localhost:8000/testing-ui/"
-# BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/"
+# BASE_URL = "http://localhost:8000/fhir-api/"
+BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/fhir-api/"
 DATA_BASE_URL = BASE_URL + "data-api/"
 AUTH_BASE_URL = BASE_URL + "oauth/token/"
 

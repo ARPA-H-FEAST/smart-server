@@ -25,8 +25,8 @@ class SchemaGenerator(OpenAPISchemaGenerator):
     def get_schema(self, request=None, public=False):
         schema = super(SchemaGenerator, self).get_schema(request, public)
         # schema.basePath = "https://feast.mgpc.biochemistry.gwu.edu"
-        # schema.basePath = os.path.join("https://feast.mgpc.biochemistry.gwu.edu", "testing-ui/data-api/")
-        schema.basePath = os.path.join(schema.basePath, "testing-ui/data-api/")
+        # schema.basePath = os.path.join("https://feast.mgpc.biochemistry.gwu.edu", "fhir-api/data-api/")
+        schema.basePath = os.path.join(schema.basePath, "fhir-api/data-api/")
         return schema
 
 

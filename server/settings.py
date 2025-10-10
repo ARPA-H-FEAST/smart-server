@@ -186,14 +186,14 @@ REST_FRAMEWORK = {
 ROOT_URLCONF = "server.urls"
 
 SWAGGER_SETTINGS = {
-    # "DEFAULT_API_URL": "http://localhost:8000/testing-ui/yasg/",
+    # "DEFAULT_API_URL": "http://localhost:8000/fhir-api/yasg/",
     "DEFAULT_API_URL": "https://feast.mgpc.biochemistry.gwu.edu/fhir-api/yasg/",
     "USE_SESSION_AUTH": False,
     "SECURITY_DEFINITIONS": {
         "Your App API - Swagger": {
             "type": "oauth2",
-            "authorizationUrl": "/testing-ui/oauth/authorize/",
-            "tokenUrl": "/testing-ui/oauth/token/",
+            "authorizationUrl": "/fhir-api/oauth/authorize/",
+            "tokenUrl": "/fhir-api/oauth/token/",
             "flow": "accessCode",
             "scopes": {
                 "read:groups": "read groups",
