@@ -11,12 +11,13 @@ BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/"
 DATA_BASE_URL = BASE_URL + "data-api/"
 AUTH_BASE_URL = BASE_URL + "oauth/token/"
 
+
 def get_auth_token():
 
     fp = None
     client_info = None
 
-    if os.path.isfile("secrets.json"):    
+    if os.path.isfile("secrets.json"):
         with open("secrets.json", "r") as fp:
             client_info = json.load(fp)
     else:
@@ -33,34 +34,37 @@ def get_auth_token():
     headers = {
         "Authorization": f"Basic {credential_string}",
         "Cache-Control": "no-cache",
-        "Content-Type": "application/x-www-form-urlencoded"
+        "Content-Type": "application/x-www-form-urlencoded",
     }
     response = requests.post(
         AUTH_BASE_URL,
         json={"grant_type": "client_credentials"},
         headers=headers,
-        )
-    
+    )
+
     auth_response = response.json()
 
     print(f"AUTH: Got response {auth_response}")
 
     return auth_response
 
+
 def get_data_sets(access_token):
 
     query_api = DATA_BASE_URL + "datasets/"
 
-    print("*"*80)
+    print("*" * 80)
     print(f"Query API: {query_api}")
     print(f'Auth string: "Authorization: Bearer {access_token}"')
-    print("*"*80)
+    print("*" * 80)
 
-    response = requests.get(query_api, headers={"Authorization": f"Bearer {access_token}"})
-    
-    print("*"*80)
+    response = requests.get(
+        query_api, headers={"Authorization": f"Bearer {access_token}"}
+    )
+
+    print("*" * 80)
     print(f"Got response: {response}")
-    print("*"*80)
+    print("*" * 80)
 
     data = response.json()
 
@@ -73,22 +77,24 @@ def query_data_set_details(access_token, dataset_bco):
     response = requests.post(
         query_api,
         json={"bcoid": dataset_bco},
-        headers={"Authorization": f"Bearer {access_token}"}
-        )
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
     data = response.json()
 
     return data
 
 
-def query_data_point(access_token, dataset_bco, sample_offset=0 , limit=1):
+def query_data_point(access_token, dataset_bco, sample_offset=0, limit=1):
 
     query_api = DATA_BASE_URL + "dataset-detail/"
-    response = requests.post(query_api, 
+    response = requests.post(
+        query_api,
         json={
-            "bcoid": dataset_bco, 
-            "sample_limit": limit, 
-            "sample_offset": sample_offset},
-        headers={"Authorization": f"Bearer {access_token}"}
+            "bcoid": dataset_bco,
+            "sample_limit": limit,
+            "sample_offset": sample_offset,
+        },
+        headers={"Authorization": f"Bearer {access_token}"},
     )
 
     data = response.json()
@@ -105,9 +111,9 @@ if __name__ == "__main__":
 
     data = get_data_sets(access_token)
 
-    print("*"*80)
+    print("*" * 80)
     print(f"---> Found data sets {data}")
-    print("*"*80)
+    print("*" * 80)
 
     sample_patient = {}
 
@@ -123,11 +129,11 @@ if __name__ == "__main__":
     print(f"{dataset_bco}: {dataset}")
     response = query_data_set_details(access_token, dataset_bco)
 
-    print("*"*80)
+    print("*" * 80)
     print(f"Dataset metadata response:")
     for k, v in response.items():
         print(f"{k}:\n{v}\n")
-    print("*"*80)
+    print("*" * 80)
 
     sample_offset = 0
     sample_limit = 50
@@ -139,11 +145,11 @@ if __name__ == "__main__":
 
     sample_data = data["db_entries"]
     # metadata = data["db_metadata"]
-    print("*"*80)
+    print("*" * 80)
     print(f"Dataset sample response:")
     for k, v in data.items():
         print(f"{k}:\n{v}\n")
-    print("*"*80)
+    print("*" * 80)
 
     # sample_patient[dataset] = sample_data[0]
 

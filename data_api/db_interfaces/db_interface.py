@@ -27,6 +27,7 @@ DUCK_QUERIES = {
     "MAX": "SELECT MAX({}) FROM {};",
 }
 
+
 def duck_select(filters: dict):
     query_str = " WHERE\n\t"
     col_counter = 0
@@ -37,11 +38,12 @@ def duck_select(filters: dict):
         for v in values:
             if value_counter > 0:
                 query_str += "\tOR "
-            query_str += "{} LIKE '%{}%'\n".format(column, v.replace('"',""))
+            query_str += "{} LIKE '%{}%'\n".format(column, v.replace('"', ""))
             value_counter += 1
         col_counter += 1
 
     return query_str
+
 
 def sql_select(filters: dict):
     query_str = " WHERE\n\t"
@@ -53,6 +55,7 @@ def sql_select(filters: dict):
         col_counter += 1
 
     return query_str
+
 
 class DBInterface:
 
@@ -121,8 +124,13 @@ class DBInterface:
         }
 
     def get_sample(
-        self, table=None, limit=30, offset=0, output_format="json", query_dict=None,
-        data_type=None
+        self,
+        table=None,
+        limit=30,
+        offset=0,
+        output_format="json",
+        query_dict=None,
+        data_type=None,
     ):
         table_alias = self.config["entry_table"] if table is None else table
         table = self.config["searchable_tables"][table_alias]
@@ -151,7 +159,9 @@ class DBInterface:
             }
             return response
         elif output_format == "fhir":
-            self.logger.debug(f"Data type: {data_type} ::: FHIR Converter keys: {self.fhir_converter.keys()}")
+            self.logger.debug(
+                f"Data type: {data_type} ::: FHIR Converter keys: {self.fhir_converter.keys()}"
+            )
             if data_type not in self.fhir_converter.keys():
                 return ["Error", f"Data type {data_type} not found in DB records"]
             data_rows = self.con.execute(query.format(columns, table)).fetchall()
@@ -159,19 +169,23 @@ class DBInterface:
             response = {
                 "data": [self.fhir_converter[data_type](dr) for dr in data_rows],
                 "pagination": {"sample_size": limit, "offset": offset},
-                }
+            }
             return response
 
     def get_random_sample(self):
         table = self.config["entry_table"]
         query = self.queries["RANDOM_SAMPLE"]
         random_sampling_config = self.config["random_sampling_keys"]
-        
+
         column_headers = self.config["key_columns"][table]
 
         formatted_query = query.format(
-            ",".join(column_headers), table, random_sampling_config[0], 
-            random_sampling_config[0], table, random_sampling_config[1]
+            ",".join(column_headers),
+            table,
+            random_sampling_config[0],
+            random_sampling_config[0],
+            table,
+            random_sampling_config[1],
         )
         # self.logger.debug(f"Executing query: {formatted_query}")
         print(f"Executing query: {formatted_query}")
@@ -183,7 +197,6 @@ class DBInterface:
         #     return df
         # else:
         #     return df
-
 
 
 if __name__ == "__main__":
@@ -207,7 +220,7 @@ if __name__ == "__main__":
         print(f"---- {name} ----")
         random_data, column_headers = dbi.get_random_sample()
         print(f"{name}: Collected {len(random_data)} samples")
-        
+
         with open(f"{name}-RandomSamples.csv", "w") as fp:
             fp.write(",".join(column_headers) + "\n")
             line_count = 0

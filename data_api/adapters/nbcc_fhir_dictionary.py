@@ -34,7 +34,7 @@ GWDC_PROSTATE_DIAGNOSTIC_DICT = {
 
 
 def convert_nbcc_to_fhir(record):
-    
+
     # patient_record = {}
     # for k, v in NBCC_PATIENT_DICT.items():
     #     if type(v) is str:

@@ -10,34 +10,34 @@ DB_NAME = "GWDC_BreastCancer_LungCancer_ProstateCancer.sqlite"
 counter = 0
 
 table_names = {
-        'PatientDim.BrPrLu.parquet': 'PatientDim', 
-        'MedicationDim.parquet': 'MedicationDim',
-        'EncounterFact.BrPrLu.parquet': 'EncounterFact',
-        'PatientRegistryValueFact.BrPrLu.parquet': 'PatientRegistryValueFact',
-        'FlowsheetValueFact.BrPrLu.parquet': 'FlowsheetValueFact',
-        'ProcedureEventFact.BrPrLu.parquet': 'ProcedureEventFact', 
-        'MedicationSetDim.parquet': 'MedicationSetDim',
-        'DiagnosisEventFact.BrPrLu.parquet': 'DiagnosisEventFact',
-        'RegistryMetricDim.parquet': 'RegistryMetricDim',
-        'MedicationOrderFact.BrPrLu.parquet': 'MedicationOrderFact',
-        'FlowsheetRowDim.parquet': 'FlowsheetRowDim',
-        'LabComponentResultFact.BrPrLu.parquet': 'LabComponentResultFact',
-        'DiagnosisSetDim.parquet': 'DiagnosisSetDim',
-        'CancerStagingFact.BrPrLu.parquet': 'CancerStagingFact',
-        'DiagnosisDim.parquet': 'DiagnosisDim',
-        'LabComponentDim.parquet': 'LabComponentDim',
-        'TerminologyConceptDim.parquet': 'TerminologyConceptDim',
-        'ProcedureDim.parquet': 'ProcedureDim',
-        'MedicationAdministrationFact.BrPrLu.parquet': 'MedicationAdministrationFact',
-        'LabOrganismDim.parquet': 'LabOrganismDim',
-        'LabCounts.parquet': 'LabCounts',
-        'MedicationCodeDim.parquet': 'MedicationCodeDim',
-        'GWDC_BrPrLuCA.Rproj': 'GWDC_BrPrLuCA',
-        'LabComponentMappingDim.parquet': 'LabComponentMappingDim',
-        'LabComponentSetDim.parquet': 'LabComponentSetDim',
-        'ProcedureTerminologyDim.parquet': 'ProcedureTerminologyDim',
-        'DiagnosisTerminologyDim.parquet': 'DiagnosisTerminologyDim',
-        }
+    "PatientDim.BrPrLu.parquet": "PatientDim",
+    "MedicationDim.parquet": "MedicationDim",
+    "EncounterFact.BrPrLu.parquet": "EncounterFact",
+    "PatientRegistryValueFact.BrPrLu.parquet": "PatientRegistryValueFact",
+    "FlowsheetValueFact.BrPrLu.parquet": "FlowsheetValueFact",
+    "ProcedureEventFact.BrPrLu.parquet": "ProcedureEventFact",
+    "MedicationSetDim.parquet": "MedicationSetDim",
+    "DiagnosisEventFact.BrPrLu.parquet": "DiagnosisEventFact",
+    "RegistryMetricDim.parquet": "RegistryMetricDim",
+    "MedicationOrderFact.BrPrLu.parquet": "MedicationOrderFact",
+    "FlowsheetRowDim.parquet": "FlowsheetRowDim",
+    "LabComponentResultFact.BrPrLu.parquet": "LabComponentResultFact",
+    "DiagnosisSetDim.parquet": "DiagnosisSetDim",
+    "CancerStagingFact.BrPrLu.parquet": "CancerStagingFact",
+    "DiagnosisDim.parquet": "DiagnosisDim",
+    "LabComponentDim.parquet": "LabComponentDim",
+    "TerminologyConceptDim.parquet": "TerminologyConceptDim",
+    "ProcedureDim.parquet": "ProcedureDim",
+    "MedicationAdministrationFact.BrPrLu.parquet": "MedicationAdministrationFact",
+    "LabOrganismDim.parquet": "LabOrganismDim",
+    "LabCounts.parquet": "LabCounts",
+    "MedicationCodeDim.parquet": "MedicationCodeDim",
+    "GWDC_BrPrLuCA.Rproj": "GWDC_BrPrLuCA",
+    "LabComponentMappingDim.parquet": "LabComponentMappingDim",
+    "LabComponentSetDim.parquet": "LabComponentSetDim",
+    "ProcedureTerminologyDim.parquet": "ProcedureTerminologyDim",
+    "DiagnosisTerminologyDim.parquet": "DiagnosisTerminologyDim",
+}
 
 db_conn = sql.connect(database=os.path.join(DB_HOME, DB_NAME))
 
@@ -55,4 +55,3 @@ for root, dirnames, files in os.walk(DATA_HOME):
         print(f"{f}: Inserted {num_rows_inserted}")
 
 db_conn.close()
-

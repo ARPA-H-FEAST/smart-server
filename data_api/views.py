@@ -1,12 +1,13 @@
 from django.shortcuts import render
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+
 # from django.contrib.auth.mixins import ProtectedResourceView
 # NB See [SO](https://stackoverflow.com/a/55224844)
 # This is the class-view equivalent in DOT
 from oauth2_provider.views.generic import ProtectedResourceView
 
-# ...and this class, from [here](https://django-oauth-toolkit.readthedocs.io/en/latest/views/mixins.html), 
+# ...and this class, from [here](https://django-oauth-toolkit.readthedocs.io/en/latest/views/mixins.html),
 # seems pretty clearly broken out of the box...
 # import oauth2_provider.views.mixins.ClientProtectedResourceMixin as ProtectedResourceView
 from django.views.decorators.csrf import csrf_exempt
@@ -73,6 +74,7 @@ else:
 ### and (2) explicit calls to `post`, `get`, etc. Seems inflexible and brittle, but
 ### sure ...
 
+
 class GetBCO(APIView):
     @swagger_auto_schema(
         request_body=openapi.Schema(
@@ -89,20 +91,22 @@ class GetBCO(APIView):
         responses=get_bco_config(),
         operation_description="Retrieve the BCO defining dataset provenance",
     )
-
     def post(self, request):
 
         bcoid = json.loads(request.body)["bcoid"]
 
         if not bcoid:
-            return JsonResponse({"error": "No BCO found in query"}, safe=False, status=400)
-        
+            return JsonResponse(
+                {"error": "No BCO found in query"}, safe=False, status=400
+            )
+
         with open(os.path.join(BCO_HOME, f"{bcoid}.json"), "r") as fp:
             bco = json.load(fp)
 
         return JsonResponse(bco)
 
-# TODO: Moving to `ProtectedView` (aka, credentialling) 
+
+# TODO: Moving to `ProtectedView` (aka, credentialling)
 # breaks the response into two
 class GetDataSets(ProtectedResourceView, APIView):
     @swagger_auto_schema(
@@ -119,6 +123,7 @@ class GetDataSets(ProtectedResourceView, APIView):
             result[bcoid] = dbi.config["dataset"]
 
         return JsonResponse({"results": result}, safe=False)
+
 
 class GetDatasetMetadata(ProtectedResourceView, APIView):
 
@@ -138,7 +143,6 @@ class GetDatasetMetadata(ProtectedResourceView, APIView):
         responses=get_dataset_metadata_config(),
         operation_description="Get detailed information about a dataset",
     )
-
     def post(self, request):
         bcoid = json.loads(request.body)["bcoid"]
 
@@ -147,7 +151,9 @@ class GetDatasetMetadata(ProtectedResourceView, APIView):
 
         if bcoid not in DB_CONNECTORS.keys():
             # Error handling
-            return JsonResponse({"error": f"Unknown BCO ID {bcoid} provided"}, safe=False, status=400)
+            return JsonResponse(
+                {"error": f"Unknown BCO ID {bcoid} provided"}, safe=False, status=400
+            )
 
         config = DB_CONNECTORS[bcoid].config
         response = {
@@ -194,7 +200,7 @@ class GetDatasetDetail(ProtectedResourceView, APIView):
                     default="FEAST_000012",
                 )
             },
-            optional=["sample_limit", "sample_offset"]
+            optional=["sample_limit", "sample_offset"],
         ),
         responses=get_dataset_detail_config(),
         operation_description="Get detailed information about a dataset",
@@ -209,7 +215,9 @@ class GetDatasetDetail(ProtectedResourceView, APIView):
         bcoid = params.get("bcoid", None)
 
         if bcoid is None:
-            return JsonResponse({"error": "No BCO ID query parameter provided"}, safe=False, status=400)
+            return JsonResponse(
+                {"error": "No BCO ID query parameter provided"}, safe=False, status=400
+            )
 
         if bcoid not in DB_CONNECTORS.keys():
 
@@ -217,10 +225,14 @@ class GetDatasetDetail(ProtectedResourceView, APIView):
                 bco = json.load(fp)
             bco_model = BCOFileDescriptor.objects.get(bcoid=bcoid)
 
-            return JsonResponse({
-                "bco": bco,
-                "fileobjlist": [{"filename": f} for f in bco_model.files_represented],
-            })
+            return JsonResponse(
+                {
+                    "bco": bco,
+                    "fileobjlist": [
+                        {"filename": f} for f in bco_model.files_represented
+                    ],
+                }
+            )
 
         sample_limit = params.get("sample_limit", 1)
         sample_offset = params.get("sample_offset", 0)
@@ -234,19 +246,24 @@ class GetDatasetDetail(ProtectedResourceView, APIView):
             ## e.g., the following error:
             # `Patient.__init__() got an unexpected keyword argument 'Sex'`
             entries = dbi.get_sample(
-                output_format="fhir", data_type="patient", limit=sample_limit, offset=sample_offset
+                output_format="fhir",
+                data_type="patient",
+                limit=sample_limit,
+                offset=sample_offset,
             )
             if response_shape == "string":
                 entries["data"] = entries["data"][0]
-                # XXX 
+                # XXX
                 # / TODO Error checking if returning a string
                 #  and the sample size is > 1
-            return JsonResponse({
-                "db_entries": entries,
-                # "db_metadata": db_metadata,
-                "sample_start": sample_offset,
-                "sample_count": sample_limit,
-            })
+            return JsonResponse(
+                {
+                    "db_entries": entries,
+                    # "db_metadata": db_metadata,
+                    "sample_start": sample_offset,
+                    "sample_count": sample_limit,
+                }
+            )
         else:
             # Retrieve first N samples for display
             example_values = dbi.get_sample(limit=sample_limit, offset=sample_offset)
