@@ -32,9 +32,7 @@ class SchemaGenerator(OpenAPISchemaGenerator):
 
 swagger_patterns = [
     path("dataset-detail/", views.GetDatasetDetail.as_view(), name="File detail view"),
-    path(
-        "datasets/", views.GetDataSets.as_view(), name="API data source list access"
-    ),
+    path("datasets/", views.GetDataSets.as_view(), name="API data source list access"),
     path(
         "dataset-metadata/",
         views.GetDatasetMetadata.as_view(),
@@ -47,6 +45,7 @@ schema_view = get_schema_view(
     openapi.Info(title="FHIR Swagger Test", default_version="v0.1"),
     public=False,
     patterns=swagger_patterns,
+    # url="http://localhost:8000",
     url="https://feast.mgpc.biochemistry.gwu.edu",
     urlconf="data_api.urls",
     generator_class=SchemaGenerator,
