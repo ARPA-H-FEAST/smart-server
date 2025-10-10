@@ -125,7 +125,7 @@ def query_fhir(request, query_args_string):
     if settings.DJANGO_MODE == "dev":
         FHIR_URL = "http://localhost:8080/fhir/"
     else:
-        FHIR_URL = "http://feast-fhir-302:8081/fhir/"
+        FHIR_URL = "http://feast-fhir-internal-server:8080/fhir/"
     if query_args_string is None:
         return JsonResponse({"response": "no query text provided"}, safe=False)
     if method == "GET":
