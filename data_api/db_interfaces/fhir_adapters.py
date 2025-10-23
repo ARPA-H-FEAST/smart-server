@@ -392,8 +392,367 @@ class GenomicStudy:
         return json.dumps(self.__dict__)
 
 
+class Medication:
+    # c.f. https://hl7.org/fhir/medication.html
+    def __init__(self, kwargs):
+        self.resourceType = "Medication",
+        # // from Resource: id, meta, implicitRules, and language
+        # // from DomainResource: text, contained, extension, and modifierExtension
+        self.identifier = kwargs.get("", None)  # [{ Identifier }], // Business identifier for this medication
+        self.code = kwargs.get("", None)  # { CodeableConcept }, // Codes that identify this medication
+        self.status = kwargs.get("", None)  # "<code>", // active | inactive | entered-in-error
+        self.marketingAuthorizationHolder = kwargs.get("", None)  # { Reference(Organization) }, // Organization that has authorization to market medication
+        self.doseForm = kwargs.get("", None)  # { CodeableConcept }, // powder | tablets | capsule +
+        self.totalVolume = kwargs.get("", None)  # { Quantity }, // When the specified product code does not infer a package size, this is the specific amount of drug in the product
+        self.ingredient = kwargs.get("", None)  # [{ // Active or inactive ingredient
+            #     "item" : { CodeableReference(Medication|Substance) }, # // R!  The ingredient (substance or medication) that the ingredient.strength relates to
+            #     "isActive" : <boolean>, // Active ingredient indicator
+            #     // strength[x]: Quantity of ingredient present. One of these 3:
+            #     "strengthRatio" : { Ratio },
+            #     "strengthCodeableConcept" : { CodeableConcept },
+            #     "strengthQuantity" : { Quantity }
+            # }],
+        self.batch = kwargs.get("batch", None)
+        ''' 
+            {   // Details about packaged medications
+                # "lotNumber" : "<string>", // Identifier assigned to batch
+                # "expirationDate" : "<dateTime>" // When batch will expire
+            },
+        '''
+        self.definition = kwargs.get("definition", None)  # { Reference(MedicationKnowledge) } // Knowledge about this medication
+
+    def to_json(self):
+        ...
+
+
+class Encounter:
+    
+    def __init__(self, kwargs):
+
+        # c.f. https://hl7.org/fhir/encounter.html
+
+        self.resourceType = "Encounter"
+        #   // from Resource: id, meta, implicitRules, and language
+        #   // from DomainResource: text, contained, extension, and modifierExtension
+        self.identifier = kwargs.get("", None) #  [{ Identifier }], // Identifier(s) by which this encounter is known
+        self.status = kwargs.get("", None) #  "<code>", // R!  planned | in-progress | on-hold | discharged | completed | cancelled | discontinued | entered-in-error | unknown
+        self.clazz = kwargs.get("", None) #  [{ CodeableConcept }], // Classification of patient encounter context - e.g. Inpatient, outpatient icon
+        self.priority = kwargs.get("", None) #  { CodeableConcept }, // Indicates the urgency of the encounter icon
+        self.type = kwargs.get("", None) #  [{ CodeableConcept }], // Specific type of encounter (e.g. e-mail consultation, surgical day-care, ...)
+        self.serviceType = kwargs.get("", None) #  [{ CodeableReference(HealthcareService) }], // Specific type of service
+        self.subject = kwargs.get("", None) #  { Reference(Group|Patient) }, // The patient or group related to this encounter
+        self.subjectStatus = kwargs.get("", None) #  { CodeableConcept }, // The current status of the subject in relation to the Encounter
+        self.episodeOfCare = kwargs.get("", None) #  [{ Reference(EpisodeOfCare) }], // Episode(s) of care that this encounter should be recorded against
+        self.basedOn = kwargs.get("", None) 
+        '''
+            [{ Reference(CarePlan|DeviceRequest|ImmunizationRecommendation|
+            MedicationRequest|NutritionOrder|RequestOrchestration|ServiceRequest|
+            VisionPrescription) }], // The request that initiated this encounter
+        '''
+        self.careTeam = kwargs.get("", None)  # [{ Reference(CareTeam) }], // The group(s) that are allocated to participate in this encounter
+        self.partOf = kwargs.get("", None)  # { Reference(Encounter) }, // Another Encounter this encounter is part of
+        self.serviceProvider = kwargs.get("", None)  # { Reference(Organization) }, // The organization (facility) responsible for this encounter
+        self.participant = kwargs.get("", None) 
+        '''
+            [{ // List of participants involved in the encounter
+            "type" : [{ CodeableConcept }], // I Role of participant in encounter
+            "period" : { Period }, // Period of time during the encounter that the participant participated
+            "actor" : { Reference(Device|Group|HealthcareService|Patient|Practitioner|
+            PractitionerRole|RelatedPerson) } // I The individual, device, or service participating in the encounter
+            }],
+        '''
+        self.appointment = kwargs.get("", None)  # [{ Reference(Appointment) }], // The appointment that scheduled this encounter
+        self.virtualService = kwargs.get("", None)  # [{ VirtualServiceDetail }], // Connection details of a virtual service (e.g. conference call)
+        self.actualPeriod = kwargs.get("", None)  # { Period }, // The actual start and end time of the encounter
+        self.plannedStartDate = kwargs.get("", None)  # "<dateTime>", // The planned start date/time (or admission date) of the encounter
+        self.plannedEndDate = kwargs.get("", None)  # "<dateTime>", // The planned end date/time (or discharge date) of the encounter
+        self.length = kwargs.get("", None)  # { Duration }, // Actual quantity of time the encounter lasted (less time absent)
+        self.reason = kwargs.get("", None) 
+        '''
+            [{ // The list of medical reasons that are expected to be addressed during the episode of care
+            "use" : [{ CodeableConcept }], // What the reason value should be used for/as
+            "value" : [{ CodeableReference(Condition|DiagnosticReport|
+            ImmunizationRecommendation|Observation|Procedure) }] // Reason the encounter takes place (core or reference)
+            }],
+        '''
+        self.diagnosis = kwargs.get("", None) 
+        '''
+            [{ // The list of diagnosis relevant to this encounter
+                "condition" : [{ CodeableReference(Condition) }], // The diagnosis relevant to the encounter
+                "use" : [{ CodeableConcept }] // Role that this diagnosis has within the encounter (e.g. admission, billing, discharge …)
+            }],
+        '''
+        self.account = kwargs.get("", None)  # [{ Reference(Account) }], // The set of accounts that may be used for billing for this Encounter
+        self.dietPreference = kwargs.get("", None)  # [{ CodeableConcept }], // Diet preferences reported by the patient
+        self.specialArrangement = kwargs.get("", None)  # [{ CodeableConcept }], // Wheelchair, translator, stretcher, etc
+        self.specialCourtesy = kwargs.get("", None)  # [{ CodeableConcept }], // Special courtesies (VIP, board member)
+        self.admission = kwargs.get("", None)  
+        '''
+            { // Details about the admission to a healthcare service
+            "preAdmissionIdentifier" : { Identifier }, // Pre-admission identifier
+            "origin" : { Reference(Location|Organization) }, // The location/organization from which the patient came before admission
+            "admitSource" : { CodeableConcept }, // From where patient was admitted (physician referral, transfer)
+            "reAdmission" : { CodeableConcept }, // Indicates that the patient is being re-admitted icon
+            "destination" : { Reference(Location|Organization) }, // Location/organization to which the patient is discharged
+            "dischargeDisposition" : { CodeableConcept } // Category or kind of location after discharge
+            },
+        '''
+        self.location = kwargs.get("", None) 
+        '''
+        [{ // List of locations where the patient has been
+            "location" : { Reference(Location) }, // R!  Location the encounter takes place
+            "status" : "<code>", // planned | active | reserved | completed
+            "form" : { CodeableConcept }, // The physical type of the location (usually the level in the location hierarchy - bed, room, ward, virtual etc.)
+            "period" : { Period } // Time period during which the patient was present at the location
+        }]
+        '''
+    
+    def to_json(self):
+        ...
+
+
+class Flowsheet:
+    
+    # Initially unclear - see here
+    # https://build.fhir.org/ig/HL7/uv-pocd/overview.html
+    # see also: https://hl7.org/fhir/extensions/StructureDefinition-workflow-reason.html
+
+    def __init__(self, kwargs):
+        ...
+
+    def to_json(self):
+        ... 
+
+
+class Procedure:
+
+    def __init__(self, kwargs):
+
+        # c.f. https://hl7.org/fhir/procedure.html
+
+        self.resourceType = "Procedure"
+        # // from Resource: id, meta, implicitRules, and language
+        # // from DomainResource: text, contained, extension, and modifierExtension
+        self.identifier = kwargs.get("", None)  # [{ Identifier }], // External Identifiers for this procedure
+        self.instantiatesCanonical = kwargs.get("", None)  # ["<canonical(PlanDefinition|ActivityDefinition|Measure|OperationDefinition|Questionnaire)>"], // Instantiates FHIR protocol or definition
+        self.instantiatesUri = kwargs.get("", None)  # ["<uri>"], // Instantiates external protocol or definition
+        self.basedOn = kwargs.get("", None)  # [{ Reference(CarePlan|ServiceRequest) }], // A request for this procedure
+        self.partOf = kwargs.get("", None)  # [{ Reference(MedicationAdministration|Observation|Procedure) }], // Part of referenced event
+        self.status = kwargs.get("", None)  # "<code>", // R!  preparation | in-progress | not-done | on-hold | stopped | completed | entered-in-error | unknown
+        self.statusReason = kwargs.get("", None)  # { CodeableConcept }, // Reason for current status
+        self.category = kwargs.get("", None)  # [{ CodeableConcept }], // Classification of the procedure
+        self.code = kwargs.get("", None)  # { CodeableConcept }, // Identification of the procedure
+        self.subject = kwargs.get("", None)  # { Reference(Device|Group|Location|Organization|Patient|Practitioner) }, // R!  Individual or entity the procedure was performed on
+        self.focus = kwargs.get("", None)
+        '''
+        { Reference(CareTeam|Group|Organization|Patient|Practitioner|
+        PractitionerRole|RelatedPerson|Specimen) }, // Who is the target of the procedure when it is not the subject of record only
+        '''
+        self.encounter = kwargs.get("", None)  # { Reference(Encounter) }, // The Encounter during which this Procedure was created
+        # // occurrence[x]: When the procedure occurred or is occurring. One of these 6:
+        self.occurrenceDateTime = kwargs.get("", None)  # "<dateTime>",
+        self.occurrencePeriod = kwargs.get("", None)  # { Period },
+        self.occurrenceString = kwargs.get("", None)  # "<string>",
+        self.occurrenceAge = kwargs.get("", None)  # { Age },
+        self.occurrenceRange = kwargs.get("", None)  # { Range },
+        self.occurrenceTiming = kwargs.get("", None)  # { Timing },
+        self.recorded = kwargs.get("", None)  # "<dateTime>", // When the procedure was first captured in the subject's record
+        self.recorder = kwargs.get("", None)  # { Reference(Patient|Practitioner|PractitionerRole|RelatedPerson) }, // Who recorded the procedure
+        
+        # // reported[x]: Reported rather than primary record. One of these 2:
+        # TODO Flow control, because HL7 hates us and wants us miserable
+        self.reportedBoolean = kwargs.get("", None)  # <boolean>,
+        self.reportedReference = kwargs.get("", None)  # { Reference(Organization|Patient|Practitioner|PractitionerRole|RelatedPerson) },
+        
+        self.performer = kwargs.get("", None)
+        '''
+            [{ // Who performed the procedure and what they did
+            "function" : { CodeableConcept }, // Type of performance
+            "actor" : { Reference(CareTeam|Device|HealthcareService|Organization|Patient|Practitioner|PractitionerRole|RelatedPerson) }, // I R!  Who performed the procedure
+            "onBehalfOf" : { Reference(Organization) }, // I Organization the device or practitioner was acting for
+            "period" : { Period } // When the performer performed the procedure
+            }],
+        '''
+        self.location = kwargs.get("", None)  # { Reference(Location) }, // Where the procedure happened
+        self.reason = kwargs.get("", None)  # [{ CodeableReference(Condition|DiagnosticReport|DocumentReference|Observation|Procedure) }], // The justification that the procedure was performed
+        self.bodySite = kwargs.get("", None)  # [{ CodeableConcept }], // Target body sites
+        self.outcome = kwargs.get("", None)  # { CodeableConcept }, // The result of procedure
+        self.report = kwargs.get("", None)  # [{ Reference(Composition|DiagnosticReport|DocumentReference) }], // Any report resulting from the procedure
+        self.complication = kwargs.get("", None)  # [{ CodeableReference(Condition) }], // Complication following the procedure
+        self.followUp = kwargs.get("", None)  # [{ CodeableConcept }], // Instructions for follow up
+        self.note = kwargs.get("", None)  # [{ Annotation }], // Additional information about the procedure
+        self.focalDevice = kwargs.get("", None)
+        '''
+            [{ // Manipulated, implanted, or removed device
+            "action" : { CodeableConcept }, // Kind of change to device
+            "manipulated" : { Reference(Device) } // R!  Device that was changed
+            }],
+        '''
+        self.used = kwargs.get("", None)  # [{ CodeableReference(BiologicallyDerivedProduct|Device|Medication|Substance) }], // Items used during procedure
+        self.supportingInfo = kwargs.get("", None)  # [{ Reference(Any) }] // Extra information relevant to the procedure
+
+    def to_json(self):
+        ... 
+
+
+class Registry:
+
+    # Unclear what the appropriate model would be here
+    def __init__(self, kwargs):
+        ...
+
+    def to_json(self):
+        ... 
+
+
+class Observation:
+
+    # Using the "Observation" because "LabComponent" from EPIC Caboodle seems to fit here?
+    # c.f. https://www.hl7.org/fhir/observation.html
+
+    def __init__(self, kwargs):
+        self.resourceType = "Observation"
+        # // from Resource: id, meta, implicitRules, and language
+        # // from DomainResource: text, contained, extension, and modifierExtension
+        self.identifier = kwargs.get("", None)  # [{ Identifier }], // Business Identifier for observation
+        
+        # // instantiates[x]: Instantiates FHIR ObservationDefinition. One of these 2:
+        instantiation = kwargs.get("observation", {})
+        if not instantiation:
+            raise Exception("---> Instantiation error: Instatiation must be dict of {canonical|reference}: definition <---")
+        assert(len(list(instantiation.keys())) == 1), "Illegal instantiation provided"
+        if "canonical" in instantiation.keys():
+            self.instantiatesCanonical = "canonical"  # "<canonical(ObservationDefinition)>"
+        elif "reference" in instantiation.keys():
+            self.instantiatesReference = "reference"  # { Reference(ObservationDefinition) },
+        elif "test"  in instantiation.keys():
+            self.instantiatesCanonical = "{canonical|reference}"
+        else:
+            raise Exception("Illegal key provided")
+        self.basedOn = kwargs.get("", None)  # [{ Reference(CarePlan|DeviceRequest|ImmunizationRecommendation|MedicationRequest|NutritionOrder|ServiceRequest) }], // Fulfills plan, proposal or order
+        self.triggeredBy = kwargs.get("", None) 
+        '''
+            [{ // Triggering observation(s)
+            "observation" : { Reference(Observation) }, // R!  Triggering observation
+            "type" : "<code>", // R!  reflex | repeat | re-run
+            "reason" : "<string>" // Reason that the observation was triggered
+            }],
+        '''
+        self.partOf = kwargs.get("", None)  # [{ Reference(GenomicStudy|ImagingStudy|Immunization|MedicationAdministration|MedicationDispense|MedicationStatement|Procedure) }], // Part of referenced event
+        self.status = kwargs.get("", None)  # "<code>", // R!  registered | preliminary | final | amended +
+        self.category = kwargs.get("", None)  # [{ CodeableConcept }], // Classification of  type of observation
+        self.code = kwargs.get("", None)  # { CodeableConcept }, // I R!  Type of observation (code / type)
+        self.subject = kwargs.get("", None)  # { Reference(BiologicallyDerivedProduct|Device|Group|Location|Medication|NutritionProduct|Organization|Patient|Practitioner|Procedure|Substance) }, // Who and/or what the observation is about
+        self.focus = kwargs.get("", None)  # [{ Reference(Any) }], // What the observation is about, when it is not about the subject of record
+        self.encounter = kwargs.get("", None)  # { Reference(Encounter) }, // Healthcare event during which this observation is made
+        
+        # // effective[x]: Clinically relevant time/time-period for observation. One of these 4:
+        # XXX: More FHIR pain
+        '''
+        "effectiveDateTime" : "<dateTime>",
+        "effectivePeriod" : { Period },
+        "effectiveTiming" : { Timing },
+        "effectiveInstant" : "<instant>",
+        '''
+
+        self.issued = kwargs.get("", None)  # "<instant>", // Date/Time this version was made available
+        self.performer = kwargs.get("", None)  # [{ Reference(CareTeam|Organization|Patient|Practitioner|PractitionerRole|RelatedPerson) }], // Who is responsible for the observation
+        
+        # // value[x]: Actual result. One of these 13:
+        # XXX: More FHIR pain (13)
+        '''
+        "valueQuantity" : { Quantity },
+        "valueCodeableConcept" : { CodeableConcept },
+        "valueString" : "<string>",
+        "valueBoolean" : <boolean>,
+        "valueInteger" : <integer>,
+        "valueRange" : { Range },
+        "valueRatio" : { Ratio },
+        "valueSampledData" : { SampledData },
+        "valueTime" : "<time>",
+        "valueDateTime" : "<dateTime>",
+        "valuePeriod" : { Period },
+        "valueAttachment" : { Attachment },
+        "valueReference" : { Reference(MolecularSequence) },
+        '''
+        self.dataAbsentReason = kwargs.get("", None)  # { CodeableConcept }, // I Why the result is missing
+        self.interpretation = kwargs.get("", None)  # [{ CodeableConcept }], // High, low, normal, etc
+        self.note = kwargs.get("", None)  # [{ Annotation }], // Comments about the observation
+        self.bodySite = kwargs.get("", None)  # { CodeableConcept }, // I Observed body part
+        self.bodyStructure = kwargs.get("", None)  # { Reference(BodyStructure) }, // I Observed body structure
+        self.method = kwargs.get("", None)  # { CodeableConcept }, // How it was done
+        self.specimen = kwargs.get("", None)  # { Reference(Group|Specimen) }, // Specimen used for this observation
+        self.device = kwargs.get("", None)  # { Reference(Device|DeviceMetric) }, // A reference to the device that generates the measurements or the device settings for the device
+        self.referenceRange = kwargs.get("", None)
+        '''
+            [{ // Provides guide for interpretation
+            "low" : { Quantity(SimpleQuantity) }, // I Low Range, if relevant
+            "high" : { Quantity(SimpleQuantity) }, // I High Range, if relevant
+            "normalValue" : { CodeableConcept }, // Normal value, if relevant
+            "type" : { CodeableConcept }, // Reference range qualifier
+            "appliesTo" : [{ CodeableConcept }], // Reference range population
+            "age" : { Range }, // Applicable age range, if relevant
+            "text" : "<markdown>" // I Text based reference range in an observation
+            }],
+        '''
+        self.hasMember = kwargs.get("", None)  # [{ Reference(MolecularSequence|Observation|QuestionnaireResponse) }], // Related resource that belongs to the Observation group
+        self.derivedFrom = kwargs.get("", None)  # [{ Reference(DocumentReference|GenomicStudy|ImagingSelection|ImagingStudy|MolecularSequence|Observation|QuestionnaireResponse) }], // Related resource from which the observation is made
+        self.component = kwargs.get("", None) 
+        '''
+            [{ // I Component results
+            "code" : { CodeableConcept }, // I R!  Type of component observation (code / type)
+            
+            // value[x]: Actual component result. One of these 13:
+            # XXX: More FHIR pain (13)
+            "valueQuantity" : { Quantity },
+            "valueCodeableConcept" : { CodeableConcept },
+            "valueString" : "<string>",
+            "valueBoolean" : <boolean>,
+            "valueInteger" : <integer>,
+            "valueRange" : { Range },
+            "valueRatio" : { Ratio },
+            "valueSampledData" : { SampledData },
+            "valueTime" : "<time>",
+            "valueDateTime" : "<dateTime>",
+            "valuePeriod" : { Period },
+            "valueAttachment" : { Attachment },
+            "valueReference" : { Reference(MolecularSequence) },
+            "dataAbsentReason" : { CodeableConcept }, // Why the component result is missing
+            "interpretation" : [{ CodeableConcept }], // High, low, normal, etc
+            "referenceRange" : [{ Content as for Observation.referenceRange }] // Provides guide for interpretation of component result
+            }]
+        '''
+
+    def to_json(self):
+        ... 
+
+
+class CancerStaging:
+
+    # see https://build.fhir.org/ig/HL7/fhir-mCODE-ig/StructureDefinition-mcode-cancer-stage-mappings.html
+    # and https://terminology.hl7.org/5.1.0/CodeSystem-TNM.html
+
+    def __init__(self, kwargs):
+        ...
+
+    def to_json(self):
+        ... 
+
+
+class Terminology:
+
+    # see https://build.fhir.org/terminologies.html
+
+    def __init__(self, kwargs):
+        ...
+
+    def to_json(self):
+        ... 
+
 if __name__ == "__main__":
 
+    ### Patient creation stub
+    '''
     # Create a patient
     sample_props = {
         "human_name": "Jordan Taylor",
@@ -403,3 +762,18 @@ if __name__ == "__main__":
     patient = Patient(sample_props)
 
     print(f"Patient details: {patient.to_json()}")
+    '''
+    objects = {
+        "Patient": Patient(), 
+        "DiagnosticReport": DiagnosticReport(), 
+        "Organization": Organization(), 
+        "FamilyMemberHistory": FamilyMemberHistory(), 
+        "GenomicStudy": GenomicStudy(),
+        "Medication": Medication(),
+        "Encounter": Encounter(),
+        "Procedure": Procedure(),
+        "Observation": Observation(),
+        }
+    ### Object dump stub
+    for name, obj in objects.items():
+        print(f"{name}: {obj.__dict__.keys()}")
