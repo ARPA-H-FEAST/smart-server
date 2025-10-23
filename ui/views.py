@@ -120,9 +120,11 @@ def get_fhir_endpoints(request):
 @protected_resource()
 def query_fhir(request, query_args_string):
     method = request.method
-    # query_args_string = request.GET.get("q", None)
+    token = request.headers.get("Authorization", None)
     logger.debug(f"Found query args {query_args_string}")
+    logger.debug(f"Found token {token}")
     if settings.DJANGO_MODE == "dev":
+        logger.debug(f"===> Contacting localhost FHIR server <===")
         FHIR_URL = "http://localhost:8080/fhir/"
     else:
         FHIR_URL = "http://feast-fhir-internal-server:8080/fhir/"
@@ -130,7 +132,7 @@ def query_fhir(request, query_args_string):
         return JsonResponse({"response": "no query text provided"}, safe=False)
     if method == "GET":
         fhir_response = requests.request(
-            method="GET", url=f"{FHIR_URL}{query_args_string}"
+            method="GET", url=f"{FHIR_URL}{query_args_string}", headers={"Authorization": token}
         )
         response_body = fhir_response.json()
         _ = response_body.pop("link", None)
