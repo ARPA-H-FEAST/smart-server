@@ -15,7 +15,7 @@ except:
     import sys
     from pathlib import Path
 
-    this_path = Path(__file__).parent
+    this_path = Path(__file__).parent.parent.parent
     print(f"===> Adding path {this_path}")
     sys.path.append(str(this_path))
     ## Import for command line
