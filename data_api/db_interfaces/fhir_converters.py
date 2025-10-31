@@ -19,7 +19,7 @@ except:
     print(f"===> Adding path {this_path}")
     sys.path.append(str(this_path))
     ## Import for command line
-    from data_api.fhir_objs.R5 import (
+    from data_api.db_interfaces.fhir_objs.R5 import (
         Patient,
         DiagnosticReport,
         GenomicStudy,
