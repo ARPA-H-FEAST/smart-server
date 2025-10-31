@@ -3,18 +3,28 @@ import random
 
 try:
     ## Import in Django
-    from .fhir_adapters import (
+    from .fhir_objs.R5 import (
         Patient,
         DiagnosticReport,
         GenomicStudy,
     )
+    from django.conf import settings
+    FHIR_VERSION = settings.FHIR_VERSION
 except:
+    
+    import sys
+    from pathlib import Path
+
+    this_path = Path(__file__).parent
+    print(f"===> Adding path {this_path}")
+    sys.path.append(this_path)
     ## Import for command line
-    from fhir_adapters import (
+    from .fhir_objs.R5 import (
         Patient,
         DiagnosticReport,
         GenomicStudy,
     )
+    FHIR_VERSION = "R5"
 
 import datetime
 
