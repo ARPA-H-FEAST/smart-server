@@ -17,7 +17,7 @@ except:
 
     this_path = Path(__file__).parent
     print(f"===> Adding path {this_path}")
-    sys.path.append(this_path)
+    sys.path.append(str(this_path))
     ## Import for command line
     from .fhir_objs.R5 import (
         Patient,
