@@ -17,6 +17,7 @@ SQL_QUERIES = {
     "GET_UNIQUE": "SELECT DISTINCT {} FROM {};",
     "MIN": "SELECT MIN({}) FROM {};",
     "MAX": "SELECT MAX({}) FROM {};",
+    "TABLES": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;",
 }
 
 DUCK_QUERIES = {
@@ -25,6 +26,7 @@ DUCK_QUERIES = {
     "GET_UNIQUE": "SELECT DISTINCT {} FROM {};",
     "MIN": "SELECT MIN({}) FROM {};",
     "MAX": "SELECT MAX({}) FROM {};",
+    "TABLES": "SHOW TABLES;"
 }
 
 
@@ -198,6 +200,18 @@ class DBInterface:
         # else:
         #     return df
 
+    def _get_tables(self):
+        query = self.queries["TABLES"]
+        tables = self.cur.execute(query).fetchall()
+        return [table[0] for table in tables]
+
+    def _singleton_sample_and_columns(self, table):
+        query = self.queries["SAMPLE_QUERY"]
+        query = query.format("*", table) + "LIMIT 1;"
+        response = self.cur.execute(query).fetchall()
+        print(f"Response: {response}")
+        headers = self.cur.description
+        print(f"...headers? {headers}")
 
 if __name__ == "__main__":
 
