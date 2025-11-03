@@ -212,9 +212,12 @@ class DBInterface:
         response = self.cur.execute(query).fetchall()
         headers = self.cur.description
         
+        headers = [h[0] for h in headers]
+        sample = list(response)
+
         return {
-            "headers": [h[0] for h in headers],
-            "sample": list(response)
+            "headers": headers,
+            "sample": sample
         }
 
 if __name__ == "__main__":
