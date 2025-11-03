@@ -46,6 +46,7 @@ for DB in ["GWDC1", "GWDC2", "NBCC"]:
 
     for t in tables:
         dbi_response = dbi._singleton_sample_and_columns(t)
+        print(f"Got response:\nHeaders: {dbi_response['headers']}\nSample: {dbi_response['sample']}")
         with open(tsv_name, "a") as fp:
             fp.write(f"Table {t}\n")
             fp.write("\t".join(dbi_response["headers"])+"\n")
