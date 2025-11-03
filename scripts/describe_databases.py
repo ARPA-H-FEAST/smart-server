@@ -44,6 +44,9 @@ for DB in ["GWDC1", "GWDC2", "NBCC"]:
 
     tsv_name = DB + ".tsv"
 
+    if os.path.exists(tsv_name):
+        os.remove(tsv_name)
+
     for t in tables:
         dbi_response = dbi._singleton_sample_and_columns(t)
         print(f"Got response:\nHeaders: {dbi_response['headers']}\nSample: {dbi_response['sample']}")
