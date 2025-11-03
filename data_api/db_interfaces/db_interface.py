@@ -208,10 +208,14 @@ class DBInterface:
     def _singleton_sample_and_columns(self, table):
         query = self.queries["SAMPLE_QUERY"]
         query = query.format("*", table) + "LIMIT 1;"
+        
         response = self.cur.execute(query).fetchall()
-        print(f"Response: {response}")
         headers = self.cur.description
-        print(f"...headers? {headers}")
+        
+        return {
+            "headers": [h[0] for h in headers],
+            "sample": list(response)
+        }
 
 if __name__ == "__main__":
 
