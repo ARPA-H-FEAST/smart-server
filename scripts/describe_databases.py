@@ -42,5 +42,12 @@ for DB in ["GWDC1", "GWDC2", "NBCC"]:
     tables = dbi._get_tables()
     print(f"{DB}: Got tables\n{tables}")
 
+    tsv_name = DB + ".tsv"
+
     for t in tables:
-        dbi._singleton_sample_and_columns(t)
+        dbi_response = dbi._singleton_sample_and_columns(t)
+        with open(tsv_name, "a") as fp:
+            fp.write(f"Table {t}\n")
+            fp.write("\t".join(dbi_response["headers"])+"\n")
+            fp.write("\t".join(dbi_response["sample"])+"\n")
+    
