@@ -207,7 +207,7 @@ class DBInterface:
 
     def _singleton_sample_and_columns(self, table):
         query = self.queries["SAMPLE_QUERY"]
-        query = query.format("*", table) + "LIMIT 1;"
+        query = query.format("*", table) + " LIMIT 1;"
         
         response = self.cur.execute(query).fetchall()
         headers = self.cur.description
