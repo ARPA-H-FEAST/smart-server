@@ -17,7 +17,7 @@ sys.path.append(str(PROJECT_HOME))
 
 from data_api.db_interfaces import DBInterface
 
-MODE = "dev"
+MODE = "MPGC"
 
 if MODE != "dev":
     DATA_HOME = Path("/data/arpah/processed/")
@@ -26,7 +26,7 @@ else:
 DBs = {
     "GWDC1": [DATA_HOME / "GWDC/GDWC.duckdb", "FEAST_000004"],
     "GWDC2": [DATA_HOME / "GWDC_BrPrLuCA", ""],
-    "NBCC": [DATA_HOME / " nbcc/nbcc_db/nbcc.db", "FEAST_000012"],
+    "NBCC": [DATA_HOME / "nbcc/nbcc_db/nbcc.db", "FEAST_000012"],
 }
 
 db_config_path = PROJECT_HOME / "data_api/db_interfaces/db_config.json"
@@ -39,8 +39,8 @@ for DB in ["GWDC1", "GWDC2", "NBCC"]:
     if not db_bco:
         continue
     dbi = DBInterface(str(DBs[DB][0]), db_configs[db_bco], logger)
-    # tables = dbi._get_tables()
-    # print(f"{DB}: Got tables\n{tables}")
+    tables = dbi._get_tables()
+    print(f"{DB}: Got tables\n{tables}")
 
     for t in tables:
-        dbi.get_sample(table=t, limit=1, offset=0)
+        dbi._singleton_sample_and_columns(t)
