@@ -213,7 +213,7 @@ class DBInterface:
         headers = self.cur.description
         
         headers = [h[0] for h in headers]
-        sample = list(response[0])
+        sample = list(str(r) for r in response[0])
 
         return {
             "headers": headers,
