@@ -209,18 +209,8 @@ class DBInterface:
         query = self.queries["SAMPLE_QUERY"]
         query = query.format("*", table) + " LIMIT 1;"
         
-        response = self.cur.execute(query).fetchall()
-        headers = self.cur.description
-
-        # print(f"Headers: {headers}")
-
-        headers = [f"{h[0]},{h[1]}" for h in headers]
-        sample = list(str(r) for r in response[0])
-
-        return {
-            "headers": headers,
-            "sample": sample
-        }
+        df = pd.read_sql_query(query.format(columns, table), self.con)
+        return df
 
 if __name__ == "__main__":
 
