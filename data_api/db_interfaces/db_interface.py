@@ -209,7 +209,7 @@ class DBInterface:
         query = self.queries["SAMPLE_QUERY"]
         query = query.format("*", table) + " LIMIT 1;"
         
-        df = pd.read_sql_query(query.format(columns, table), self.con)
+        df = pd.read_sql_query(query, self.con)
         return df
 
 if __name__ == "__main__":
