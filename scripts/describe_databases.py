@@ -33,22 +33,43 @@ with open(str(db_config_path), "r") as fp:
     db_configs = json.load(fp)
 
 def db_samples_from_parquets():
-    parquet_home = DATA_HOME.parent / "downloads/GWDC_BrPrLuCA/"
-    for root, directories, files in os.walk(str(parquet_home)):
-        print(f"**** {root} ****")
-        print(f"Dirs: {directories}")
-        print(f"files: {files}")
+    parquet_home = str(DATA_HOME.parent / "downloads/GWDC_BrPrLuCA/")
+    file_name = "GWDC2.tsv"
+    with open(file_name, "w") as fp:
+        for root, directories, files in os.walk(parquet_home):
+            if root != parquet_home:
+                continue
+            print(f"**** {root} ****")
+            print(f"Dirs: {directories}")
+            print(f"files: {files}")
+            for f in files:
+                if "parquet" not in f:
+                    continue
+                start = time.time()
+                parquet_path = os.path.join(parquet_home, f)
+                df = pd.read_parquet(parquet_path)
+                table_name = f.replace(".parquet","").replace(".BrPrLu","")
+                headers = df.columns
+                # print(f"{table_name} headers: {list(headers)}")
+                # print(f"First row: {list(df.iloc[0])}")
+                fp.write(f"Table {table_name}\n")
+                fp.write("{}\n".format("\t".join(list(headers))))
+                sample_list = list(df.iloc[0])
+                fp.write("{}\n".format("\t".join([str(s) for s in sample_list])))
+                print(f"Table {table_name}: Required {time.time() - start:.2f}s")
+    fp.close()
 
 for DB in ["GWDC1", "GWDC2", "NBCC"]:
-    # Get the DB interface
-    db_bco = DBs[DB][1]
     if DB == "GWDC2":
         # Handle using parquets directly
         db_samples_from_parquets()
         continue
     # XXX
     continue
+    # Get the DB interface
+    db_bco = DBs[DB][1]
     dbi = DBInterface(str(DBs[DB][0]), db_configs[db_bco], logger)
+
     tables = dbi._get_tables()
     print(f"{DB}: Got tables\n{tables}")
 
