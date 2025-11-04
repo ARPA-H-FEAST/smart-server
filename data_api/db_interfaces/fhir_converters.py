@@ -167,4 +167,7 @@ FHIR_CONVERTER = {
         "diagnosis": nbcc_diagnosis,
         "genomicStudy": nbcc_genomicStudy,
     },
+    "gwdc_brlupr": {
+        
+    }
 }
