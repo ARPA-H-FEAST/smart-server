@@ -211,7 +211,9 @@ class DBInterface:
         
         response = self.cur.execute(query).fetchall()
         headers = self.cur.description
-        
+
+        print(f"response: {response}")
+
         headers = [h[0] for h in headers]
         sample = list(str(r) for r in response[0])
 
