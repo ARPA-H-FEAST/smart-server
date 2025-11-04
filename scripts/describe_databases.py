@@ -25,7 +25,7 @@ else:
     DATA_HOME = PROJECT_HOME / "datadir/processed"
 DBs = {
     "GWDC1": [DATA_HOME / "GWDC/GDWC.duckdb", "FEAST_000004"],
-    "GWDC2": [DATA_HOME / "GWDC_BrPrLuCA", ""],
+    "GWDC2": [DATA_HOME / "GWDC_BrPrLuCA/GWDC_BreastCancer_LungCancer_ProstateCancer.sqlite", "FEAST_000013"],
     "NBCC": [DATA_HOME / "nbcc/nbcc_db/nbcc.db", "FEAST_000012"],
 }
 

@@ -91,5 +91,10 @@
             "Diagnosis": {},
             "Genomic Sequence": {}
         }
+    },
+    "FEAST_000013": {
+        "dataset": "gwdc_brlupr",
+        "db_class": "sqlite3",
+        "db_location": "GWDC_BrLuPrCA/GWDC_BreastCancer_LungCancer_ProstateCancer.sqlite"
     }
 }
