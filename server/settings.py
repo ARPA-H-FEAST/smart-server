@@ -41,6 +41,8 @@ else:
     DATA_HOME = Path("/data/arpah/releases/current/")
     DB_HOME = Path("/data/arpah/processed/")  # XXX / FIXME
 
+FHIR_VERSION = "R5"
+
 ALLOWED_HOSTS = ["middleware", "127.0.0.1", "localhost"]
 
 APPEND_SLASH = False
@@ -133,6 +135,7 @@ def get_rsa_key():
 OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": True,
     "OAUTH2_BACKEND_CLASS": "oauth2_provider.oauth2_backends.JSONOAuthLibCore",
+    "OAUTH2_VALIDATOR_CLASS": "server.oauth_extensions.FEASTOAuth2Validator",
     "OIDC_ENABLED": True,
     "OIDC_ISS_ENDPOINT": "https://feast.mgpc.biochemistry.gwu.edu/fhir-api/oauth",
     "OIDC_RSA_PRIVATE_KEY": get_rsa_key(),
