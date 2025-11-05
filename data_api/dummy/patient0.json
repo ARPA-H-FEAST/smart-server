@@ -1,0 +1,13 @@
+{
+  "resourceType": "Patient",
+  "id": "1",
+  "meta": {
+    "versionId": "1",
+    "lastUpdated": "2025-10-15T19:53:05.180+00:00",
+    "source": "#OoNYUvavzF2TQ5Zo"
+  },
+  "gender": "male",
+  "birthDate": "1946-01-01",
+  "deceasedBoolean": false,
+  "multipleBirthBoolean": false
+}
