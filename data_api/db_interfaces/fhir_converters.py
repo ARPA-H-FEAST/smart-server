@@ -1,4 +1,5 @@
 import datetime
+import math
 import random
 
 try:
@@ -82,9 +83,9 @@ end_date = datetime.datetime(2024, 12, 31, 23, 59, 59)
 
 def record_to_datetime(record):
     try:
-        return datetime.datetime(record)
+        return datetime.datetime(record).isoformat()
     except:
-        return generate_random_datetime(start_date, end_date).isoformat()
+        return generate_random_datetime(start_date, end_date).strftime('%Y-%m-%d')
 
 def nbcc_gender_converter(record):
     if record in nbcc_converter["secondary_map"]:
@@ -93,32 +94,64 @@ def nbcc_gender_converter(record):
     return nbcc_converter["secondary_map"][primary_key]
 
 def gwdc_patient(record):
+    print(f"Converting patient\n{record}")
     return Patient(
         {
             "gender": gwdc_converter["pronoun_map"][record[0]],
-            "communication_preference": {"language": record[1]},
-            "birthdate": record[2],
-            "deceasedtime": record[3],
-            "identifier": record[4],
+            "communication": [{"language": {"text": record[1]}}],
+            "birthDate": record[2].isoformat(),
+            "deceasedDateTime": record[3],
+            "identifier": [{"value": record[4]}],
         }
-    ).to_json()
+    ).as_json()
 
+def brprlu_patient(record):
+    return Patient(
+        {
+            "gender": gwdc_converter["pronoun_map"][record[0]],
+            "communication": [{"language": {"text": record[1]}}],
+            "birthDate": datetime.datetime(int(record[2]), 1, 1).date().strftime("%Y-%m-%d"),
+            "deceasedDateTime": None 
+                if math.isnan(record[3]) 
+                else datetime.datetime(int(record[3]), 1, 1).date().strftime("%Y-%m-%d"),
+            "identifier": [{"value": record[4]}],
+            "address": [{
+                "state": record[5],
+                "country": record[6],
+            }],
+            # "generalPrectitioner": [{"reference": record[7]}]
+        }
+    ).as_json()
 
 def nbcc_patient(record):
     return Patient(
         {
             "gender": nbcc_gender_converter(record[0]),
-            "birthdate": record_to_datetime(record[1]),
-            "deceasedtime": record[2],
-            "identifier": record[3],
+            "birthDate": record_to_datetime(record[1]),
+            "deceasedDateTime": None if record[2] == "N" else record[2],
+            "identifier": [{"value": record[3]}],
         }
-    ).to_json()
+    ).as_json()
 
 
 def gwdc_diagnosis(record):
     return DiagnosticReport(
         {
-            "identifier": "gwdc",
+            "status": "final",
+            "category": record[2],
+            "code": record[3],
+            "subject": record[0],
+            "effective": str(datetime.datetime(record[5])),
+            "performer": record[1],
+            "encounter": record[4],
+            "identifier": record[6],
+            "interpreter": record[7],
+        }
+    )
+
+def brprlu_diagnosis(record):
+    return DiagnosticReport(
+        {
             "status": "final",
             "category": record[2],
             "code": record[3],
@@ -126,8 +159,8 @@ def gwdc_diagnosis(record):
             "effective": datetime.datetime(record[5]),
             "performer": record[1],
             "encounter": record[4],
-            "result": record[6],
-            "interpreter": record[7],
+            "identifier": record[7],
+            "interpreter": record[8],
         }
     )
 
@@ -158,16 +191,17 @@ def nbcc_genomicStudy(record):
 
 FHIR_CONVERTER = {
     "gwdc_prostate": {
-        "patient": gwdc_patient,
+        "Patient": gwdc_patient,
         "diagnosis": gwdc_diagnosis,
         # "genomicStudy": gwdc_genomicStudy,  TODO?
     },
     "nbcc": {
-        "patient": nbcc_patient,
+        "Patient": nbcc_patient,
         "diagnosis": nbcc_diagnosis,
         "genomicStudy": nbcc_genomicStudy,
     },
-    "gwdc_brlupr": {
-        
+    "gwdc_brprlu": {
+        "Patient": brprlu_patient,
+        "diagnosis": brprlu_patient,
     }
 }
