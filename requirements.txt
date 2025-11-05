@@ -7,7 +7,9 @@ django-filter
 django-guardian
 djangorestframework
 drf-yasg
+fastparquet
 pandas
+pyarrow
 PyJWT
 pytz
 gunicorn
