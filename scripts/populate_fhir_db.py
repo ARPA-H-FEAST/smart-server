@@ -15,37 +15,44 @@ handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
 PROJECT_ROOT = Path(__file__).parent.parent
-DB_HOME = PROJECT_ROOT.parent / "data-offline"
+DB_HOME = PROJECT_ROOT / "datadir/processed"
 sys.path.append(str(PROJECT_ROOT))
 
 from data_api.db_interfaces import DBInterface, FHIR_CONVERTER
 
-# BASE_URL = "http://localhost:8000/fhir-api/"
-BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/fhir-api/"
-DATA_BASE_URL = BASE_URL + "data-api/"
-AUTH_BASE_URL = BASE_URL + "oauth/token/"
+FHIR_URL = "http://localhost:8080/fhir/"
+# FHIR_URL = "https://feast.mgpc.biochemistry.gwu.edu/fhir/"
+AUTH_URL = "http://localhost:8000/fhir-api/"
+AUTH_TOKEN_URL = AUTH_URL + "oauth/token/"
+
+MODE = "notdev"
+UPLOAD = True
+# The DB can take up to a minute to populate 
+# & flush indicies, so just make the script run separate times
+DELETE_ALL = not UPLOAD
 
 db_config_path = os.path.join(PROJECT_ROOT, "data_api/db_interfaces/db_config.json")
 with open(db_config_path, "r") as fp:
     config = json.load(fp)
 DB_CONNECTIONS = {}
 for bco_id, dataset_config in config.items():
-    db_path = os.path.join(DB_HOME, dataset_config["db_location"])
+        # Carve-out for parquets
+    db_location = dataset_config["db_location"]
+    if type(db_location) is not list:
+        db_path = os.path.join(DB_HOME, db_location)
+    else:
+        db_path = str(Path(DB_HOME).parent / db_location[1])
     DB_CONNECTIONS[bco_id] = DBInterface(db_path, dataset_config, logger)
-
 
 def get_access_token():
 
     fp = None
     client_info = None
 
-    if os.path.isfile("secrets.json"):
-        with open("secrets.json", "r") as fp:
-            client_info = json.load(fp)
-    else:
-        path = Path(__file__).parent.parent / "server/secrets.json"
-        with open(path, "r") as fp:
-            client_info = json.load(fp)
+    path = Path(__file__).parent.parent / "server/populate_fhir_secrets.json"
+
+    with open(path, "r") as fp:
+        client_info = json.load(fp)
     credential = f"{client_info['clientID']}:{client_info['clientSecret']}"
     encoded_credential = base64.b64encode(credential.encode("utf-8"))
 
@@ -57,7 +64,7 @@ def get_access_token():
         "Content-Type": "application/x-www-form-urlencoded",
     }
     response = requests.post(
-        AUTH_BASE_URL,
+        AUTH_TOKEN_URL,
         json={"grant_type": "client_credentials"},
         headers=headers,
     )
@@ -68,53 +75,42 @@ def get_access_token():
 
     return auth_response
 
-def get_data_sets(access_token):
+def query_fhir_server(access_token):
 
-    query_api = DATA_BASE_URL + "datasets/"
-
-    print("*" * 80)
-    print(f"Query API: {query_api}")
-    print(f'Auth string: "Authorization: Bearer {access_token}"')
-    print("*" * 80)
-
+    headers = {"Authorization": f"Bearer {access_token}"}
+    
+    URL = FHIR_URL + "Patient"
     response = requests.get(
-        query_api, headers={"Authorization": f"Bearer {access_token}"}
+        URL,
+        headers=headers
     )
 
-    print("*" * 80)
-    print(f"Got response: {response}")
-    print("*" * 80)
+    fhir_response = response.json()
 
-    data = response.json()
+    print(f"Got FHIR response\n{fhir_response}\n")
 
-    return data
-
-
-    query_api = DATA_BASE_URL + "dataset-detail/"
-    response = requests.post(
-        query_api,
-        json={
-            "bcoid": dataset_bco,
-            "sample_limit": limit,
-            "sample_offset": sample_offset,
-        },
-        headers={"Authorization": f"Bearer {access_token}"},
-    )
-
-    data = response.json()
-
-    return data
+    return fhir_response
 
 def post_fhir_data(access_token, fhir_sample, fhir_endpoint):
-    # POST request to the FHIR server via django wrapper
-    db_uri = BASE_URL + f"api/fhir-query/{fhir_endpoint}"
+    # POST request to the FHIR server
+    db_uri = FHIR_URL + f"{fhir_endpoint}"
     # print(f"Submitting sample:\n{fhir_sample}\n")
     response = requests.post(
         db_uri,
-        json=json.dumps(fhir_sample, default=str),
+        json=fhir_sample,
         headers={"Authorization": f"Bearer {access_token}"}
     )
     data = response.json()
+    return data
+
+def remove_fhir_data(access_token, sample_url):
+    # DELETE request to the FHIR server
+    response = requests.delete(
+        sample_url,
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+    data = response.json()
+    print(f"===> Got response {data}")
     return data
 
 if __name__ == "__main__":
@@ -123,16 +119,92 @@ if __name__ == "__main__":
     access_info = get_access_token()
     access_token = access_info["access_token"]
 
-    datasets = get_data_sets(access_token)
+    import time
+    # Ping the FHIR server
+    samples = query_fhir_server(access_token)
 
-    data_mapping = {k: v for k, v in datasets["results"].items()}
-    print(f"Data mapping: {data_mapping}")
+
+    if MODE == "dev":
+
+        fp = None
+        client_info = None
+
+        path = Path(__file__).parent.parent / "data_api/dummy/patient0.json"
+        with open(path, "r") as fp:
+            patient0 = json.load(fp)
+        if UPLOAD:
+            print(f"Shipping patient0:\n{patient0}")
+            for i in range(1):
+                response = post_fhir_data(access_token, patient0, "Patient")
+            print(f"Patient0 response: {response}\n\t(infected...)")
+
+        if DELETE_ALL:
+            while True:
+                print(f"Got more samples! ....\n{samples}")
+                time.sleep(1)
+                if "total" in samples.keys() and samples["total"] == 0:
+                    break
+                # remove samples
+                if "entry" in samples.keys():
+                    sample_count = len(samples["entry"])
+                    print(f"Removing {sample_count} samples...")
+                    for entry in samples["entry"]:
+                        remove_fhir_data(access_token, entry["fullUrl"])
+                elif "link" in samples.keys():
+                    for l in samples["link"]:
+                        if l["relation"] != "next":
+                            continue
+                        samples = requests.get(
+                            l["url"], 
+                            headers={"Authorization": f"Bearer {access_token}"}
+                        )
+                    # Get the next batch
+                    print(f"---> Found {samples['total']} more samples...")
+                    links = samples["link"]
+                    for entry in samples["entry"]:
+                        remove_fhir_data(access_token, entry["fullUrl"])
+                elif "total" in samples.keys():
+                    if "link" not in samples.keys():
+                        break
+                    else:
+                        for link in samples["link"]:
+                            if "self" not in link["relation"]:
+                                continue
+                        samples = requests.get(
+                            link, 
+                            headers={"Authorization": f"Bearer {access_token}"}
+                        )
+                        for entry in samples['entry']:
+                            remove_fhir_data(entry["fullUrl"])
+                samples = query_fhir_server(access_token)
+        print("Dev job complete, exiting")
+        import sys
+        sys.exit(0)
 
     for db_bco, dbi in DB_CONNECTIONS.items():
         print(f"---> Checking in on BCO {db_bco}")
         metadata = dbi.get_db_metadata()
         print(f"{db_bco} - DB size: {metadata['size']}")
         sample_count = metadata['size']
+
+        tables = dbi._get_tables()
+        # print(f"Got tables\n{tables}\n")
+
+        for fhir_objects, fhir_columns in dbi.config["fhir_columns"].items():
+            print(f"Found FHIR conversions: {fhir_objects}\n{fhir_columns}")
+
+        if db_bco == "FEAST_000013":
+            # Special handling of parquet/pandas frames in memory
+            patient_data = dbi.get_sample(
+                output_format="fhir", data_type="Patient", offset=offset, limit=chunk_limit
+            )
+            print("Parquet --- success?")
+            for idx in range(len(patient_data['data'])):
+                post_success = post_fhir_data(access_token, patient_data['data'][idx], "Patient")
+            print(f"===> Success?\n{post_success}")
+
+            continue
+
         chunk_size = 100
         offset = 0
         chunk_count = 0
@@ -140,13 +212,14 @@ if __name__ == "__main__":
             chunk_limit = chunk_size if chunk_size <= sample_count else sample_count
             # Get the first chunk
             patient_data = dbi.get_sample(
-                output_format="fhir", data_type="patient", offset=offset, limit=chunk_limit
+                output_format="fhir", data_type="Patient", offset=offset, limit=chunk_limit
             )
-            # print(f"{data_mapping[db_bco]}:\n{patient_data['data'][0]}")
+            print(f"{db_bco}:\n{patient_data['data'][0]}")
             for idx in range(len(patient_data['data'])):
                 post_success = post_fhir_data(access_token, patient_data['data'][idx], "Patient")
-            # print(f"===> Success?\n{post_success}")
+            print(f"===> Success?\n{post_success}")
             samples_uploaded = len(patient_data['data'])
             sample_count -= samples_uploaded
             offset += samples_uploaded
             print(f"Uploaded {offset}: {sample_count} samples remaining")
+            break
