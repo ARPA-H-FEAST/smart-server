@@ -30,8 +30,8 @@
             "Diagnosis": {}
         },
         "fhir_columns": {
-            "Patient": ["Sex", "PreferredLanguage", "BirthDate", "DeathDate", "DurableKey_e"],
-            "Lab Component": ["", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+            "Patient": ["ReliableSex", "PreferredLanguage", "BirthDate", "DeathDate", "DurableKey_e"],
+            "Lab Component": [],
             "Diagnosis": [
                 "PatientKey", "DepartmentKey", "Type", "SubType", "EncounterKey", 
                 "EndDateKey", "DiagnosisKey", "DocumentedByEmployeeKey"
