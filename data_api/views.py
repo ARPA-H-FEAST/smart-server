@@ -36,6 +36,8 @@ import json
 import logging
 import os
 
+from pathlib import Path
+
 # Create your views here.
 
 logger = logging.getLogger()
@@ -52,7 +54,12 @@ TARBALL_FILE_HOME = DATA_HOME / "tarballs/"
 def config_to_connections(config):
     connections = {}
     for bco_id, dataset_config in config.items():
-        db_path = os.path.join(DB_HOME, dataset_config["db_location"])
+        # Carve-out for parquets
+        db_location = dataset_config["db_location"]
+        if type(db_location) is not list:
+            db_path = os.path.join(DB_HOME, db_location)
+        else:
+            db_path = str(Path(DB_HOME).parent / db_location[1])
         connections[bco_id] = DBInterface(db_path, dataset_config, logger)
     return connections
 
