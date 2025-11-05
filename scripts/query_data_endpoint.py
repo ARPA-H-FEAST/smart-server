@@ -6,10 +6,11 @@ import time
 
 from pathlib import Path
 
-# BASE_URL = "http://localhost:8000/fhir-api/"
-BASE_URL = "https://feast.mgpc.biochemistry.gwu.edu/fhir-api/"
-DATA_BASE_URL = BASE_URL + "data-api/"
-AUTH_BASE_URL = BASE_URL + "oauth/token/"
+FHIR_URL = "http://localhost:8080/fhir/"
+# FHIR_URL = "https://feast.mgpc.biochemistry.gwu.edu/fhir/"
+AUTH_URL = "http://localhost:8000/fhir-api/"
+
+AUTH_TOKEN_URL = AUTH_URL + "oauth/token/"
 
 
 def get_auth_token():
@@ -29,7 +30,7 @@ def get_auth_token():
 
     credential_string = encoded_credential.decode("utf-8")
 
-    print(f"Credential: {credential_string}")
+    # print(f"Credential: {credential_string}")
 
     headers = {
         "Authorization": f"Basic {credential_string}",
@@ -37,7 +38,7 @@ def get_auth_token():
         "Content-Type": "application/x-www-form-urlencoded",
     }
     response = requests.post(
-        AUTH_BASE_URL,
+        AUTH_TOKEN_URL,
         json={"grant_type": "client_credentials"},
         headers=headers,
     )
@@ -101,59 +102,77 @@ def query_data_point(access_token, dataset_bco, sample_offset=0, limit=1):
 
     return data
 
+def query_fhir_server(access_token):
+
+    headers = {"Authorization": f"Bearer {access_token}"}
+    
+    URL = FHIR_URL + "Patient"
+    response = requests.get(
+        URL,
+        headers=headers
+    )
+
+    fhir_response = response.json()
+
+    print(f"Got FHIR response {fhir_response}")
+
+    return fhir_response
 
 if __name__ == "__main__":
 
     auth_response = get_auth_token()
 
     access_token = auth_response["access_token"]
+
+    fhir_sample = query_fhir_server(access_token)
+
     # access_token = None
 
-    data = get_data_sets(access_token)
+    # data = get_data_sets(access_token)
 
-    print("*" * 80)
-    print(f"---> Found data sets {data}")
-    print("*" * 80)
+    # print("*" * 80)
+    # print(f"---> Found data sets {data}")
+    # print("*" * 80)
 
-    sample_patient = {}
+    # sample_patient = {}
 
-    datasets = data["results"]
+    # datasets = data["results"]
 
-    single_dataset_key = list(datasets.keys())[0]
+    # single_dataset_key = list(datasets.keys())[0]
 
-    start = time.time()
+    # start = time.time()
 
-    dataset_bco = single_dataset_key
-    dataset = datasets[dataset_bco]
+    # dataset_bco = single_dataset_key
+    # dataset = datasets[dataset_bco]
 
-    print(f"{dataset_bco}: {dataset}")
-    response = query_data_set_details(access_token, dataset_bco)
+    # print(f"{dataset_bco}: {dataset}")
+    # response = query_data_set_details(access_token, dataset_bco)
 
-    print("*" * 80)
-    print(f"Dataset metadata response:")
-    for k, v in response.items():
-        print(f"{k}:\n{v}\n")
-    print("*" * 80)
+    # print("*" * 80)
+    # print(f"Dataset metadata response:")
+    # for k, v in response.items():
+    #     print(f"{k}:\n{v}\n")
+    # print("*" * 80)
 
-    sample_offset = 0
-    sample_limit = 50
+    # sample_offset = 0
+    # sample_limit = 50
 
     # Collect a solitary data point
-    data = query_data_point(access_token, dataset_bco)
+    # data = query_data_point(access_token, dataset_bco)
     # Uncomment below line to get many data points
     # data = query_data_point(dataset_bco, shape=list, sample_offset=sample_offset, limit=sample_limit)
 
-    sample_data = data["db_entries"]
+    # sample_data = data["db_entries"]
     # metadata = data["db_metadata"]
-    print("*" * 80)
-    print(f"Dataset sample response:")
-    for k, v in data.items():
-        print(f"{k}:\n{v}\n")
-    print("*" * 80)
+    # print("*" * 80)
+    # print(f"Dataset sample response:")
+    # for k, v in data.items():
+    #     print(f"{k}:\n{v}\n")
+    # print("*" * 80)
 
     # sample_patient[dataset] = sample_data[0]
 
-    print(f"Query roundtrip required {time.time() - start:.3f} s")
+    # print(f"Query roundtrip required {time.time() - start:.3f} s")
 
     # print(sample_patient)
 
