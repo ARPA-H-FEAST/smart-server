@@ -3,6 +3,7 @@ import sqlite3 as sql
 import duckdb
 import pandas as pd
 import json
+import os
 
 try:
     ## Import in Django
@@ -75,7 +76,12 @@ class DBInterface:
             self.cur = self.con.cursor()
             self.queries = SQL_QUERIES
             self.select_function = sql_select
-
+        elif db_class == "parquet":
+            self.con = None
+            self.cur = None
+            self.queries = None
+            self.select_function = None
+            self.file_location = db_path
         else:
             raise Exception(f"Invalid DB configuration: Unknown DB {db_class}")
         self.fhir_converter = FHIR_CONVERTER[config["dataset"]]
@@ -83,13 +89,14 @@ class DBInterface:
         self.logger = logger
 
     def __del__(self):
-        if hasattr(self, "con"):
+        if hasattr(self, "con") and self.con is not None:
             self.con.close()
 
     def get_db_metadata(self, table=None):
 
-        indexed_info = self.config["search_fields"]
-
+        indexed_info = self.config.get("search_fields", None)
+        if not indexed_info:
+            return {"size": 1, "search_fields": [], "range_fields": []}
         search_fields = []
         range_fields = []
         table_alias = self.config["entry_table"] if table is None else table
@@ -136,6 +143,21 @@ class DBInterface:
     ):
         table_alias = self.config["entry_table"] if table is None else table
         table = self.config["searchable_tables"][table_alias]
+        if self.cur is None:
+            # Parquet handling
+            file_path = os.path.join(self.file_location, table)
+            columns = self.config["fhir_columns"][data_type]
+            # print(f"---> Isolating to columns\n{columns}")
+            df = pd.read_parquet(file_path, columns=columns)
+            return {
+                "data": [
+                    self.fhir_converter[data_type](dr) 
+                    for dr 
+                    in df.itertuples(index=False, name=None)
+                ],
+                "pagination": {"sample_size": df.shape, "offset": 0},
+            }
+
         query = self.queries["SAMPLE_QUERY"]
         if output_format == "json":
             columns = ",".join(self.config["key_columns"][table_alias])
@@ -201,9 +223,18 @@ class DBInterface:
         #     return df
 
     def _get_tables(self):
-        query = self.queries["TABLES"]
-        tables = self.cur.execute(query).fetchall()
-        return [table[0] for table in tables]
+        if self.cur is not None:
+            query = self.queries["TABLES"]
+            tables = self.cur.execute(query).fetchall()
+            return [table[0] for table in tables]
+        else:
+            # Parquet special handling
+            tables = []
+            for root, dirs, files in os.walk(self.file_location):
+                for f in files:
+                    if f.split(".")[-1] == "parquet":
+                        tables.append(f)
+            return tables
 
     def _singleton_sample_and_columns(self, table):
         query = self.queries["SAMPLE_QUERY"]
