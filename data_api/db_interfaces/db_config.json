@@ -91,5 +91,27 @@
             "Diagnosis": {},
             "Genomic Sequence": {}
         }
+    },
+    "FEAST_000013": {
+        "dataset": "gwdc_brprlu",
+        "db_class": "parquet",
+        "db_location": ["path_parent", "downloads/GWDC_BrPrLu/"],
+        "patients": 89388,
+        "entry_table": "Patient",
+        "searchable_tables": {
+            "Patient": "PatientDim.parquet",
+           "Diagnosis": "PatientDim.parquet"
+        },
+        "fhir_columns": {
+            "Patient": [
+                "ReliableSex", "PreferredLanguage", "BirthDate", "DeathDate", "DurableKey_e",
+                "StateOrProvinceAbbreviation", "Country", "PrimaryCareProviderKey"
+            ],
+            "Lab Component": [],
+            "Diagnosis": [
+                "PatientKey", "DepartmentKey", "Type", "SubType", "EncounterKey", 
+                "StartDateKey", "EndDateKey", "DiagnosisKey", "DocumentedByEmployeeKey"
+            ]
+        }
     }
 }
