@@ -79,6 +79,7 @@ class DBInterface:
             self.queries = SQL_QUERIES
             self.select_function = sql_select
             logger.error(f"---> SQLite3: DB path is {db_path}")
+
         elif db_class == "parquet":
             self.con = None
             self.cur = None
@@ -119,6 +120,7 @@ class DBInterface:
         except Exception as e:
             self.logger.error(f"Exception: {e}")
             self.logger.error(f"---> See above for file...")
+            self.logger.error(f"My config:\n{self.config}")
             raise
 
         for cat in indexed_info[table_alias].keys():
