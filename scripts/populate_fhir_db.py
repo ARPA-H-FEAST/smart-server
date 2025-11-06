@@ -259,7 +259,7 @@ if __name__ == "__main__":
                 samples_uploaded = len(patient_data['data'])
                 sample_count -= samples_uploaded
                 offset += samples_uploaded
-
+                print(f"....sample count: {sample_count}")
             continue
 
         print(f"Processing BCO ID {db_bco}")
