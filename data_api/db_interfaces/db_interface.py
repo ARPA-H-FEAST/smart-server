@@ -74,7 +74,10 @@ class DBInterface:
             self.select_function = duck_select
 
         elif db_class == "sqlite3":
-            self.con = sql.connect(db_path, check_same_thread=False)
+            try:
+                self.con = sql.connect(db_path, check_same_thread=False)
+            except Exception as e:
+                logger.error(f"Connection error: DB is {db_path}")
             self.cur = self.con.cursor()
             self.queries = SQL_QUERIES
             self.select_function = sql_select
