@@ -49,6 +49,7 @@ for bco_id, dataset_config in config.items():
     except Exception as e:
         if bco_id != "FEAST_000004":
             print(f"**** {bco_id} ****")
+            print(f"DB Config: {dataset_config}")
             raise
         if os.path.exists("GDWC.duckdb"):
             print(f"Attempting alternate DB load on duckdb")
