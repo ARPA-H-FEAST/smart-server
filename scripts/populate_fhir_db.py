@@ -47,11 +47,18 @@ for bco_id, dataset_config in config.items():
         dbi = DBInterface(db_path, dataset_config, logger)
         DB_CONNECTIONS[bco_id] = dbi
     except Exception as e:
-        if bco_id != "FEAST_000004":
+        if bco_id == "FEAST_000012":
             print(f"**** {bco_id} ****")
             print(f"DB Config: {dataset_config}")
+            try:
+                dataset_config["db_location"] = "nbcc.db"
+                db_path = str(Path(__file__).parent / "nbcc.db")
+                dbi = DBInterface(db_path, dataset_config, logger)
+                DB_CONNECTIONS[bco_id] = dbi
+            except Exception as e:
+                raise
             raise
-        if os.path.exists("GDWC.duckdb"):
+        if bco_id == "FEAST_000004" and os.path.exists("GDWC.duckdb"):
             print(f"Attempting alternate DB load on duckdb")
             try:
                 dataset_config["db_location"] = "GDWC.duckdb"
