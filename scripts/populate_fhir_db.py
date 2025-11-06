@@ -262,7 +262,7 @@ if __name__ == "__main__":
                 print(f"....sample count: {sample_count}")
             continue
 
-        print(f"Processing BCO ID {db_bco}")
+        print(f"Processing BCO ID {db_bco} -- {sample_count} samples")
         chunk_size = 100
         offset = 0
         chunk_count = 0

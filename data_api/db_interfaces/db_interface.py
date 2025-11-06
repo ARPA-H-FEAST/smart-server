@@ -114,7 +114,15 @@ class DBInterface:
             file_path = os.path.join(self.file_location, table)
             # columns = self.config["fhir_columns"][data_type]
             # print(f"---> Isolating to columns\n{columns}")
-            df = pd.read_parquet(file_path)
+            try:
+                df = pd.read_parquet(file_path)
+            except Exception as e:
+                try:
+                    table_name = ".BrPrLu.".join(table.split("."))
+                    print(f"Testing for file {table_name}")
+                    df = pd.read_parquet(os.path.join(self.file_location, table_name))
+                except:
+                    raise
             table_size = df.shape
             # print(f"---> Parquet: Got table size {table_size}")
             return {"size": table_size[0], "search_fields": [], "range_fields": []}
