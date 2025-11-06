@@ -263,7 +263,9 @@ if __name__ == "__main__":
             continue
 
         print(f"Processing BCO ID {db_bco}")
-
+        chunk_size = 100
+        offset = 0
+        chunk_count = 0
         while sample_count > 0:
             chunk_limit = chunk_size if chunk_size <= sample_count else sample_count
             # Get the first chunk
