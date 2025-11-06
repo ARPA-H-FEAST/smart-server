@@ -27,6 +27,7 @@ AUTH_TOKEN_URL = AUTH_URL + "oauth/token/"
 
 MODE = "notdev"
 UPLOAD = True
+DRYRUN = True
 # The DB can take up to a minute to populate 
 # & flush indicies, so just make the script run separate times
 DELETE_ALL = not UPLOAD
@@ -46,6 +47,14 @@ for bco_id, dataset_config in config.items():
         dbi = DBInterface(db_path, dataset_config, logger)
         DB_CONNECTIONS[bco_id] = dbi
     except Exception as e:
+        if os.path.exists("GDWC.duckdb"):
+            try:
+                dataset_config["db_location"] = "GDWC.duckdb"
+                db_path = str(Path(__file__).parent / "GDWC.duckdb")
+                dbi = DBInterface(db_path, dataset_config, logger)
+                DB_CONNECTIONS[bco_id] = dbi
+            except:
+                raise
         print(f"---> EXCEPTION ON DB: {e}")
         print(f"...moving on...")
         continue
@@ -80,7 +89,7 @@ def get_access_token():
 
     auth_response = response.json()
 
-    print(f"AUTH: Got response {auth_response}")
+    # print(f"AUTH: Got response {auth_response}")
 
     return auth_response
 
@@ -96,7 +105,7 @@ def query_fhir_server(access_token):
 
     fhir_response = response.json()
 
-    print(f"Got FHIR response\n{fhir_response}\n")
+    # print(f"Got FHIR response\n{fhir_response}\n")
 
     return fhir_response
 
@@ -130,7 +139,7 @@ if __name__ == "__main__":
     if not access_token:
         print(f"Access token error! Aborting")
         sys.exit(1)
-    print(f"\tAccess token: {access_token}")
+    # print(f"\tAccess token: {access_token}")
 
     import time
     # Ping the FHIR server
@@ -195,16 +204,16 @@ if __name__ == "__main__":
         sys.exit(0)
 
     for db_bco, dbi in DB_CONNECTIONS.items():
-        print(f"---> Checking in on BCO {db_bco}")
+        # print(f"---> Checking in on BCO {db_bco}")
         metadata = dbi.get_db_metadata()
-        print(f"{db_bco} - DB size: {metadata['size']}")
+        # print(f"{db_bco} - DB size: {metadata['size']}")
         sample_count = metadata['size']
 
         tables = dbi._get_tables()
         # print(f"Got tables\n{tables}\n")
 
-        for fhir_objects, fhir_columns in dbi.config["fhir_columns"].items():
-            print(f"Found FHIR conversions: {fhir_objects}\n{fhir_columns}")
+        # for fhir_objects, fhir_columns in dbi.config["fhir_columns"].items():
+        #     print(f"Found FHIR conversions: {fhir_objects}\n{fhir_columns}")
 
         fhir_objects = dbi.config["fhir_columns"]
         current_item = "Patient"
@@ -216,10 +225,19 @@ if __name__ == "__main__":
             patient_data = dbi.get_sample(
                 output_format="fhir", data_type=current_item, offset=offset, limit=chunk_limit
             )
+            if DRYRUN:
+                samples_uploaded = len(patient_data['data'])
+                sample_count -= samples_uploaded
+                offset += samples_uploaded
+                continue
+
             print("Parquet --- success?")
             for idx in range(len(patient_data['data'])):
                 post_success = post_fhir_data(access_token, patient_data['data'][idx], "Patient")
             print(f"===> Success?\n{post_success}")
+            samples_uploaded = len(patient_data['data'])
+            sample_count -= samples_uploaded
+            offset += samples_uploaded
 
             continue
 
@@ -232,12 +250,17 @@ if __name__ == "__main__":
             patient_data = dbi.get_sample(
                 output_format="fhir", data_type=current_item, offset=offset, limit=chunk_limit
             )
-            print(f"{db_bco}:\n{patient_data['data'][0]}")
+            # print(f"{db_bco}:\n{patient_data['data'][0]}")
+            if DRYRUN:
+                samples_uploaded = len(patient_data['data'])
+                sample_count -= samples_uploaded
+                offset += samples_uploaded
+                continue
+
             for idx in range(len(patient_data['data'])):
                 post_success = post_fhir_data(access_token, patient_data['data'][idx], "Patient")
-            print(f"===> Success?\n{post_success}")
             samples_uploaded = len(patient_data['data'])
             sample_count -= samples_uploaded
             offset += samples_uploaded
-            print(f"Uploaded {offset}: {sample_count} samples remaining")
-            break
+            # print(f"===> Success?\n{post_success}")
+            # print(f"Uploaded {offset}: {sample_count} samples remaining")
