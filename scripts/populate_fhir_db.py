@@ -241,7 +241,6 @@ if __name__ == "__main__":
         if db_bco == "FEAST_000013":
             while sample_count > 0:
                 # Special handling of parquet/pandas frames in memory
-                print(f"Getting patients with offset {offset} and limit {limit}")
                 patient_data = dbi.get_sample(
                     output_format="fhir", data_type=current_item, offset=offset, limit=chunk_limit
                 )
