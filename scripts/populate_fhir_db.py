@@ -193,6 +193,11 @@ if __name__ == "__main__":
         for fhir_objects, fhir_columns in dbi.config["fhir_columns"].items():
             print(f"Found FHIR conversions: {fhir_objects}\n{fhir_columns}")
 
+        fhir_objects = dbi.config["fhir_columns"]
+        current_item = "Patient"
+        if current_item not in fhir_objects.keys():
+            continue
+
         if db_bco == "FEAST_000013":
             # Special handling of parquet/pandas frames in memory
             patient_data = dbi.get_sample(
