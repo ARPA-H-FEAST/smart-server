@@ -78,6 +78,7 @@ class DBInterface:
                 self.con = sql.connect(db_path, check_same_thread=False)
             except Exception as e:
                 logger.error(f"Connection error: DB is {db_path}")
+                raise
             self.cur = self.con.cursor()
             self.queries = SQL_QUERIES
             self.select_function = sql_select
