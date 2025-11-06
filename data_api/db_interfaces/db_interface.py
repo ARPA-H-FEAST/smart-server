@@ -180,6 +180,10 @@ class DBInterface:
         if self.cur is None:
             # Parquet handling
             file_path = os.path.join(self.file_location, table)
+            if not os.path.exists(file_path):
+                table_name = ".BrPrLu.".join(table.split("."))
+                file_path = os.path.join(self.file_location, table_name)
+
             columns = self.config["fhir_columns"][data_type]
             # print(f"---> Isolating to columns\n{columns}")
             df = pd.read_parquet(file_path, columns=columns)
