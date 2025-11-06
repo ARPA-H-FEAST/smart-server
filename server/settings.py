@@ -43,7 +43,7 @@ else:
 
 FHIR_VERSION = "R5"
 
-ALLOWED_HOSTS = ["middleware", "127.0.0.1", "localhost"]
+ALLOWED_HOSTS = ["middleware", "127.0.0.1", "localhost", "smart-server"]
 
 APPEND_SLASH = False
 
@@ -54,7 +54,8 @@ STATIC_ROOT = "static/"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://smart-feast",
+    "http://smart-server:8000",
+    "http://smart-server",
     "https://feast.mgpc.biochemistry.gwu.edu",
 ]
 
