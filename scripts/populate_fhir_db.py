@@ -48,8 +48,10 @@ for bco_id, dataset_config in config.items():
         DB_CONNECTIONS[bco_id] = dbi
     except Exception as e:
         if bco_id != "FEAST_000004":
+            print(f"**** {bco_id} ****")
             raise
         if os.path.exists("GDWC.duckdb"):
+            print(f"Attempting alternate DB load on duckdb")
             try:
                 dataset_config["db_location"] = "GDWC.duckdb"
                 db_path = str(Path(__file__).parent / "GDWC.duckdb")
