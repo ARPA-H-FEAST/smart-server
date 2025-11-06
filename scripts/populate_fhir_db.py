@@ -206,7 +206,7 @@ if __name__ == "__main__":
     for db_bco, dbi in DB_CONNECTIONS.items():
         # print(f"---> Checking in on BCO {db_bco}")
         metadata = dbi.get_db_metadata()
-        # print(f"{db_bco} - DB size: {metadata['size']}")
+        print(f"{db_bco} - DB size: {metadata['size']}")
         sample_count = metadata['size']
 
         tables = dbi._get_tables()
