@@ -78,6 +78,7 @@ class DBInterface:
             self.cur = self.con.cursor()
             self.queries = SQL_QUERIES
             self.select_function = sql_select
+            logger.error(f"---> SQLite3: DB path is {db_path}")
         elif db_class == "parquet":
             self.con = None
             self.cur = None
@@ -89,6 +90,7 @@ class DBInterface:
         self.fhir_converter = FHIR_CONVERTER[config["dataset"]]
         self.config = config
         self.logger = logger
+
 
     def __del__(self):
         if hasattr(self, "con") and self.con is not None:
@@ -112,7 +114,12 @@ class DBInterface:
             # print(f"---> Parquet: Got table size {table_size}")
             return {"size": table_size[0], "search_fields": [], "range_fields": []}
 
-        table_size = self.cur.execute(self.queries["COUNT"].format(table)).fetchall()[0][0]
+        try:
+            table_size = self.cur.execute(self.queries["COUNT"].format(table)).fetchall()[0][0]
+        except Exception as e:
+            self.logger.error(f"Exception: {e}")
+            self.logger.error(f"---> See above for file...")
+            raise
 
         for cat in indexed_info[table_alias].keys():
             if cat == "categorical":
