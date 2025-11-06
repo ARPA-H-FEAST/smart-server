@@ -95,7 +95,7 @@
     "FEAST_000013": {
         "dataset": "gwdc_brprlu",
         "db_class": "parquet",
-        "db_location": ["path_parent", "downloads/GWDC_BrPrLu/"],
+        "db_location": ["path_parent", "downloads/GWDC_BrPrLuCA/"],
         "patients": 89388,
         "entry_table": "Patient",
         "searchable_tables": {
