@@ -108,10 +108,10 @@ def gwdc_patient(record):
 
 def brprlu_date(dateValue):
     try:
-        return None if math.isnan(dateValue) else datetime.datetime(int(record[3])).date().strftime("%Y-%m-%d")
+        return None if math.isnan(dateValue) else datetime.datetime(dateValue).date().strftime("%Y-%m-%d")
     except Exception as e:
         print(f"Exception in deceased time conversion: {e}")
-        print(f"Record was {record[3]}")
+        print(f"Record was {dateValue}")
 
 def brprlu_patient(record):
     return Patient(
