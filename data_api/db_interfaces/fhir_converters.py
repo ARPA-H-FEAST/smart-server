@@ -30,7 +30,7 @@ except:
 import datetime
 
 gwdc_converter = {
-    "pronoun_map": {"Male": "male", "Female": "female", "*Unspecified": "unknown"}
+    "pronoun_map": {"Male": "male", "Female": "female", "*Unspecified": "unknown", "": "unknown"}
 }
 
 nbcc_converter = {
