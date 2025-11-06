@@ -212,7 +212,9 @@ class DBInterface:
                 except Exception as e:
                     self.logger.error(f"{e}")
                     self.logger.error(f"Data row: {dr}")
-                    self.logger.error(f"Query was")
+                    self.logger.error(f"Query was {final_query}")
+                    continue
+
             response = {
                 "data": data,
                 "pagination": {"sample_size": limit, "offset": offset},
