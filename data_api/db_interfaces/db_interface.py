@@ -19,6 +19,7 @@ SQL_QUERIES = {
     "MIN": "SELECT MIN({}) FROM {};",
     "MAX": "SELECT MAX({}) FROM {};",
     "TABLES": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;",
+    "COUNT": "SELECT COUNT(*) FROM {};",
 }
 
 DUCK_QUERIES = {
@@ -27,7 +28,8 @@ DUCK_QUERIES = {
     "GET_UNIQUE": "SELECT DISTINCT {} FROM {};",
     "MIN": "SELECT MIN({}) FROM {};",
     "MAX": "SELECT MAX({}) FROM {};",
-    "TABLES": "SHOW TABLES;"
+    "TABLES": "SHOW TABLES;",
+    "COUNT": "SELECT COUNT(*) FROM {};",
 }
 
 
@@ -95,12 +97,22 @@ class DBInterface:
     def get_db_metadata(self, table=None):
 
         indexed_info = self.config.get("search_fields", None)
-        if not indexed_info:
-            return {"size": 1, "search_fields": [], "range_fields": []}
         search_fields = []
         range_fields = []
         table_alias = self.config["entry_table"] if table is None else table
         table = self.config["searchable_tables"][table_alias]
+
+        if self.cur is None:
+            # Parquet special handling
+            file_path = os.path.join(self.file_location, table)
+            # columns = self.config["fhir_columns"][data_type]
+            # print(f"---> Isolating to columns\n{columns}")
+            df = pd.read_parquet(file_path)
+            table_size = df.shape
+            # print(f"---> Parquet: Got table size {table_size}")
+            return {"size": table_size[0], "search_fields": [], "range_fields": []}
+
+        table_size = self.cur.execute(self.queries["COUNT"].format(table)).fetchall()[0][0]
 
         for cat in indexed_info[table_alias].keys():
             if cat == "categorical":
@@ -127,7 +139,7 @@ class DBInterface:
                 self.logger.debug(f"===> Please implement support for field {cat}!!")
 
         return {
-            "size": self.config["patients"],
+            "size": table_size,
             "search_fields": search_fields,
             "range_fields": range_fields,
         }
@@ -171,27 +183,38 @@ class DBInterface:
             query += ";"
         else:
             query += f" LIMIT {limit} OFFSET {offset};"
-        self.logger.debug(f"=> Template query:\n{query}")
+        # self.logger.debug(f"=> Template query:\n{query}")
 
         final_query = query.format(columns, table)
-        self.logger.debug(f"=> Final query:\n{final_query}")
+        # self.logger.debug(f"=> Final query:\n{final_query}")
         if output_format == "json":
-            df = pd.read_sql_query(query.format(columns, table), self.con)
+            df = pd.read_sql_query(final_query, self.con)
             response = {
                 "data": df.to_dict(orient="records"),
                 "pagination": {"sample_size": limit, "offset": offset},
             }
             return response
         elif output_format == "fhir":
-            self.logger.debug(
-                f"Data type: {data_type} ::: FHIR Converter keys: {self.fhir_converter.keys()}"
-            )
-            if data_type not in self.fhir_converter.keys():
-                return ["Error", f"Data type {data_type} not found in DB records"]
-            data_rows = self.con.execute(query.format(columns, table)).fetchall()
-            self.logger.debug(f"===> Found {len(data_rows)} data points")
+            # self.logger.debug(
+            #     f"Data type: {data_type} ::: FHIR Converter keys: {self.fhir_converter.keys()}"
+            # )
+            # if data_type not in self.fhir_converter.keys():
+            #     return ["Error", f"Data type {data_type} not found in DB records"]
+            data_rows = self.con.execute(final_query).fetchall()
+            # self.logger.debug(f"===> Found {len(data_rows)} data points")
+            # XXX - While working out the kinks, move away from list comprehension and
+            # perform the conversion one at a time
+            data = []
+            for dr in data_rows:
+                try:
+                    d = self.fhir_converter[data_type](dr)
+                    data.append(d)
+                except Exception as e:
+                    self.logger.error(f"{e}")
+                    self.logger.error(f"Data row: {dr}")
+                    self.logger.error(f"Query was")
             response = {
-                "data": [self.fhir_converter[data_type](dr) for dr in data_rows],
+                "data": data,
                 "pagination": {"sample_size": limit, "offset": offset},
             }
             return response
