@@ -94,7 +94,6 @@ def nbcc_gender_converter(record):
     return nbcc_converter["secondary_map"][primary_key]
 
 def gwdc_patient(record):
-    print(f"Converting patient\n{record}")
     return Patient(
         {
             "gender": gwdc_converter["pronoun_map"][record[0]],
