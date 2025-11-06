@@ -127,29 +127,30 @@ class DBInterface:
             self.logger.error(f"My config:\n{self.config}")
             raise
 
-        for cat in indexed_info[table_alias].keys():
-            if cat == "categorical":
-                for field in indexed_info[table_alias][cat]:
-                    # self.logger.debug(f"===> Looking for unique field {field} in table {table}")
-                    uniques = self.cur.execute(
-                        self.queries["GET_UNIQUE"].format(field, table)
-                    ).fetchall()
-                    search_obj = {"name": field, "levels": [u[0] for u in uniques]}
-                    search_fields.append(search_obj)
-                    # self.logger.debug(f"===> Found unique search levels for {field}: {search_obj}")
-            elif cat == "numerical":
-                for field in indexed_info[table_alias][cat]:
-                    min = self.cur.execute(
-                        self.queries["MIN"].format(field, table)
-                    ).fetchone()
-                    max = self.cur.execute(
-                        self.queries["MAX"].format(field, table)
-                    ).fetchone()
-                    # self.logger.debug(f"===> Found MIN/MAX search levels for {field}: {min}/{max}")
-                    range_fields.append({"name": field, "range": [min, max]})
-            else:
-                # raise Exception(f"===> Please implement support for field {cat}!!")
-                self.logger.debug(f"===> Please implement support for field {cat}!!")
+        # XXX - Performance hit
+        # for cat in indexed_info[table_alias].keys():
+        #     if cat == "categorical":
+        #         for field in indexed_info[table_alias][cat]:
+        #             # self.logger.debug(f"===> Looking for unique field {field} in table {table}")
+        #             uniques = self.cur.execute(
+        #                 self.queries["GET_UNIQUE"].format(field, table)
+        #             ).fetchall()
+        #             search_obj = {"name": field, "levels": [u[0] for u in uniques]}
+        #             search_fields.append(search_obj)
+        #             # self.logger.debug(f"===> Found unique search levels for {field}: {search_obj}")
+        #     elif cat == "numerical":
+        #         for field in indexed_info[table_alias][cat]:
+        #             min = self.cur.execute(
+        #                 self.queries["MIN"].format(field, table)
+        #             ).fetchone()
+        #             max = self.cur.execute(
+        #                 self.queries["MAX"].format(field, table)
+        #             ).fetchone()
+        #             # self.logger.debug(f"===> Found MIN/MAX search levels for {field}: {min}/{max}")
+        #             range_fields.append({"name": field, "range": [min, max]})
+        #     else:
+        #         # raise Exception(f"===> Please implement support for field {cat}!!")
+        #         self.logger.debug(f"===> Please implement support for field {cat}!!")
 
         return {
             "size": table_size,
