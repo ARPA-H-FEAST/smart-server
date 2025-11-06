@@ -47,6 +47,8 @@ for bco_id, dataset_config in config.items():
         dbi = DBInterface(db_path, dataset_config, logger)
         DB_CONNECTIONS[bco_id] = dbi
     except Exception as e:
+        if bco_id != "FEAST_000004":
+            raise
         if os.path.exists("GDWC.duckdb"):
             try:
                 dataset_config["db_location"] = "GDWC.duckdb"
