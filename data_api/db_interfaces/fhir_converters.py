@@ -129,7 +129,7 @@ def nbcc_patient(record):
         {
             "gender": nbcc_gender_converter(record[0]),
             "birthDate": record_to_datetime(record[1]),
-            "deceasedDateTime": None if record[2] == "N" else record[2],
+            "deceasedDateTime": None if record[2] == "N" else record_to_datetime(record[2]),
             "identifier": [{"value": record[3]}],
         }
     ).as_json()
