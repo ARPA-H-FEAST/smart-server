@@ -276,7 +276,10 @@ if __name__ == "__main__":
                 samples_uploaded = len(patient_data['data'])
                 sample_count -= samples_uploaded
                 offset += samples_uploaded
-                continue
+                if sample > 10000:
+                    break
+                else:
+                    continue
 
             for idx in range(len(patient_data['data'])):
                 post_success = post_fhir_data(access_token, patient_data['data'][idx], "Patient")
