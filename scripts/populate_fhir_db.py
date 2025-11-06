@@ -42,7 +42,16 @@ for bco_id, dataset_config in config.items():
         db_path = os.path.join(DB_HOME, db_location)
     else:
         db_path = str(Path(DB_HOME).parent / db_location[1])
-    DB_CONNECTIONS[bco_id] = DBInterface(db_path, dataset_config, logger)
+    try:
+        dbi = DBInterface(db_path, dataset_config, logger)
+        DB_CONNECTIONS[bco_id] = dbi
+    except Exception as e:
+        print(f"---> EXCEPTION ON DB: {e}")
+        print(f"...moving on...")
+        continue
+if not DB_CONNECTIONS.keys():
+    print("No DB connections available, aborting")
+    sys.exit(0)
 
 def get_access_token():
 
@@ -118,6 +127,10 @@ if __name__ == "__main__":
     # Test the connection
     access_info = get_access_token()
     access_token = access_info["access_token"]
+    if not access_token:
+        print(f"Access token error! Aborting")
+        sys.exit(1)
+    print(f"\tAccess token: {access_token}")
 
     import time
     # Ping the FHIR server
@@ -201,7 +214,7 @@ if __name__ == "__main__":
         if db_bco == "FEAST_000013":
             # Special handling of parquet/pandas frames in memory
             patient_data = dbi.get_sample(
-                output_format="fhir", data_type="Patient", offset=offset, limit=chunk_limit
+                output_format="fhir", data_type=current_item, offset=offset, limit=chunk_limit
             )
             print("Parquet --- success?")
             for idx in range(len(patient_data['data'])):
@@ -217,7 +230,7 @@ if __name__ == "__main__":
             chunk_limit = chunk_size if chunk_size <= sample_count else sample_count
             # Get the first chunk
             patient_data = dbi.get_sample(
-                output_format="fhir", data_type="Patient", offset=offset, limit=chunk_limit
+                output_format="fhir", data_type=current_item, offset=offset, limit=chunk_limit
             )
             print(f"{db_bco}:\n{patient_data['data'][0]}")
             for idx in range(len(patient_data['data'])):
