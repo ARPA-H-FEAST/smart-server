@@ -94,7 +94,6 @@ def nbcc_gender_converter(record):
     return nbcc_converter["secondary_map"][primary_key]
 
 def gwdc_patient(record):
-    print(f"Found record 3 {record[3]}")
     return Patient(
         {
             "gender": gwdc_converter["pronoun_map"][record[0]],
@@ -102,7 +101,7 @@ def gwdc_patient(record):
             "birthDate": record[2].isoformat(),
             "deceasedDateTime": None 
                 if record[3] is None 
-                else datetime.datetime(int(record[3])).date().strftime("%Y-%m-%d"),
+                else record[3].isoformat(),
             "identifier": [{"value": record[4]}],
         }
     ).as_json()
