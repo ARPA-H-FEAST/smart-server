@@ -106,15 +106,20 @@ def gwdc_patient(record):
         }
     ).as_json()
 
+def brprlu_date(dateValue):
+    try:
+        return None if math.isnan(dateValue) else datetime.datetime(int(record[3])).date().strftime("%Y-%m-%d")
+    except Exception as e:
+        print(f"Exception in deceased time conversion: {e}")
+        print(f"Record was {record[3]}")
+
 def brprlu_patient(record):
     return Patient(
         {
             "gender": gwdc_converter["pronoun_map"][record[0]],
             "communication": [{"language": {"text": record[1]}}],
             "birthDate": datetime.datetime(int(record[2]), 1, 1).date().strftime("%Y-%m-%d"),
-            "deceasedDateTime": None 
-                if math.isnan(record[3]) 
-                else datetime.datetime(int(record[3])).date().strftime("%Y-%m-%d"),
+            "deceasedDateTime": brprlu_date(record[3]),
             "identifier": [{"value": record[4]}],
             "address": [{
                 "state": record[5],
