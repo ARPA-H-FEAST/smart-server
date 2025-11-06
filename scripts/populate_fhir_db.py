@@ -244,11 +244,11 @@ if __name__ == "__main__":
                 patient_data = dbi.get_sample(
                     output_format="fhir", data_type=current_item, offset=offset, limit=chunk_limit
                 )
-                print(f"Now on sample {offset}")
                 if DRYRUN:
                     samples_uploaded = len(patient_data['data'])
                     sample_count -= samples_uploaded
                     offset += samples_uploaded
+                    print(f"Data frame: processed {offset} samples")
                     continue
 
                 print("Parquet --- success?")
