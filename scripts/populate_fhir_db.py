@@ -133,17 +133,18 @@ def remove_fhir_data(access_token, sample_url):
 
 if __name__ == "__main__":
 
-    # Test the connection
-    access_info = get_access_token()
-    access_token = access_info["access_token"]
-    if not access_token:
-        print(f"Access token error! Aborting")
-        sys.exit(1)
-    # print(f"\tAccess token: {access_token}")
+    if not DRYRUN:
+        # Test the connection
+        access_info = get_access_token()
+        access_token = access_info["access_token"]
+        if not access_token:
+            print(f"Access token error! Aborting")
+            sys.exit(1)
+        # print(f"\tAccess token: {access_token}")
 
-    import time
-    # Ping the FHIR server
-    samples = query_fhir_server(access_token)
+        import time
+        # Ping the FHIR server
+        samples = query_fhir_server(access_token)
 
 
     if MODE == "dev":

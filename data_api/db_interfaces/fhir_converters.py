@@ -94,12 +94,15 @@ def nbcc_gender_converter(record):
     return nbcc_converter["secondary_map"][primary_key]
 
 def gwdc_patient(record):
+    print(f"Found record 3 {record[3]}")
     return Patient(
         {
             "gender": gwdc_converter["pronoun_map"][record[0]],
             "communication": [{"language": {"text": record[1]}}],
             "birthDate": record[2].isoformat(),
-            "deceasedDateTime": record[3],
+            "deceasedDateTime": None 
+                if record[3] is None 
+                else datetime.datetime(int(record[3])).date().strftime("%Y-%m-%d"),
             "identifier": [{"value": record[4]}],
         }
     ).as_json()
@@ -112,7 +115,7 @@ def brprlu_patient(record):
             "birthDate": datetime.datetime(int(record[2]), 1, 1).date().strftime("%Y-%m-%d"),
             "deceasedDateTime": None 
                 if math.isnan(record[3]) 
-                else datetime.datetime(int(record[3]), 1, 1).date().strftime("%Y-%m-%d"),
+                else datetime.datetime(int(record[3])).date().strftime("%Y-%m-%d"),
             "identifier": [{"value": record[4]}],
             "address": [{
                 "state": record[5],
