@@ -15,7 +15,8 @@ handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
 PROJECT_ROOT = Path(__file__).parent.parent
-DB_HOME = PROJECT_ROOT / "datadir/processed"
+# DB_HOME = PROJECT_ROOT / "datadir/processed"
+DB_HOME = Path("/data/arpah/processed")
 sys.path.append(str(PROJECT_ROOT))
 
 from data_api.db_interfaces import DBInterface, FHIR_CONVERTER
