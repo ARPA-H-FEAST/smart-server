@@ -277,7 +277,7 @@ if __name__ == "__main__":
                 samples_uploaded = len(patient_data['data'])
                 sample_count -= samples_uploaded
                 offset += samples_uploaded
-                if sample_count > 10000:
+                if offset > 10000:
                     break
                 else:
                     continue
