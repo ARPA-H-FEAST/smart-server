@@ -233,32 +233,34 @@ if __name__ == "__main__":
         current_item = "Patient"
         if current_item not in fhir_objects.keys():
             continue
-
-        if db_bco == "FEAST_000013":
-            # Special handling of parquet/pandas frames in memory
-            patient_data = dbi.get_sample(
-                output_format="fhir", data_type=current_item, offset=offset, limit=chunk_limit
-            )
-            print(f"Now on sample {offset}")
-            if DRYRUN:
-                samples_uploaded = len(patient_data['data'])
-                sample_count -= samples_uploaded
-                offset += samples_uploaded
-                continue
-
-            print("Parquet --- success?")
-            for idx in range(len(patient_data['data'])):
-                post_success = post_fhir_data(access_token, patient_data['data'][idx], "Patient")
-            print(f"===> Success?\n{post_success}")
-            samples_uploaded = len(patient_data['data'])
-            sample_count -= samples_uploaded
-            offset += samples_uploaded
-
-            continue
-
+        
         chunk_size = 100
         offset = 0
         chunk_count = 0
+        
+        if db_bco == "FEAST_000013":
+            while sample_count > 0:
+                # Special handling of parquet/pandas frames in memory
+                patient_data = dbi.get_sample(
+                    output_format="fhir", data_type=current_item, offset=offset, limit=chunk_limit
+                )
+                print(f"Now on sample {offset}")
+                if DRYRUN:
+                    samples_uploaded = len(patient_data['data'])
+                    sample_count -= samples_uploaded
+                    offset += samples_uploaded
+                    continue
+
+                print("Parquet --- success?")
+                for idx in range(len(patient_data['data'])):
+                    post_success = post_fhir_data(access_token, patient_data['data'][idx], "Patient")
+                print(f"===> Success?\n{post_success}")
+                samples_uploaded = len(patient_data['data'])
+                sample_count -= samples_uploaded
+                offset += samples_uploaded
+
+            continue
+
         while sample_count > 0:
             chunk_limit = chunk_size if chunk_size <= sample_count else sample_count
             # Get the first chunk
