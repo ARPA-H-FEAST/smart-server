@@ -6,9 +6,10 @@ import time
 
 from pathlib import Path
 
-FHIR_URL = "http://localhost:8080/fhir/"
-# FHIR_URL = "https://feast.mgpc.biochemistry.gwu.edu/fhir/"
-AUTH_URL = "http://localhost:8000/fhir-api/"
+# FHIR_URL = "http://localhost:8080/fhir/"
+FHIR_URL = "https://feast.mgpc.biochemistry.gwu.edu/fhir/"
+# AUTH_URL = "http://localhost:8000/fhir-api/"
+AUTH_URL = "https://feast.mgpc.biochemistry.gwu.edu/fhir-api/"
 
 AUTH_TOKEN_URL = AUTH_URL + "oauth/token/"
 
@@ -49,42 +50,6 @@ def get_auth_token():
 
     return auth_response
 
-
-def get_data_sets(access_token):
-
-    query_api = DATA_BASE_URL + "datasets/"
-
-    print("*" * 80)
-    print(f"Query API: {query_api}")
-    print(f'Auth string: "Authorization: Bearer {access_token}"')
-    print("*" * 80)
-
-    response = requests.get(
-        query_api, headers={"Authorization": f"Bearer {access_token}"}
-    )
-
-    print("*" * 80)
-    print(f"Got response: {response}")
-    print("*" * 80)
-
-    data = response.json()
-
-    return data
-
-
-def query_data_set_details(access_token, dataset_bco):
-
-    query_api = DATA_BASE_URL + "dataset-metadata/"
-    response = requests.post(
-        query_api,
-        json={"bcoid": dataset_bco},
-        headers={"Authorization": f"Bearer {access_token}"},
-    )
-    data = response.json()
-
-    return data
-
-
 def query_data_point(access_token, dataset_bco, sample_offset=0, limit=1):
 
     query_api = DATA_BASE_URL + "dataset-detail/"
@@ -102,11 +67,11 @@ def query_data_point(access_token, dataset_bco, sample_offset=0, limit=1):
 
     return data
 
-def query_fhir_server(access_token):
+def query_fhir_server(access_token, URL=None):
 
     headers = {"Authorization": f"Bearer {access_token}"}
     
-    URL = FHIR_URL + "Patient"
+    URL = (FHIR_URL + "Patient") if URL is None else URL
     response = requests.get(
         URL,
         headers=headers
@@ -126,58 +91,16 @@ if __name__ == "__main__":
 
     fhir_sample = query_fhir_server(access_token)
 
-    # access_token = None
-
-    # data = get_data_sets(access_token)
-
-    # print("*" * 80)
-    # print(f"---> Found data sets {data}")
-    # print("*" * 80)
-
-    # sample_patient = {}
-
-    # datasets = data["results"]
-
-    # single_dataset_key = list(datasets.keys())[0]
-
-    # start = time.time()
-
-    # dataset_bco = single_dataset_key
-    # dataset = datasets[dataset_bco]
-
-    # print(f"{dataset_bco}: {dataset}")
-    # response = query_data_set_details(access_token, dataset_bco)
-
-    # print("*" * 80)
-    # print(f"Dataset metadata response:")
-    # for k, v in response.items():
-    #     print(f"{k}:\n{v}\n")
-    # print("*" * 80)
-
-    # sample_offset = 0
-    # sample_limit = 50
-
-    # Collect a solitary data point
-    # data = query_data_point(access_token, dataset_bco)
-    # Uncomment below line to get many data points
-    # data = query_data_point(dataset_bco, shape=list, sample_offset=sample_offset, limit=sample_limit)
-
-    # sample_data = data["db_entries"]
-    # metadata = data["db_metadata"]
-    # print("*" * 80)
-    # print(f"Dataset sample response:")
-    # for k, v in data.items():
-    #     print(f"{k}:\n{v}\n")
-    # print("*" * 80)
-
-    # sample_patient[dataset] = sample_data[0]
-
-    # print(f"Query roundtrip required {time.time() - start:.3f} s")
-
-    # print(sample_patient)
-
-    # # Focus on NBCC data
-    # dataset = datasets["FEAST_000012"]
-
-    # # Focus on GWDC data
-    # dataset = datasets["FEAST_000004"]
+    next_url = None
+    for k in fhir_sample.keys():
+        if k != "link":
+            continue
+        for link_obj in fhir_sample[k]:
+            # print(f"Link relation: {link_obj['relation']}")
+            # print(f"Link url: {link_obj['url']}")
+            if link_obj['relation'] == "next":
+                next_url = link_obj['url']
+    assert next_url is not None
+    next_url = next_url.replace("http://127.0.0.1:4243","https://feast.mgpc.biochemistry.gwu.edu")
+    print(f"Collecting new information from URL {next_url}")
+    next_sample = query_fhir_server(access_token, URL=next_url)
