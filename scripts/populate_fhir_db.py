@@ -249,6 +249,8 @@ if __name__ == "__main__":
                     print(f"{bco_id}: Got sample\n{data['data']}")
                     samples_uploaded = len(data['data'])
                     sample_count -= samples_uploaded
+                    if samples_uploaded == 0:
+                        sample_count = 0
                     offset += samples_uploaded
                     print(f"Data frame: processed {offset} samples")
                     continue
@@ -269,11 +271,17 @@ if __name__ == "__main__":
         chunk_count = 0
         while sample_count > 0:
             chunk_limit = chunk_size if chunk_size <= sample_count else sample_count
-            # Get the first chunk
-            data = dbi.get_sample_for_fhir_upload(
-                data_type=fhir_item,
-                offset=offset, limit=chunk_limit
-            )
+            try:
+                # Get the first chunk
+                data = dbi.get_sample_for_fhir_upload(
+                    data_type=fhir_item,
+                    offset=offset, limit=chunk_limit
+                )
+            except Exception as e:
+                if DRYRUN:
+                    sample_count = 0
+                else:
+                    raise
             print(f"Now on sample {offset}")
             if DRYRUN:
                 print(f"{db_bco}:\n{data['data']}")
