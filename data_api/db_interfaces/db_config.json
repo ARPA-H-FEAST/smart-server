@@ -130,6 +130,11 @@
                 "primary_table": "DiagnosisEventFact.parquet",
                 "other_tables": ["DiagnosisDim.parquet", "DiagnosisTerminologyDim.parquet"]
             },
+            "Procedure": {
+                "fk": "ProcedureKey",
+                "primary_table": "ProcedureEventFact.parquet",
+                "other_tables": ["ProcedureDim.parquet"]
+            },
             "LabComponent": ""
         },
         "fhir_columns": {
@@ -148,6 +153,19 @@
                     "ClinicalClassificationLevelTwo", "ClinicalClassificationLevelThree", 
                     "ClinicalClassificationLevelFour"],
                 "DiagnosisTerminologyDim": ["NameAndCode", "GroupedNameAndCode", "DisplayString", "Type", "Value"]
+            },
+            "Procedure": {
+                "ProcedureEventFact": [
+                    "ProcedureEventKey", "EncounterKey", "IsCurrent", "Category",
+                    "ProcedureCodeSet", "ProcedureCode", "PatientDurableKey_e",
+                    "EncounterKey", "StartDate", "EndDate", "PatientAge",
+                    "PerformingProviderDurableKey", "PatientFriendlyName"
+                ],
+                "ProcedureDim": [
+                    "ClinicalClassificationLevelOne", "ClinicalClassificationLevelTwo", 
+                    "ClinicalClassificationLevelThree", "BreastImagingprocedureType",
+                    "BreastImagingBiopsyGuidance"
+                ]
             }
         }
     }
