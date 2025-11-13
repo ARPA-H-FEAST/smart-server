@@ -6,7 +6,7 @@
         "entry_table": "Patient",
         "searchable_tables": {
             "Patient": "PatientDim_PRCA", 
-            "Lab Component": "LabComponentResultFact", 
+            "LabComponent": "LabComponentResultFact", 
             "Diagnosis": "DiagnosisEventFact"
         },
         "patients": 424,
@@ -26,17 +26,33 @@
                 "ReliableSex", "Sex", "SexAssignedAtBirth", "GenderIdentity", "SecondRace", "ThirdRace", 
                 "FourthRace", "FifthRace", "DurableKey_e"
             ],
-            "Lab Component": {},
+            "LabComponent": {},
             "Diagnosis": {}
+        },
+        "fhir_tables": {
+            "Patient": "PatientDim_PRCA",
+            "DiagnosticReport": {
+                "fk": "DiagnosisKey",
+                "primary_table": "DiagnosisEventFact_PRCA",
+                "other_tables": ["DiagnosisDim", "DiagnosisTerminologyDim_PRCA"]
+            },
+            "LabComponent": ""
         },
         "fhir_columns": {
             "Patient": ["ReliableSex", "PreferredLanguage", "BirthDate", "DeathDate", "DurableKey_e"],
-            "Lab Component": [],
-            "Diagnosis": [
-                "PatientKey", "DepartmentKey", "Type", "SubType", "EncounterKey", 
-                "EndDateKey", "DiagnosisKey", "DocumentedByEmployeeKey"
-                ]
-            },
+            "LabComponent": [],
+            "DiagnosticReport": {
+                "DiagnosisEventFact_PRCA": [
+                    "PatientDurableKey_e", "DepartmentKey", "Type", "SubType", 
+                    "EndDateKey", "DiagnosisKey", "DocumentedByEmployeeKey"
+                ],
+                "DiagnosisDim": [
+                    "Name", "ClinicalClassificationLevelOne", 
+                    "ClinicalClassificationLevelTwo", "ClinicalClassificationLevelThree", 
+                    "ClinicalClassificationLevelFour"],
+                "DiagnosisTerminologyDim_PRCA": ["NameAndCode", "GroupedNameAndCode", "DisplayString", "Type", "Value"]
+            }
+        },
         "random_sampling_keys": ["DurableKey_e", 10],
         "other_tables": {},
         "search_fields": {
@@ -44,7 +60,7 @@
                 "categorical": ["Ethnicity", "FirstRace", "SecondRace", "DeathDate"],
                 "numerical": ["AgeInYears"]
             },
-            "Lab Component": {},
+            "LabComponent": {},
             "Diagnosis": {}
         }
     },
@@ -72,9 +88,14 @@
             "Diagnosis": [],
             "Genomic Sequence": []
         },
+        "fhir_tables": {
+            "Patient": "family_records",
+            "DiagnosticReport": "",
+            "LabComponent": ""
+        },
         "fhir_columns": {
             "Patient": ["sex", "year_of_birth", "alive", "nbcc_userinfo_id"],
-            "Diagnosis": ["breast_cancer", "diagnosis_year", "diagnosis_age",
+            "DiagnosticReport": ["breast_cancer", "diagnosis_year", "diagnosis_age",
                 "diagnosis_idk", "stage", "er", "pr", "other_diagnosis_descriptors",
                 "receptors_idk", "nbcc_userinfo_id"
             ],
@@ -102,16 +123,32 @@
             "Patient": "PatientDim.parquet",
            "Diagnosis": "PatientDim.parquet"
         },
+        "fhir_tables": {
+            "Patient": "PatientDim.parquet",
+            "DiagnosticReport": {
+                "fk": "DiagnosisKey",
+                "primary_table": "DiagnosisEventFact.parquet",
+                "other_tables": ["DiagnosisDim.parquet", "DiagnosisTerminologyDim.parquet"]
+            },
+            "LabComponent": ""
+        },
         "fhir_columns": {
             "Patient": [
                 "ReliableSex", "PreferredLanguage", "BirthDate", "DeathDate", "DurableKey_e",
                 "StateOrProvinceAbbreviation", "Country", "PrimaryCareProviderKey"
             ],
-            "Lab Component": [],
-            "Diagnosis": [
-                "PatientKey", "DepartmentKey", "Type", "SubType", "EncounterKey", 
-                "StartDateKey", "EndDateKey", "DiagnosisKey", "DocumentedByEmployeeKey"
-            ]
+            "LabComponent": [],
+            "DiagnosticReport": {
+                "DiagnosisEventFact": [
+                    "PatientDurableKey_e", "DepartmentKey", "Type", "SubType", "EncounterKey", 
+                    "EndDateKey", "DiagnosisEventKey", "DiagnosisKey", "DocumentedByEmployeeKey"
+                ],
+                "DiagnosisDim": [
+                    "Name", "ClinicalClassificationLevelOne", 
+                    "ClinicalClassificationLevelTwo", "ClinicalClassificationLevelThree", 
+                    "ClinicalClassificationLevelFour"],
+                "DiagnosisTerminologyDim": ["NameAndCode", "GroupedNameAndCode", "DisplayString", "Type", "Value"]
+            }
         }
     }
 }
