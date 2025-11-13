@@ -5,6 +5,12 @@ import pandas as pd
 import json
 import os
 
+from .utilities import (
+    single_parquet_to_df,
+    single_table_query_to_string,
+    join_tables_no_select,
+)
+
 try:
     ## Import in Django
     from .fhir_converters import FHIR_CONVERTER
@@ -49,6 +55,33 @@ def duck_select(filters: dict):
 
     return query_str
 
+def duck_join(join_config, columns):
+    print(f"---> DUCK Config: {join_config}")
+    print(f"---> Columns: {columns}")
+    primary_table = join_config["primary_table"]
+    other_tables = join_config["other_tables"]
+    primary_cols = columns[primary_table]
+    
+    fk = join_config["fk"]
+    select_str = ""
+    for col in primary_cols:
+        select_str += f"t1.{col},"
+    for idx, table in enumerate(other_tables):
+        for col in columns[table]:
+            select_str += f"t{idx+2}.{col},"
+    select_str = select_str.rstrip(",")
+    print(f"Running select string: {select_str}")
+
+    from_join_str = ""
+    tables = [primary_table]
+    tables.extend(other_tables)
+    for idx, table_name in enumerate(tables):
+        if idx == 0:
+            from_join_str += f" {table_name} AS t{idx+1} "
+        else:
+            from_join_str += f" JOIN {table_name} AS t{idx+1} ON t{idx}.{fk} = t{idx+1}.{fk} "
+
+    return select_str, from_join_str
 
 def sql_select(filters: dict):
     query_str = " WHERE\n\t"
@@ -61,6 +94,9 @@ def sql_select(filters: dict):
 
     return query_str
 
+def sql_join(join_config: dict):
+    print(f"---> SQL Config: {join_config}")
+    return True
 
 class DBInterface:
 
@@ -72,6 +108,7 @@ class DBInterface:
             self.cur = self.con.cursor()
             self.queries = DUCK_QUERIES
             self.select_function = duck_select
+            self.join_function = duck_join
 
         elif db_class == "sqlite3":
             try:
@@ -83,12 +120,14 @@ class DBInterface:
             self.queries = SQL_QUERIES
             self.select_function = sql_select
             logger.error(f"---> SQLite3: DB path is {db_path}")
+            self.join_function = sql_join
 
         elif db_class == "parquet":
             self.con = None
             self.cur = None
             self.queries = None
             self.select_function = None
+            self.join_function = None
             self.file_location = db_path
         else:
             raise Exception(f"Invalid DB configuration: Unknown DB {db_class}")
@@ -111,22 +150,13 @@ class DBInterface:
 
         if self.cur is None:
             # Parquet special handling
-            file_path = os.path.join(self.file_location, table)
-            # columns = self.config["fhir_columns"][data_type]
-            # print(f"---> Isolating to columns\n{columns}")
-            try:
-                df = pd.read_parquet(file_path)
-            except Exception as e:
-                try:
-                    table_name = ".BrPrLu.".join(table.split("."))
-                    print(f"Testing for file {table_name}")
-                    df = pd.read_parquet(os.path.join(self.file_location, table_name))
-                except:
-                    raise
-            table_size = df.shape
-            # print(f"---> Parquet: Got table size {table_size}")
-            return {"size": table_size[0], "search_fields": [], "range_fields": []}
-
+            if type(table) is str:
+                df = single_parquet_to_df(self.file_location, table)
+                table_size = df.shape
+                # print(f"---> Parquet: Got table size {table_size}")
+                return {"size": table_size[0], "search_fields": [], "range_fields": []}
+            elif type(table) is dict:
+                self.logger.debug(f"Handling a dict table def with configuration\n{table}")
         try:
             table_size = self.cur.execute(self.queries["COUNT"].format(table)).fetchall()[0][0]
         except Exception as e:
@@ -236,7 +266,7 @@ class DBInterface:
                     d = self.fhir_converter[data_type](dr)
                     data.append(d)
                 except Exception as e:
-                    self.logger.error(f"{e}")
+                    self.logger.error(f"===> Exception: {e}")
                     self.logger.error(f"Data row: {dr}")
                     self.logger.error(f"Query was {final_query}")
                     continue
@@ -246,6 +276,75 @@ class DBInterface:
                 "pagination": {"sample_size": limit, "offset": offset},
             }
             return response
+
+    def get_sample_for_fhir_upload(
+        self,
+        limit=100,
+        offset=0,
+        query_dict=None,
+        data_type=None,
+    ):
+        table_alias = self.config["fhir_tables"].get(data_type, None)
+        if not table_alias:
+            self.logger.error("No FHIR table configured, no data available")
+            raise Exception("No FHIR table configured, no data available")
+
+        if self.cur is None:
+            # Parquet handling
+            if type(table_alias) is str:
+                columns = self.config["fhir_columns"][data_type]
+                df = single_parquet_to_df(self.file_location, table_alias, columns=columns)
+                # print(f"---> Isolating to columns\n{columns}")
+                return {
+                    "data": [
+                        self.fhir_converter[data_type](dr) 
+                        for dr 
+                        in df.itertuples(index=False, name=None)
+                    ],
+                    "pagination": {"sample_size": df.shape, "offset": 0},
+                }
+
+        fhir_table = self.config["fhir_tables"][data_type]
+        if type(fhir_table) is str:
+            final_query = single_table_query_to_string(
+                self.queries["SAMPLE_QUERY"], query_dict, self.select_function,
+                fhir_table, table_alias, limit=limit, offset=offset
+            )
+        elif type(fhir_table) is dict:
+            base_query = self.queries["SAMPLE_QUERY"]
+            column_config = self.config["fhir_columns"][data_type]
+            table_config = fhir_table
+            final_query = join_tables_no_select(
+                base_query, table_config, column_config, self.join_function
+            )
+        else:
+            raise Exception("Illegal definition")
+        self.logger.debug(f"=> Final query:\n{final_query}")
+        # self.logger.debug(
+        #     f"Data type: {data_type} ::: FHIR Converter keys: {self.fhir_converter.keys()}"
+        # )
+        # if data_type not in self.fhir_converter.keys():
+        #     return ["Error", f"Data type {data_type} not found in DB records"]
+        data_rows = self.con.execute(final_query).fetchall()
+        # self.logger.debug(f"===> Found {len(data_rows)} data points")
+        # XXX - While working out the kinks, move away from list comprehension and
+        # perform the conversion one at a time
+        data = []
+        for dr in data_rows:
+            try:
+                d = self.fhir_converter[data_type](dr)
+                data.append(d)
+            except Exception as e:
+                self.logger.error(f"===> Exception: {e}")
+                self.logger.error(f"Data row: {dr}")
+                self.logger.error(f"Query was {final_query}")
+                continue
+
+        response = {
+            "data": data,
+            "pagination": {"sample_size": limit, "offset": offset},
+        }
+        return response
 
     def get_random_sample(self):
         table = self.config["entry_table"]
