@@ -198,16 +198,16 @@ def nbcc_genomicStudy(record):
 FHIR_CONVERTER = {
     "gwdc_prostate": {
         "Patient": gwdc_patient,
-        "diagnosis": gwdc_diagnosis,
+        "DiagnosticReport": gwdc_diagnosis,
         # "genomicStudy": gwdc_genomicStudy,  TODO?
     },
     "nbcc": {
         "Patient": nbcc_patient,
-        "diagnosis": nbcc_diagnosis,
+        "DiagnosticReport": nbcc_diagnosis,
         "genomicStudy": nbcc_genomicStudy,
     },
     "gwdc_brprlu": {
         "Patient": brprlu_patient,
-        "diagnosis": brprlu_patient,
+        "DiagnosticReport": brprlu_patient,
     }
 }
