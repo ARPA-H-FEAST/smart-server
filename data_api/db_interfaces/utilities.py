@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from functools import reduce
 
 def single_parquet_to_df(file_location, file_name, columns=None):
         # columns = self.config["fhir_columns"][data_type]
@@ -44,3 +45,17 @@ def join_tables_no_select(base_query, query_args, columns, join_func):
     print(f"Got a query: {query}")
 
     return query
+
+def join_parquet_tables(base_path, table_config):
+    print(f"---> BASE PATH: {base_path}")
+    print(f"---> TABLE CONFIG: {table_config}")
+    primary_table = table_config["primary_table"]
+    join_tables = table_config["other_tables"]
+    fk = table_config["fk"]
+    try:
+        dfs = [single_parquet_to_df(base_path, primary_table)]
+        dfs.extend([single_parquet_to_df(base_path, t) for t in join_tables])
+        final_df = reduce(lambda left, right: pd.merge(left, right, on=fk), dfs)
+        return final_df
+    except Exception as e:
+        raise

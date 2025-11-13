@@ -9,6 +9,7 @@ from .utilities import (
     single_parquet_to_df,
     single_table_query_to_string,
     join_tables_no_select,
+    join_parquet_tables
 )
 
 try:
@@ -303,17 +304,27 @@ class DBInterface:
                     ],
                     "pagination": {"sample_size": df.shape, "offset": 0},
                 }
+            elif type(table_alias) is dict:
+                column_config = self.config["fhir_columns"][data_type]
+                table_config = table_alias
+                final_df = join_parquet_tables(self.file_location, table_config)
+                print(f"---> DBI: Got FINAL df\n{final_df}")
+                data = [
+                    self.fhir_converter[data_type](dr) 
+                    for dr
+                    in final_df.itertuples(index=False, name=None)
+                ]
+                return {"data": final_df, "pagination": {}}
 
-        fhir_table = self.config["fhir_tables"][data_type]
-        if type(fhir_table) is str:
+        if type(table_alias) is str:
             final_query = single_table_query_to_string(
                 self.queries["SAMPLE_QUERY"], query_dict, self.select_function,
-                fhir_table, table_alias, limit=limit, offset=offset
+                table_alias, table_alias, limit=limit, offset=offset
             )
-        elif type(fhir_table) is dict:
+        elif type(table_alias) is dict:
             base_query = self.queries["SAMPLE_QUERY"]
             column_config = self.config["fhir_columns"][data_type]
-            table_config = fhir_table
+            table_config = table_alias
             final_query = join_tables_no_select(
                 base_query, table_config, column_config, self.join_function
             )
