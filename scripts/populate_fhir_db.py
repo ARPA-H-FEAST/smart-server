@@ -15,8 +15,8 @@ handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
 PROJECT_ROOT = Path(__file__).parent.parent
-# DB_HOME = PROJECT_ROOT / "datadir/processed"
-DB_HOME = Path("/data/arpah/processed")
+DB_HOME = PROJECT_ROOT / "datadir/processed"
+# DB_HOME = Path("/data/arpah/processed")
 sys.path.append(str(PROJECT_ROOT))
 
 from data_api.db_interfaces import DBInterface, FHIR_CONVERTER
@@ -230,8 +230,9 @@ if __name__ == "__main__":
         #     print(f"Found FHIR conversions: {fhir_objects}\n{fhir_columns}")
 
         fhir_objects = dbi.config["fhir_columns"]
-        current_item = "Patient"
-        if current_item not in fhir_objects.keys():
+        fhir_item = "DiagnosticReport"
+        # fhir_item = "Patient"
+        if fhir_item not in fhir_objects.keys():
             continue
         
         chunk_size = 100
@@ -241,21 +242,22 @@ if __name__ == "__main__":
         if db_bco == "FEAST_000013":
             while sample_count > 0:
                 # Special handling of parquet/pandas frames in memory
-                patient_data = dbi.get_sample(
-                    output_format="fhir", data_type=current_item, offset=offset, limit=chunk_limit
+                data = dbi.get_sample_for_fhir_upload(
+                    data_type=fhir_item, offset=offset, limit=chunk_limit
                 )
                 if DRYRUN:
-                    samples_uploaded = len(patient_data['data'])
+                    print(f"{bco_id}: Got sample\n{data['data']}")
+                    samples_uploaded = len(data['data'])
                     sample_count -= samples_uploaded
                     offset += samples_uploaded
                     print(f"Data frame: processed {offset} samples")
                     continue
 
                 print("Parquet --- success?")
-                for idx in range(len(patient_data['data'])):
-                    post_success = post_fhir_data(access_token, patient_data['data'][idx], "Patient")
+                for idx in range(len(data['data'])):
+                    post_success = post_fhir_data(access_token, data['data'][idx], "Patient")
                 print(f"===> Success?\n{post_success}")
-                samples_uploaded = len(patient_data['data'])
+                samples_uploaded = len(data['data'])
                 sample_count -= samples_uploaded
                 offset += samples_uploaded
                 print(f"....sample count: {sample_count}")
@@ -268,23 +270,21 @@ if __name__ == "__main__":
         while sample_count > 0:
             chunk_limit = chunk_size if chunk_size <= sample_count else sample_count
             # Get the first chunk
-            patient_data = dbi.get_sample(
-                output_format="fhir", data_type=current_item, offset=offset, limit=chunk_limit
+            data = dbi.get_sample_for_fhir_upload(
+                data_type=fhir_item,
+                offset=offset, limit=chunk_limit
             )
-            # print(f"{db_bco}:\n{patient_data['data'][0]}")
             print(f"Now on sample {offset}")
             if DRYRUN:
-                samples_uploaded = len(patient_data['data'])
+                print(f"{db_bco}:\n{data['data']}")
+                samples_uploaded = len(data['data'])
                 sample_count -= samples_uploaded
                 offset += samples_uploaded
-                if offset > 10000:
-                    break
-                else:
-                    continue
+                break
 
-            for idx in range(len(patient_data['data'])):
-                post_success = post_fhir_data(access_token, patient_data['data'][idx], "Patient")
-            samples_uploaded = len(patient_data['data'])
+            for idx in range(len(data['data'])):
+                post_success = post_fhir_data(access_token, data['data'][idx], "Patient")
+            samples_uploaded = len(data['data'])
             sample_count -= samples_uploaded
             offset += samples_uploaded
             # print(f"===> Success?\n{post_success}")
