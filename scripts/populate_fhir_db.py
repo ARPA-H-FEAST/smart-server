@@ -230,7 +230,8 @@ if __name__ == "__main__":
         #     print(f"Found FHIR conversions: {fhir_objects}\n{fhir_columns}")
 
         fhir_objects = dbi.config["fhir_columns"]
-        fhir_item = "DiagnosticReport"
+        fhir_item = "Procedure"
+        # fhir_item = "DiagnosticReport"
         # fhir_item = "Patient"
         if fhir_item not in fhir_objects.keys():
             continue
@@ -243,7 +244,7 @@ if __name__ == "__main__":
             while sample_count > 0:
                 # Special handling of parquet/pandas frames in memory
                 data = dbi.get_sample_for_fhir_upload(
-                    data_type=fhir_item, offset=offset, limit=chunk_limit
+                    data_type=fhir_item, offset=offset, limit=chunk_size
                 )
                 if DRYRUN:
                     print(f"{bco_id}: Got sample\n{data['data']}")
