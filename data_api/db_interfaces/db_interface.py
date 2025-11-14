@@ -164,6 +164,8 @@ class DBInterface:
             self.logger.error(f"Exception: {e}")
             self.logger.error(f"---> See above for file...")
             self.logger.error(f"My config:\n{self.config}")
+            tables_available = self._get_tables()
+            print(f"---> Tables available: {tables_available}")
             raise
 
         # XXX - Performance hit
@@ -309,11 +311,11 @@ class DBInterface:
                 table_config = table_alias
                 final_df = join_parquet_tables(self.file_location, table_config)
                 print(f"---> DBI: Got FINAL df\n{final_df}")
-                data = [
-                    self.fhir_converter[data_type](dr) 
-                    for dr
-                    in final_df.itertuples(index=False, name=None)
-                ]
+                # data = [
+                #     self.fhir_converter[data_type](dr) 
+                #     for dr
+                #     in final_df.itertuples(index=False, name=None)
+                # ]
                 return {"data": final_df, "pagination": {}}
 
         if type(table_alias) is str:
@@ -341,18 +343,18 @@ class DBInterface:
         # XXX - While working out the kinks, move away from list comprehension and
         # perform the conversion one at a time
         data = []
-        for dr in data_rows:
-            try:
-                d = self.fhir_converter[data_type](dr)
-                data.append(d)
-            except Exception as e:
-                self.logger.error(f"===> Exception: {e}")
-                self.logger.error(f"Data row: {dr}")
-                self.logger.error(f"Query was {final_query}")
-                continue
+        # for dr in data_rows:
+        #     try:
+        #         d = self.fhir_converter[data_type](dr)
+        #         data.append(d)
+        #     except Exception as e:
+        #         self.logger.error(f"===> Exception: {e}")
+        #         self.logger.error(f"Data row: {dr}")
+        #         self.logger.error(f"Query was {final_query}")
+        #         continue
 
         response = {
-            "data": data,
+            "data": data_rows,
             "pagination": {"sample_size": limit, "offset": offset},
         }
         return response
