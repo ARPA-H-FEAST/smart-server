@@ -12,5 +12,5 @@
 # NB: Volume mount doesn't work with the gcr container provided by the HAPI FHIR
 # folks. Persistence *does* work as long as the container persists, but this is not
 # ideal
-docker run -d -p 8080:8080 --network fhir-backplane \
+docker run -d -p 4243:8080 --network fhir-backplane \
     --name fhir-server feast-hapi-fhir-jpa-starter
