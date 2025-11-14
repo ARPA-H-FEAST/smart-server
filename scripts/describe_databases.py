@@ -1,5 +1,6 @@
 import pandas as pd
 import sqlite3 as sql
+import duckdb as duck
 
 from pathlib import Path
 
@@ -35,37 +36,47 @@ with open(str(db_config_path), "r") as fp:
 def db_samples_from_parquets():
     parquet_home = str(DATA_HOME.parent / "downloads/GWDC_BrPrLuCA/")
     file_name = "GWDC2.tsv"
-    with open(file_name, "w") as fp:
-        for root, directories, files in os.walk(parquet_home):
-            if root != parquet_home:
+    for root, directories, files in os.walk(parquet_home):
+        if root != parquet_home:
+            continue
+        print(f"**** {root} ****")
+        print(f"Dirs: {directories}")
+        print(f"files: {files}")
+        for f in files:
+            if "parquet" not in f:
                 continue
-            print(f"**** {root} ****")
-            print(f"Dirs: {directories}")
-            print(f"files: {files}")
-            for f in files:
-                if "parquet" not in f:
-                    continue
-                start = time.time()
-                parquet_path = os.path.join(parquet_home, f)
-                df = pd.read_parquet(parquet_path)
-                table_name = f.replace(".parquet","").replace(".BrPrLu","")
-                headers = df.columns
-                # print(f"{table_name} headers: {list(headers)}")
-                # print(f"First row: {list(df.iloc[0])}")
-                fp.write(f"Table {table_name}\n")
-                fp.write("{}\n".format("\t".join(list(headers))))
-                sample_list = list(df.iloc[0])
-                fp.write("{}\n".format("\t".join([str(s) for s in sample_list])))
-                print(f"Table {table_name}: Required {time.time() - start:.2f}s")
-    fp.close()
+            start = time.time()
+            parquet_path = os.path.join(parquet_home, f)
+            df = pd.read_parquet(parquet_path)
+            table_name = f.replace(".parquet","").replace(".BrPrLu","")
+            output_name = table_name + ".parquet"
+            print(f"Table {table_name}: Required {time.time() - start:.2f}s")
+            df = df.iloc[[0]]
+            df.to_parquet(f"./{output_name}")
 
 for DB in ["GWDC1", "GWDC2", "NBCC"]:
     if DB == "GWDC2":
         # Handle using parquets directly
-        db_samples_from_parquets()
+        
+        #### parquets complete
+
+        # db_samples_from_parquets()
         continue
-    # XXX
-    continue
+
+    db_name = DB + ".db"
+
+    if os.path.exists(db_name):
+        os.remove(db_name)
+
+    con = None
+    if DB == "GWDC1":
+        con = duck.connect(database=db_name)
+        mode = "duck"
+    elif DB == "NBCC":
+        con = sql.connect(db_name)
+        mode = "sql"
+    assert con is not None
+
     # Get the DB interface
     db_bco = DBs[DB][1]
     dbi = DBInterface(str(DBs[DB][0]), db_configs[db_bco], logger)
@@ -73,16 +84,27 @@ for DB in ["GWDC1", "GWDC2", "NBCC"]:
     tables = dbi._get_tables()
     print(f"{DB}: Got tables\n{tables}")
 
-    tsv_name = DB + ".tsv"
-
-    if os.path.exists(tsv_name):
-        os.remove(tsv_name)
-
     for t in tables:
-        dbi_response = dbi._singleton_sample_and_columns(t)
-        print(f"Got response:\nHeaders: {dbi_response['headers']}\nSample: {dbi_response['sample']}")
-        with open(tsv_name, "a") as fp:
-            fp.write(f"Table {t}\n")
-            fp.write("\t".join(dbi_response["headers"])+"\n")
-            fp.write("\t".join(dbi_response["sample"])+"\n")
-    
+        df = None
+        df = dbi._singleton_sample_and_columns(t)
+        # print(f"Got response: {df}")
+        if mode == "duck":
+            con.execute(f"CREATE TABLE {t} AS SELECT * FROM df")
+        elif mode == "sql":
+            try:
+                replacements = {}
+                for idx, c in enumerate(df.columns):
+                    if not c:
+                        print(f"Found a non-column {c} in columns")
+                        print(f"Series values include {df[c]}")
+                        replacements[c] = "replaced"
+                for c in replacements:
+                    df = df.rename(columns=replacements)
+                df.to_sql(t, con)
+            except Exception as e:
+                print(f"Exception: {e}")
+                print(f"Table was {t}, df was {df}")
+                print(f"Headers were {df.columns}")
+                raise
+
+    con.close()
