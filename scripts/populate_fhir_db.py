@@ -240,31 +240,31 @@ if __name__ == "__main__":
         offset = 0
         chunk_count = 0
         
-        if db_bco == "FEAST_000013":
-            while sample_count > 0:
-                # Special handling of parquet/pandas frames in memory
-                data = dbi.get_sample_for_fhir_upload(
-                    data_type=fhir_item, offset=offset, limit=chunk_size
-                )
-                if DRYRUN:
-                    print(f"{bco_id}: Got sample\n{data['data']}")
-                    samples_uploaded = len(data['data'])
-                    sample_count -= samples_uploaded
-                    if samples_uploaded == 0:
-                        sample_count = 0
-                    offset += samples_uploaded
-                    print(f"Data frame: processed {offset} samples")
-                    continue
+        # if db_bco == "FEAST_000013":
+        #     while sample_count > 0:
+        #         # Special handling of parquet/pandas frames in memory
+        #         data = dbi.get_sample_for_fhir_upload(
+        #             data_type=fhir_item, offset=offset, limit=chunk_size
+        #         )
+        #         if DRYRUN:
+        #             print(f"{bco_id}: Got sample\n{data['data']}")
+        #             samples_uploaded = len(data['data'])
+        #             sample_count -= samples_uploaded
+        #             if samples_uploaded == 0:
+        #                 sample_count = 0
+        #             offset += samples_uploaded
+        #             print(f"Data frame: processed {offset} samples")
+        #             continue
 
-                print("Parquet --- success?")
-                for idx in range(len(data['data'])):
-                    post_success = post_fhir_data(access_token, data['data'][idx], "Patient")
-                print(f"===> Success?\n{post_success}")
-                samples_uploaded = len(data['data'])
-                sample_count -= samples_uploaded
-                offset += samples_uploaded
-                print(f"....sample count: {sample_count}")
-            continue
+        #         print("Parquet --- success?")
+        #         for idx in range(len(data['data'])):
+        #             post_success = post_fhir_data(access_token, data['data'][idx], "Patient")
+        #         print(f"===> Success?\n{post_success}")
+        #         samples_uploaded = len(data['data'])
+        #         sample_count -= samples_uploaded
+        #         offset += samples_uploaded
+        #         print(f"....sample count: {sample_count}")
+        #     continue
 
         print(f"Processing BCO ID {db_bco} -- {sample_count} samples")
         chunk_size = 100
