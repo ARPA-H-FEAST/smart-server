@@ -57,27 +57,27 @@ TYPE_MAP = {
 }
 
 table_keys = {
-    "PatientDim": {"DurableKey_e": "DurableKey_e {} PRIMARY KEY\n"},
+    "PatientDim": {"DurableKey_e": "DurableKey_e {} PRIMARY KEY"},
     "PatientRegistryValueFact": {
         "PatientDurableKey_e":
 """
     PatientDurableKey_e {},
-    FOREIGN KEY (PatientDurableKey_e) REFERENCES PatientDim(DurableKey_e),
+    FOREIGN KEY (PatientDurableKey_e) REFERENCES PatientDim(DurableKey_e)
 """
     },
     "DiagnosisEventFact": {
-        "DiagnosisEventKey": "DiagnosisEventKey {} PRIMARY KEY\n",
+        "DiagnosisEventKey": "DiagnosisEventKey {} PRIMARY KEY",
         "PatientDurableKey_e": 
 """
     PatientDurableKey_e {},
-    FOREIGN KEY (PatientDurableKey_e) REFERENCES PatientDim(DurableKey_e),
+    FOREIGN KEY (PatientDurableKey_e) REFERENCES PatientDim(DurableKey_e)
 """,
         },
     "DiagnosisDim": {
         "DiagnosisDim": 
 """
     DiagnosisKey {},
-    FOREIGN KEY (DiagnosisKey) REFERENCES DiagnosisEventFact(DiagnosisKey),
+    FOREIGN KEY (DiagnosisKey) REFERENCES DiagnosisEventFact(DiagnosisKey)
 """,
     },
     "DiagnosisTerminologyDim": {
@@ -87,7 +87,7 @@ table_keys = {
     DiagnosisKey {},
     FOREIGN KEY (DiagnosisKey) REFERENCES DiagnosisEventFact(DiagnosisKey),
 """,
-        "DiagnosisTerminologyKey ": "DiagnosisTerminologyKey {} PRIMARY KEY,\n",
+    "DiagnosisTerminologyKey ": "DiagnosisTerminologyKey {} PRIMARY KEY,",
         }
     },
     "ProcedureEventFact": {
