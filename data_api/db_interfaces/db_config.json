@@ -115,25 +115,25 @@
     },
     "FEAST_000013": {
         "dataset": "gwdc_brprlu",
-        "db_class": "parquet",
-        "db_location": ["path_parent", "downloads/GWDC_BrPrLuCA/"],
+        "db_class": "duckdb",
+        "db_location": "GWDC_BrPrLuCA/GDWC_BrPrLu.duckdb",
         "patients": 89388,
         "entry_table": "Patient",
         "searchable_tables": {
-            "Patient": "PatientDim.parquet",
-           "Diagnosis": "PatientDim.parquet"
+            "Patient": "PatientDim",
+           "Diagnosis": "PatientDim"
         },
         "fhir_tables": {
-            "Patient": "PatientDim.parquet",
+            "Patient": "PatientDim",
             "DiagnosticReport": {
                 "fk": "DiagnosisKey",
-                "primary_table": "DiagnosisEventFact.parquet",
-                "other_tables": ["DiagnosisDim.parquet", "DiagnosisTerminologyDim.parquet"]
+                "primary_table": "DiagnosisEventFact",
+                "other_tables": ["DiagnosisDim", "DiagnosisTerminologyDim"]
             },
             "Procedure": {
                 "fk": "ProcedureKey",
-                "primary_table": "ProcedureEventFact.parquet",
-                "other_tables": ["ProcedureDim.parquet"]
+                "primary_table": "ProcedureEventFact",
+                "other_tables": ["ProcedureDim"]
             },
             "LabComponent": ""
         },
