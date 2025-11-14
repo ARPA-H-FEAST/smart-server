@@ -47,35 +47,75 @@ db_conn = duckdb.connect(db_name)
 
 CREATE_STATEMENT = "CREATE TABLE {} ({})"
 
-table_keys = {
-    "PatientDim": "PRIMARY KEY DurableKey_e",
-    "DiagnosisEventFact": 
-"""
-    PRIMARY KEY DiagnosisEventKey,
-    FOREIGN KEY (PatientDurableKey_e) REFERENCES PatientDim(DurableKey_e)
-""",
-    "DiagnosisDim":
-"""
-    FOREIGN KEY (DiagnosisKey) REFERENCES DiagnosisEventFact(DiagnosisKey)
-"""
-
+TYPE_MAP = {
+    'int32':  'INTEGER',
+    'int64':  'BIGINT',
+    'object': 'VARCHAR',
+    'bool': 'BOOLEAN',
+    'float64': 'DOUBLE',
+    'datetime64[us, UTC]': 'TIMESTAMP',
 }
+
+table_keys = {
+    "PatientDim": {"DurableKey_e": "DurableKey_e {} PRIMARY KEY"},
+    "DiagnosisEventFact": {
+        "DiagnosisEventKey": "DiagnosisEventKey {} PRIMARY KEY",
+        "PatientDurableKey_e": 
+"""
+    PatientDurableKey_e {},
+    FOREIGN KEY (PatientDurableKey_e) REFERENCES PatientDim(DurableKey_e),
+""",
+        },
+    "DiagnosisDim": {
+        "DiagnosisDim": 
+"""
+    FOREIGN KEY (DiagnosisKey) REFERENCES DiagnosisEventFact(DiagnosisKey),
+""",
+    },
+    "DiagnosisTerminologyDim": {
+        "DiagnosisTerminologyDim": {
+            "DiagnosisKey": 
+"""
+    DiagnosisKey {},
+    FOREIGN KEY (DiagnosisKey) REFERENCES DiagnosisEventFact(DiagnosisKey),
+""",
+"DiagnosisTerminologyKey ": "DiagnosisTerminologyKey {} PRIMARY KEY,\n",
+        }
+    }
+}
+
+LOAD_ORDER = [
+    "PatientDim.BrPrLu.parquet", "DiagnosisEventFact.BrPrLu.parquet",
+    "DiagnosisDim.parquet", "DiagnosisSetDim.parquet", "DiagnosisTerminologyDim.parque",
+]
+
 for root, dirnames, files in os.walk(DATA_HOME):
     if root != DATA_HOME:
         continue
     counter += 1
-    for f in files:
+    for f in LOAD_ORDER:
         if "parquet" not in f:
             continue
-        df = pd.read_parquet(os.path.join(DATA_HOME, f))
         table_name = table_names[f]
+        print(f"Processing {f} - table name {table_name}")
         if table_name not in table_keys.keys():
             continue
-        print(f"Processing {f} - table name {table_name}")
-        # num_rows_inserted = df.to_sql(table_name, db_conn, index=False)
-        # print(f"{f}: Inserted {num_rows_inserted}")
+        df = pd.read_parquet(os.path.join(DATA_HOME, f))
+        # print(f"Columnns available: {df.columns}")
         # db_conn.sql(f"CREATE TABLE {table_name} AS SELECT * FROM df")
-        db_conn.sql(CREATE_STATEMENT.format(table_name, table_keys[table_name]))
+        
+        create_string = ""
+        special_fields = table_keys[table_name]
+        for c in df.columns:
+            dt = df[c].dtype.name
+            if c in special_fields.keys():
+                create_string += special_fields[c].format(TYPE_MAP[dt]) + ",\n"
+            else:
+                create_string += f"{c} {TYPE_MAP[dt]},\n"
+
+        fs = CREATE_STATEMENT.format(table_name, create_string)
+        print(f"Final create statement: {fs}")
+        db_conn.sql(fs)
         db_conn.sql(f"INSERT INTO {table_name} SELECT * FROM df")
 
 db_conn.close()
