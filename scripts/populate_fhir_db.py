@@ -15,15 +15,16 @@ handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
 PROJECT_ROOT = Path(__file__).parent.parent
-DB_HOME = PROJECT_ROOT / "datadir/processed"
-# DB_HOME = Path("/data/arpah/processed")
+# DB_HOME = PROJECT_ROOT / "datadir/processed"
+DB_HOME = Path("/data/arpah/processed")
 sys.path.append(str(PROJECT_ROOT))
 
 from data_api.db_interfaces import DBInterface, FHIR_CONVERTER
 
-FHIR_URL = "http://localhost:8080/fhir/"
-# FHIR_URL = "https://feast.mgpc.biochemistry.gwu.edu/fhir/"
-AUTH_URL = "http://localhost:8000/fhir-api/"
+# FHIR_URL = "http://localhost:8080/fhir/"
+FHIR_URL = "https://feast.mgpc.biochemistry.gwu.edu/fhir/"
+# AUTH_URL = "http://localhost:8000/fhir-api/"
+AUTH_URL = "https://feast.mgpc.biochemistry.gwu.edu/fhir-api/"
 AUTH_TOKEN_URL = AUTH_URL + "oauth/token/"
 
 MODE = "notdev"
@@ -102,8 +103,6 @@ def get_access_token():
 
     auth_response = response.json()
 
-    # print(f"AUTH: Got response {auth_response}")
-
     return auth_response
 
 def query_fhir_server(access_token):
@@ -153,11 +152,12 @@ if __name__ == "__main__":
         if not access_token:
             print(f"Access token error! Aborting")
             sys.exit(1)
-        # print(f"\tAccess token: {access_token}")
+        print(f"\tAccess token: {access_token}")
 
         import time
         # Ping the FHIR server
         samples = query_fhir_server(access_token)
+        print(f"Samples:\n{samples}")
 
 
     if MODE == "dev":
@@ -230,8 +230,8 @@ if __name__ == "__main__":
         #     print(f"Found FHIR conversions: {fhir_objects}\n{fhir_columns}")
 
         fhir_objects = dbi.config["fhir_columns"]
-        fhir_item = "Procedure"
-        # fhir_item = "DiagnosticReport"
+        # fhir_item = "Procedure"
+        fhir_item = "DiagnosticReport"
         # fhir_item = "Patient"
         if fhir_item not in fhir_objects.keys():
             continue
@@ -285,10 +285,15 @@ if __name__ == "__main__":
                     raise
             print(f"Now on sample {offset}")
             if DRYRUN:
-                print(f"{db_bco}:\n{data['data']}")
+                print(f"{db_bco}:\n{data['data'][0]}")
                 samples_uploaded = len(data['data'])
                 sample_count -= samples_uploaded
                 offset += samples_uploaded
+                with open(f"{db_bco}_{fhir_item}.csv", "w") as fp:
+                    for idx, line in enumerate(data['data']):
+                        fp.write(f"{','.join([str(l) for l in line])}\n")
+                        if idx > 10:
+                            break
                 break
 
             for idx in range(len(data['data'])):
