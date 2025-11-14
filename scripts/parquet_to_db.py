@@ -57,9 +57,16 @@ TYPE_MAP = {
 }
 
 table_keys = {
-    "PatientDim": {"DurableKey_e": "DurableKey_e {} PRIMARY KEY"},
+    "PatientDim": {"DurableKey_e": "DurableKey_e {} PRIMARY KEY\n"},
+    "PatientRegistryValueFact": {
+        "PatientDurableKey_e":
+"""
+    PatientDurableKey_e {},
+    FOREIGN KEY (PatientDurableKey_e) REFERENCES PatientDim(DurableKey_e),
+"""
+    },
     "DiagnosisEventFact": {
-        "DiagnosisEventKey": "DiagnosisEventKey {} PRIMARY KEY",
+        "DiagnosisEventKey": "DiagnosisEventKey {} PRIMARY KEY\n",
         "PatientDurableKey_e": 
 """
     PatientDurableKey_e {},
@@ -69,6 +76,7 @@ table_keys = {
     "DiagnosisDim": {
         "DiagnosisDim": 
 """
+    DiagnosisKey {},
     FOREIGN KEY (DiagnosisKey) REFERENCES DiagnosisEventFact(DiagnosisKey),
 """,
     },
@@ -79,14 +87,38 @@ table_keys = {
     DiagnosisKey {},
     FOREIGN KEY (DiagnosisKey) REFERENCES DiagnosisEventFact(DiagnosisKey),
 """,
-"DiagnosisTerminologyKey ": "DiagnosisTerminologyKey {} PRIMARY KEY,\n",
+        "DiagnosisTerminologyKey ": "DiagnosisTerminologyKey {} PRIMARY KEY,\n",
         }
+    },
+    "ProcedureEventFact": {
+        "PatientDurableKey_e": 
+"""
+    PatientDurableKey_e {},
+    FOREIGN KEY (PatientDurableKey_e) REFERENCES PatientDim(DurableKey_e),
+""",
+    },
+    "ProcedureDim": {
+        "ProcedureKey":
+"""
+    ProcedureKey {},
+    FOREIGN KEY (ProcedureKey) REFERENCES ProcedureEventFact(ProcedureKey),
+""",
+    "ProcedureTerminologyDim":
+"""
+    ProcedureKey {},
+    FOREIGN KEY (ProcedureKey) REFERENCES ProcedureEventFact(ProcedureKey),
+""",
     }
 }
 
 LOAD_ORDER = [
-    "PatientDim.BrPrLu.parquet", "DiagnosisEventFact.BrPrLu.parquet",
-    "DiagnosisDim.parquet", "DiagnosisSetDim.parquet", "DiagnosisTerminologyDim.parque",
+    "PatientDim.BrPrLu.parquet", "PatientRegistryValueFact.BrPrLu.parquet",
+    
+    "DiagnosisEventFact.BrPrLu.parquet", "DiagnosisDim.parquet", 
+    "DiagnosisSetDim.parquet", "DiagnosisTerminologyDim.parque",
+
+    "ProcedureEventFact", "ProcedureDim", "ProcedureTerminologyDim",
+
 ]
 
 for root, dirnames, files in os.walk(DATA_HOME):
