@@ -40,10 +40,26 @@ table_names = {
         'ProcedureTerminologyDim.parquet': 'ProcedureTerminologyDim',
         'DiagnosisTerminologyDim.parquet': 'DiagnosisTerminologyDim',
         }
+
 db_name = os.path.join(DB_HOME, DB_NAME)
 # db_conn = sql.connect(database=os.path.join(DB_HOME, DB_NAME))
 db_conn = duckdb.connect(db_name)
 
+CREATE_STATEMENT = "CREATE TABLE {} ({})"
+
+table_keys = {
+    "PatientDim": "PRIMARY KEY DurableKey_e",
+    "DiagnosisEventFact": 
+"""
+    PRIMARY KEY DiagnosisEventKey,
+    FOREIGN KEY (PatientDurableKey_e) REFERENCES PatientDim(DurableKey_e)
+""",
+    "DiagnosisDim":
+"""
+    FOREIGN KEY (DiagnosisKey) REFERENCES DiagnosisEventFact(DiagnosisKey)
+"""
+
+}
 for root, dirnames, files in os.walk(DATA_HOME):
     if root != DATA_HOME:
         continue
@@ -53,10 +69,14 @@ for root, dirnames, files in os.walk(DATA_HOME):
             continue
         df = pd.read_parquet(os.path.join(DATA_HOME, f))
         table_name = table_names[f]
+        if table_name not in table_keys.keys():
+            continue
         print(f"Processing {f} - table name {table_name}")
         # num_rows_inserted = df.to_sql(table_name, db_conn, index=False)
         # print(f"{f}: Inserted {num_rows_inserted}")
-        db_conn.sql(f"CREATE TABLE {table_name} AS SELECT * FROM df")
+        # db_conn.sql(f"CREATE TABLE {table_name} AS SELECT * FROM df")
+        db_conn.sql(CREATE_STATEMENT.format(table_name, table_keys[table_name]))
+        db_conn.sql(f"INSERT INTO {table_name} SELECT * FROM df")
 
 db_conn.close()
 
