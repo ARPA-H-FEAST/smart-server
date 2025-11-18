@@ -16,7 +16,7 @@ counter = 0
 table_names = {
         'PatientDim.BrPrLu.parquet': 'PatientDim', 
         'MedicationDim.parquet': 'MedicationDim',
-        'EncounterFact.BrPrLu.parquet': 'EncounterFact',
+        # 'EncounterFact.BrPrLu.parquet': 'EncounterFact',
         'PatientRegistryValueFact.BrPrLu.parquet': 'PatientRegistryValueFact',
         'FlowsheetValueFact.BrPrLu.parquet': 'FlowsheetValueFact',
         'ProcedureEventFact.BrPrLu.parquet': 'ProcedureEventFact', 
@@ -213,7 +213,7 @@ UNIQUE_ENFORCEMENT = {
     "MedicationAdministrationFact": [
         "EncounterKey", "MedicationKey", "MedicationAdministrationKey", "PatientDurableKey_e"
     ],
-    "EncounterFact": ["EncounterKey", "PatientDurableKey_e"],
+    # "EncounterFact": ["EncounterKey", "PatientDurableKey_e"],
 
 }
 
