@@ -286,7 +286,9 @@ for root, dirnames, files in os.walk(DATA_HOME):
             try:
                 db_conn.sql(f"INSERT INTO {table_name} SELECT * FROM df")
             except Exception as e:
-                out_str = "*"*80 + f"\nEXCEPTION: {e}\n" + "....bypassing for now...\n" + "*"*80 + "\n"
+                out_str = "*"*80 + f"\nEXCEPTION: {e}\n" 
+                out_str += f"... Table was {table_name} - bypassing for now...\n" 
+                out_str += "*"*80 + "\n"
                 with open(ERROR_PATH, "a") as err_p:
                     err_p.write(out_str)
                 print("*"*80)
