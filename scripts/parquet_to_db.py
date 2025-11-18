@@ -148,10 +148,10 @@ table_keys = {
     
     ### DIAGNOSIS
     "DiagnosisEventFact": {
-        "DiagnosisEventKey": "primary",
+        # "DiagnosisEventKey": "primary",
         "PatientDurableKey_e": "foreign",
         # "EncounterKey": "foreign",
-        "DiagnosisKey": "unique",
+        # "DiagnosisKey": "unique",
     },
     # "DiagnosisDim": {"DiagnosisKey": "foreign"},
     # "DiagnosisSetDim": { "DiagnosisKey": "foreign"}, 
@@ -161,7 +161,7 @@ table_keys = {
     "ProcedureEventFact": {
         "PatientDurableKey_e": "foreign",
         # "EncounterKey": "foreign",
-        "ProcedureDurableKey": "primary",
+        # "ProcedureDurableKey": "primary",
         "ProcedureKey": "unique",
     },
     # "ProcedureDim": {"ProcedureKey": "foreign"},
@@ -175,10 +175,10 @@ table_keys = {
 
     ### LABCOMPONENT
     "LabComponentResultFact": {
-        "LabComponentResultKey": "primary",
+        # "LabComponentResultKey": "primary",
         "PatientDurableKey_e": "foreign",
         # "EncounterKey": "foreign",
-        "ProcedureKey": "foreign",
+        # "ProcedureKey": "foreign",
         "LabComponentKey": "unique",
     },
     # "LabComponentMappingDim": {"LabComponentKey": "foreign"},
@@ -189,7 +189,7 @@ table_keys = {
    
     ### MEDICATION
     "MedicationAdministrationFact": {
-        "MedicationAdministrationKey": "primary",
+        # "MedicationAdministrationKey": "primary",
         "PatientDurableKey_e": "foreign",
         # "EncounterKey": "foreign",
         "MedicationKey": "unique",
