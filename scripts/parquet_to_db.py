@@ -153,9 +153,9 @@ table_keys = {
         "EncounterKey": "foreign",
         "DiagnosisKey": "unique",
     },
-    "DiagnosisDim": {"DiagnosisKey": "foreign"},
-    "DiagnosisSetDim": { "DiagnosisKey": "foreign"}, 
-    "DiagnosisTerminologyDim": {"DiagnosisKey": "foreign"},
+    # "DiagnosisDim": {"DiagnosisKey": "foreign"},
+    # "DiagnosisSetDim": { "DiagnosisKey": "foreign"}, 
+    # "DiagnosisTerminologyDim": {"DiagnosisKey": "foreign"},
 
     ### PROCEDURE
     "ProcedureEventFact": {
@@ -164,8 +164,8 @@ table_keys = {
         "ProcedureDurableKey": "primary",
         "ProcedureKey": "unique",
     },
-    "ProcedureDim": {"ProcedureKey": "foreign"},
-    "ProcedureTerminologyDim": {"ProcedureKey": "foreign"},
+    # "ProcedureDim": {"ProcedureKey": "foreign"},
+    # "ProcedureTerminologyDim": {"ProcedureKey": "foreign"},
     
     ### ENCOUNTER
     "EncounterFact": {
@@ -181,11 +181,11 @@ table_keys = {
         "ProcedureKey": "foreign",
         "LabComponentKey": "unique",
     },
-    "LabComponentMappingDim": {"LabComponentKey": "foreign"},
-    "LabComponentSetDim": {"LabComponentKey": "foreign"},
-    "LabComponentDim": {"LabComponentKey": "foreign"},
-    "LabCounts": {"LabComponentKey": "foreign"},
-    "LabOrganism": {"LabComponentKey": "foreign"},
+    # "LabComponentMappingDim": {"LabComponentKey": "foreign"},
+    # "LabComponentSetDim": {"LabComponentKey": "foreign"},
+    # "LabComponentDim": {"LabComponentKey": "foreign"},
+    # "LabCounts": {"LabComponentKey": "foreign"},
+    # "LabOrganism": {"LabComponentKey": "foreign"},
    
     ### MEDICATION
     "MedicationAdministrationFact": {
@@ -194,10 +194,10 @@ table_keys = {
         "EncounterKey": "foreign",
         "MedicationKey": "unique",
     },
-    "MedicationCodeDim": {"MedicationKey": "foreign"},
-    "MedicationDim": {"MedicationKey": "foreign"},
-    "MedicationOrderFact": {"MedicationKey": "foreign"},
-    "MedicationSetDim": {"MedicationKey": "foreign"},
+    # "MedicationCodeDim": {"MedicationKey": "foreign"},
+    # "MedicationDim": {"MedicationKey": "foreign"},
+    # "MedicationOrderFact": {"MedicationKey": "foreign"},
+    # "MedicationSetDim": {"MedicationKey": "foreign"},
 }
 
 UNIQUE_ENFORCEMENT = {
