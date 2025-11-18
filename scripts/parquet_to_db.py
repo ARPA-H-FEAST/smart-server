@@ -215,25 +215,34 @@ UNIQUE_ENFORCEMENT = {
     ],
 }
 
-LOAD_ORDER = [
-    "PatientDim.BrPrLu.parquet", "PatientRegistryValueFact.BrPrLu.parquet",
-    
+PRIMARY_ORDER = [
+    "PatientDim.BrPrLu.parquet",
     "EncounterFact.BrPrLu.parquet",
+    "DiagnosisEventFact.BrPrLu.parquet", 
+    "ProcedureEventFact.BrPrLu.parquet", 
+    "LabComponentResultFact.BrPrLu.parquet",
+    "MedicationAdministrationFact.BrPrLu.parquet", 
+]
+SECONDARY_ORDER = [
+    "PatientRegistryValueFact.BrPrLu.parquet",
 
-    "DiagnosisEventFact.BrPrLu.parquet", "DiagnosisDim.parquet", 
-    "DiagnosisSetDim.parquet", "DiagnosisTerminologyDim.parque",
-
-    "ProcedureEventFact.BrPrLu.parquet", "ProcedureDim.parquet", 
+    "DiagnosisDim.parquet", "DiagnosisSetDim.parquet", 
+    "DiagnosisTerminologyDim.parque",
+    
+    "ProcedureDim.parquet", 
     "ProcedureTerminologyDim.parquet",
-
-    "LabComponentResultFact.BrPrLu.parquet", "LabComponentMappingDim.parquet",
+    
+    "LabComponentMappingDim.parquet",
     "LabComponentSetDim.parquet", "LabComponentDim.parquet", "LabCounts.parquet",
     # "LabOrganism.parquet",
 
-    "MedicationAdministrationFact.BrPrLu.parquet", "MedicationCodeDim.parquet", 
-    "MedicationDim.parquet", "MedicationOrderFact.parquet", 
-    "MedicationSetDim.parquet",
-]
+    "MedicationCodeDim.parquet", "MedicationDim.parquet", 
+    "MedicationOrderFact.parquet", "MedicationSetDim.parquet",
+    ]
+
+LOAD_ORDER = PRIMARY_ORDER
+# for s in SECONDARY_ORDER:
+#     LOAD_ORDER.append(s)
 
 for root, dirnames, files in os.walk(DATA_HOME):
     if root != DATA_HOME:
