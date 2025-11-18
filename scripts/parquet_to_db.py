@@ -8,6 +8,8 @@ DATA_HOME = "/data/arpah/downloads/GWDC_BrPrLuCA"
 DB_HOME = "/data/arpah/processed/GWDC_BrPrLuCA"
 # DB_NAME = "GWDC_BreastCancer_LungCancer_ProstateCancer.sqlite"
 DB_NAME = "GWDC_BrPrLu.duckdb"
+ERROR_LOG = "BrPrLu_errors.log"
+ERROR_PATH = os.path.join(DB_HOME, ERROR_LOG)
 
 counter = 0
 
@@ -284,6 +286,9 @@ for root, dirnames, files in os.walk(DATA_HOME):
             try:
                 db_conn.sql(f"INSERT INTO {table_name} SELECT * FROM df")
             except Exception as e:
+                out_str = "*"*80 + f"\nEXCEPTION: {e}\n" + "....bypassing for now...\n" + "*"*80 + "\n"
+                with open(ERROR_PATH, "a") as err_p:
+                    err_p.write(out_str)
                 print("*"*80)
                 print(f"EXCEPTION: {e}")
                 print(f"....bypassing for now...")
