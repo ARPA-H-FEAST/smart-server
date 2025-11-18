@@ -150,7 +150,7 @@ table_keys = {
     "DiagnosisEventFact": {
         "DiagnosisEventKey": "primary",
         "PatientDurableKey_e": "foreign",
-        "EncounterKey": "foreign",
+        # "EncounterKey": "foreign",
         "DiagnosisKey": "unique",
     },
     # "DiagnosisDim": {"DiagnosisKey": "foreign"},
@@ -258,8 +258,8 @@ for root, dirnames, files in os.walk(DATA_HOME):
             print(f"---> Keys available were {table_keys.keys()}")
             continue
         df = pd.read_parquet(os.path.join(DATA_HOME, f))
-        if f in UNIQUE_ENFORCEMENT.keys():
-            cols_to_drop = UNIQUE_ENFORCEMENT[f]
+        if table_name in UNIQUE_ENFORCEMENT.keys():
+            cols_to_drop = UNIQUE_ENFORCEMENT[table_name]
             print(f"---> DROPPING COLUMNS <----")
             print(f"{cols_to_drop}")
             print(f"---------------------------")
