@@ -243,6 +243,9 @@ for root, dirnames, files in os.walk(DATA_HOME):
         df = pd.read_parquet(os.path.join(DATA_HOME, f))
         if f in UNIQUE_ENFORCEMENT.keys():
             cols_to_drop = UNIQUE_ENFORCEMENT[f]
+            print(f"---> DROPPING COLUMNS <----")
+            print(f"{cols_to_drop}")
+            print(f"---------------------------")
             df.drop_duplicates(subset=cols_to_drop, keep="first")
         # print(f"Columnns available: {df.columns}")
         # db_conn.sql(f"CREATE TABLE {table_name} AS SELECT * FROM df")
