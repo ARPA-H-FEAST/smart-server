@@ -189,7 +189,7 @@ table_keys = {
    
     ### MEDICATION
     "MedicationAdministrationFact": {
-        "LabComponentResultKey": "primary",
+        "MedicationAdministrationKey": "primary",
         "PatientDurableKey_e": "foreign",
         "EncounterKey": "foreign",
         "MedicationKey": "unique",
@@ -201,10 +201,10 @@ table_keys = {
 }
 
 UNIQUE_ENFORCEMENT = {
-    "DiagnosisEventFact": ["EncounterKey", "DiagnosisKey"],
-    "ProcedureEventFact": ["EncounterKey", "ProcedureKey"],
-    "LabComponentResultFact": ["ProcedureKey"],
-    "MedicationAdministrationFact": ["MedicationKey"],
+    "DiagnosisEventFact": ["EncounterKey", "DiagnosisKey", "DiagnosisEventKey"],
+    "ProcedureEventFact": ["EncounterKey", "ProcedureKey", "ProcedureDurableKey"],
+    "LabComponentResultFact": ["EncounterKey", "ProcedureKey", "LabComponentResultKey", "LabComponentKey"],
+    "MedicationAdministrationFact": ["EncounterKey", "MedicationKey", "MedicationAdministrationKey"],
 }
 
 LOAD_ORDER = [
