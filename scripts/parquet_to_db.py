@@ -150,7 +150,7 @@ table_keys = {
     "DiagnosisEventFact": {
         "DiagnosisEventKey": "primary",
         "PatientDurableKey_e": "foreign",
-        # "EncounterKey": "foreign",
+        "EncounterKey": "foreign",
         "DiagnosisKey": "unique",
     },
     "DiagnosisDim": {"DiagnosisKey": "foreign"},
@@ -160,7 +160,7 @@ table_keys = {
     ### PROCEDURE
     "ProcedureEventFact": {
         "PatientDurableKey_e": "foreign",
-        # "EncounterKey": "foreign",
+        "EncounterKey": "foreign",
         "ProcedureDurableKey": "primary",
         "ProcedureKey": "unique",
     },
@@ -201,10 +201,18 @@ table_keys = {
 }
 
 UNIQUE_ENFORCEMENT = {
-    "DiagnosisEventFact": ["EncounterKey", "DiagnosisKey", "DiagnosisEventKey"],
-    "ProcedureEventFact": ["EncounterKey", "ProcedureKey", "ProcedureDurableKey"],
-    "LabComponentResultFact": ["EncounterKey", "ProcedureKey", "LabComponentResultKey", "LabComponentKey"],
-    "MedicationAdministrationFact": ["EncounterKey", "MedicationKey", "MedicationAdministrationKey"],
+    "DiagnosisEventFact": [
+        "EncounterKey", "DiagnosisKey", "DiagnosisEventKey", "PatientDurableKey_e"
+    ],
+    "ProcedureEventFact": [
+        "EncounterKey", "ProcedureKey", "ProcedureDurableKey", "PatientDurableKey_e"
+    ],
+    "LabComponentResultFact": [
+        "EncounterKey", "ProcedureKey", "LabComponentResultKey", "LabComponentKey", "PatientDurableKey_e"
+    ],
+    "MedicationAdministrationFact": [
+        "EncounterKey", "MedicationKey", "MedicationAdministrationKey", "PatientDurableKey_e"
+    ],
 }
 
 LOAD_ORDER = [
