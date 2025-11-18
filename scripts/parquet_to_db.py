@@ -263,6 +263,10 @@ for root, dirnames, files in os.walk(DATA_HOME):
             print(f"---> DROPPING COLUMNS <----")
             print(f"{cols_to_drop}")
             print(f"---------------------------")
+        else:
+            print(f"---> NOT DROPPING COLUMNS <----")
+            print(f"---> TABLE WAS {table_name}")
+            print(f"---------------------------")
             df.drop_duplicates(subset=cols_to_drop, keep="first")
         # print(f"Columnns available: {df.columns}")
         # db_conn.sql(f"CREATE TABLE {table_name} AS SELECT * FROM df")
