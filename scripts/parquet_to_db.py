@@ -150,8 +150,8 @@ table_keys = {
     "DiagnosisEventFact": {
         "DiagnosisEventKey": "primary",
         "PatientDurableKey_e": "foreign",
-        # "EncounterKey": "foreign",
-        # "DiagnosisKey": "unique",
+        "EncounterKey": "foreign",
+        "DiagnosisKey": "unique",
     },
     "DiagnosisDim": {"DiagnosisKey": "foreign"},
     "DiagnosisSetDim": { "DiagnosisKey": "foreign"}, 
@@ -160,9 +160,9 @@ table_keys = {
     ### PROCEDURE
     "ProcedureEventFact": {
         "PatientDurableKey_e": "foreign",
-        # "EncounterKey": "foreign",
+        "EncounterKey": "foreign",
         "ProcedureDurableKey": "primary",
-        # "ProcedureKey": "unique",
+        "ProcedureKey": "unique",
     },
     "ProcedureDim": {"ProcedureKey": "foreign"},
     "ProcedureTerminologyDim": {"ProcedureKey": "foreign"},
@@ -178,7 +178,7 @@ table_keys = {
         "LabComponentResultKey": "primary",
         "PatientDurableKey_e": "foreign",
         "EncounterKey": "foreign",
-        # "ProcedureKey": "foreign",
+        "ProcedureKey": "foreign",
         "LabComponentKey": "unique",
     },
     "LabComponentMappingDim": {"LabComponentKey": "foreign"},
@@ -192,12 +192,19 @@ table_keys = {
         "LabComponentResultKey": "primary",
         "PatientDurableKey_e": "foreign",
         "EncounterKey": "foreign",
-        # "MedicationKey": "unique",
+        "MedicationKey": "unique",
     },
     "MedicationCodeDim": {"MedicationKey": "foreign"},
     "MedicationDim": {"MedicationKey": "foreign"},
     "MedicationOrderFact": {"MedicationKey": "foreign"},
     "MedicationSetDim": {"MedicationKey": "foreign"},
+}
+
+UNIQUE_ENFORCEMENT = {
+    "DiagnosisEventFact": ["EncounterKey", "DiagnosisKey"],
+    "ProcedureEventFact": ["EncounterKey", "ProcedureKey"],
+    "LabComponentResultFact": ["ProcedureKey"],
+    "MedicationAdministrationFact": ["MedicationKey"],
 }
 
 LOAD_ORDER = [
@@ -234,6 +241,9 @@ for root, dirnames, files in os.walk(DATA_HOME):
             print(f"---> Keys available were {table_keys.keys()}")
             continue
         df = pd.read_parquet(os.path.join(DATA_HOME, f))
+        if f in UNIQUE_ENFORCEMENT.keys():
+            cols_to_drop = UNIQUE_ENFORCEMENT[f]
+            df.drop_duplicates(subset=cols_to_drop, keep="first")
         # print(f"Columnns available: {df.columns}")
         # db_conn.sql(f"CREATE TABLE {table_name} AS SELECT * FROM df")
         
@@ -291,10 +301,7 @@ for root, dirnames, files in os.walk(DATA_HOME):
                 out_str += "*"*80 + "\n"
                 with open(ERROR_PATH, "a") as err_p:
                     err_p.write(out_str)
-                print("*"*80)
-                print(f"EXCEPTION: {e}")
-                print(f"....bypassing for now...")
-                print("*"*80)
+                print(out_str)
                 continue
         elif DB_MODE == "SQL":
             #### SQLITE
