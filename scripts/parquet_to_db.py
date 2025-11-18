@@ -160,7 +160,7 @@ table_keys = {
     ### PROCEDURE
     "ProcedureEventFact": {
         "PatientDurableKey_e": "foreign",
-        "EncounterKey": "foreign",
+        # "EncounterKey": "foreign",
         "ProcedureDurableKey": "primary",
         "ProcedureKey": "unique",
     },
@@ -177,7 +177,7 @@ table_keys = {
     "LabComponentResultFact": {
         "LabComponentResultKey": "primary",
         "PatientDurableKey_e": "foreign",
-        "EncounterKey": "foreign",
+        # "EncounterKey": "foreign",
         "ProcedureKey": "foreign",
         "LabComponentKey": "unique",
     },
@@ -191,7 +191,7 @@ table_keys = {
     "MedicationAdministrationFact": {
         "MedicationAdministrationKey": "primary",
         "PatientDurableKey_e": "foreign",
-        "EncounterKey": "foreign",
+        # "EncounterKey": "foreign",
         "MedicationKey": "unique",
     },
     # "MedicationCodeDim": {"MedicationKey": "foreign"},
