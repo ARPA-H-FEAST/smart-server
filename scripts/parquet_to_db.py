@@ -263,10 +263,11 @@ for root, dirnames, files in os.walk(DATA_HOME):
         if table_name in UNIQUE_ENFORCEMENT.keys():
             cols_to_drop = UNIQUE_ENFORCEMENT[table_name]
             print(f"---> DROPPING DUPLICATES <----")
+            print(f"Initial shape: {df.shape}")
             print(f"{cols_to_drop}")
-            print(f"---------------------------")
             df.drop_duplicates(subset=cols_to_drop, inplace=True, keep='first')
-            # print(f"Columnns available: {df.columns}")
+            print(f"Final shape: {df.shape}")
+            print(f"---------------------------")
         else:
             print(f"---> NOT DROPPING COLUMNS <----")
             print(f"---> TABLE WAS {table_name}")
