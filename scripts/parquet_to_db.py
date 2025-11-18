@@ -305,7 +305,7 @@ for root, dirnames, files in os.walk(DATA_HOME):
                 print("*"*80)
                 raise
             try:
-                db_conn.sql(f"INSERT INTO {table_name} SELECT * FROM df")
+                db_conn.sql(f"INSERT OR IGNORE INTO {table_name} SELECT * FROM df")
             except Exception as e:
                 out_str = "*"*80 + f"\nEXCEPTION: {e}\n" 
                 out_str += f"... Table was {table_name} - bypassing for now...\n" 
