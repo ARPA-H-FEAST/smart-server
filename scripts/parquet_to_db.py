@@ -150,7 +150,7 @@ table_keys = {
     "DiagnosisEventFact": {
         "DiagnosisEventKey": "primary",
         "PatientDurableKey_e": "foreign",
-        "EncounterKey": "foreign",
+        # "EncounterKey": "foreign",
         "DiagnosisKey": "unique",
     },
     "DiagnosisDim": {"DiagnosisKey": "foreign"},
@@ -160,7 +160,7 @@ table_keys = {
     ### PROCEDURE
     "ProcedureEventFact": {
         "PatientDurableKey_e": "foreign",
-        "EncounterKey": "foreign",
+        # "EncounterKey": "foreign",
         "ProcedureDurableKey": "primary",
         "ProcedureKey": "unique",
     },
