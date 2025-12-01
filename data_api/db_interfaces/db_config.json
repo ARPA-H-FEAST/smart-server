@@ -6,7 +6,7 @@
         "entry_table": "Patient",
         "searchable_tables": {
             "Patient": "PatientDim_PRCA", 
-            "LabComponent": "LabComponentResultFact", 
+            "Observation": "ObservationResultFact", 
             "Diagnosis": "DiagnosisEventFact"
         },
         "patients": 424,
@@ -26,7 +26,7 @@
                 "ReliableSex", "Sex", "SexAssignedAtBirth", "GenderIdentity", "SecondRace", "ThirdRace", 
                 "FourthRace", "FifthRace", "DurableKey_e"
             ],
-            "LabComponent": {},
+            "Observation": {},
             "Diagnosis": {}
         },
         "fhir_tables": {
@@ -36,11 +36,12 @@
                 "primary_table": "DiagnosisEventFact_PRCA",
                 "other_tables": ["DiagnosisDim", "DiagnosisTerminologyDim_PRCA"]
             },
-            "LabComponent": ""
+            "Observation": "",
+            "Procedure": ""
         },
         "fhir_columns": {
             "Patient": ["ReliableSex", "PreferredLanguage", "BirthDate", "DeathDate", "DurableKey_e"],
-            "LabComponent": [],
+            "Observation": [],
             "DiagnosticReport": {
                 "DiagnosisEventFact_PRCA": [
                     "PatientDurableKey_e", "DepartmentKey", "Type", "SubType", 
@@ -60,7 +61,7 @@
                 "categorical": ["Ethnicity", "FirstRace", "SecondRace", "DeathDate"],
                 "numerical": ["AgeInYears"]
             },
-            "LabComponent": {},
+            "Observation": {},
             "Diagnosis": {}
         }
     },
@@ -91,7 +92,8 @@
         "fhir_tables": {
             "Patient": "family_records",
             "DiagnosticReport": "",
-            "LabComponent": ""
+            "Observation": "",
+            "Procedure": ""
         },
         "fhir_columns": {
             "Patient": ["sex", "year_of_birth", "alive", "nbcc_userinfo_id"],
@@ -115,8 +117,8 @@
     },
     "FEAST_000013": {
         "dataset": "gwdc_brprlu",
-        "db_class": "duckdb",
-        "db_location": "GWDC_BrPrLuCA/GDWC_BrPrLu.duckdb",
+        "db_class": "parquet",
+        "db_location": ["parent_location", "downloads/GWDC_BrPrLuCA/"],
         "patients": 89388,
         "entry_table": "Patient",
         "searchable_tables": {
@@ -135,38 +137,49 @@
                 "primary_table": "ProcedureEventFact",
                 "other_tables": ["ProcedureDim"]
             },
-            "LabComponent": ""
+            "Encounter": "EncounterFact",
+            "Observation": ""
         },
         "fhir_columns": {
             "Patient": [
                 "ReliableSex", "PreferredLanguage", "BirthDate", "DeathDate", "DurableKey_e",
                 "StateOrProvinceAbbreviation", "Country", "PrimaryCareProviderKey"
             ],
-            "LabComponent": [],
+            "Observation": [],
             "DiagnosticReport": {
                 "DiagnosisEventFact": [
                     "PatientDurableKey_e", "DepartmentKey", "Type", "SubType", "EncounterKey", 
-                    "EndDateKey", "DiagnosisEventKey", "DiagnosisKey", "DocumentedByEmployeeKey"
+                    "EndDateKey", "DiagnosisEventKey", "DiagnosisKey", "DocumentedByEmployeeKey",
+                    "Status"
                 ],
                 "DiagnosisDim": [
-                    "Name", "ClinicalClassificationLevelOne", 
-                    "ClinicalClassificationLevelTwo", "ClinicalClassificationLevelThree", 
+                    "Name", "DiagnosisKey", "ClinicalClassificationLevelOne", 
+                    "ClinicalClassificationLevelTwo",
+                    "ClinicalClassificationLevelThree", 
                     "ClinicalClassificationLevelFour"],
-                "DiagnosisTerminologyDim": ["NameAndCode", "GroupedNameAndCode", "DisplayString", "Type", "Value"]
+                "DiagnosisTerminologyDim": ["DiagnosisKey", "NameAndCode", "GroupedNameAndCode", "DisplayString", "Type", "Value"]
             },
             "Procedure": {
                 "ProcedureEventFact": [
-                    "ProcedureEventKey", "EncounterKey", "IsCurrent", "Category",
+                    "ProcedureEventKey", "EncounterKey", "ProcedureKey",
                     "ProcedureCodeSet", "ProcedureCode", "PatientDurableKey_e",
-                    "EncounterKey", "StartDate", "EndDate", "PatientAge",
-                    "PerformingProviderDurableKey", "PatientFriendlyName"
+                    "PerformingProviderDurableKey"
                 ],
                 "ProcedureDim": [
                     "ClinicalClassificationLevelOne", "ClinicalClassificationLevelTwo", 
-                    "ClinicalClassificationLevelThree", "BreastImagingprocedureType",
-                    "BreastImagingBiopsyGuidance"
+                    "ClinicalClassificationLevelThree", "BreastImagingProcedureType",
+                    "BreastImagingBiopsyGuidance", "ProcedureKey", "IsCurrent", "Category",
+                    "StartDate", "EndDate", "PatientFriendlyName", "Name", 
+                    "Level", "ResultReportType"
                 ]
-            }
+            },
+            "Encounter": [
+                "EncounterKey", "Type", "AdmissionType", "AttributedDepartmentKey", 
+                "PrimaryDiagnosisKey", "PrimaryProcedureKey",
+                "AttendingProviderDurableKey", "PatientDurableKey_e", "AdmissionDateKey",
+                "Date", "EndInstant", "ChiefComplaintNumericId",
+                "PrimaryDiagnosisKey", "LevelOfServiceKey", "PlaceOfServiceKey"
+            ]
         }
     }
 }
