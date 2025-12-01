@@ -269,10 +269,10 @@ class DBInterface:
                     d = self.fhir_converter[data_type](dr)
                     data.append(d)
                 except Exception as e:
-                    self.logger.error(f"===> Exception: {e}")
+                    self.logger.error(f"===> 272 Exception: {e}")
                     self.logger.error(f"Data row: {dr}")
                     self.logger.error(f"Query was {final_query}")
-                    continue
+                    raise
 
             response = {
                 "data": data,
@@ -290,38 +290,54 @@ class DBInterface:
         table_alias = self.config["fhir_tables"].get(data_type, None)
         if not table_alias:
             self.logger.error("No FHIR table configured, no data available")
-            raise Exception("No FHIR table configured, no data available")
+            return {"data": ["dummy"], "pagination": {}}
+
 
         if self.cur is None:
             # Parquet handling
             if type(table_alias) is str:
                 columns = self.config["fhir_columns"][data_type]
                 df = single_parquet_to_df(self.file_location, table_alias, columns=columns)
-                # print(f"---> Isolating to columns\n{columns}")
+                print(f"---> Isolating to columns\n{columns}")
                 return {
-                    "data": [
-                        self.fhir_converter[data_type](dr) 
-                        for dr 
-                        in df.itertuples(index=False, name=None)
-                    ],
+                    "data": df,
                     "pagination": {"sample_size": df.shape, "offset": 0},
+                    "converter": self.fhir_converter,
                 }
             elif type(table_alias) is dict:
                 column_config = self.config["fhir_columns"][data_type]
                 table_config = table_alias
-                final_df = join_parquet_tables(self.file_location, table_config)
-                print(f"---> DBI: Got FINAL df\n{final_df}")
+                dfs = {}
+                primary_table_name = table_config['primary_table']
+                primary_columns = column_config[primary_table_name]
+                dfs['primary'] = single_parquet_to_df(
+                    self.file_location, primary_table_name, columns=primary_columns
+                )
+                for tn in table_config['other_tables']:
+                    columns = column_config[tn]
+                    dfs[tn] = single_parquet_to_df(
+                        self.file_location, tn, columns=columns
+                        )
+                shapes = {}
+                for k, v in dfs.items():
+                    shapes[k] = v.shape
                 # data = [
                 #     self.fhir_converter[data_type](dr) 
                 #     for dr
                 #     in final_df.itertuples(index=False, name=None)
                 # ]
-                return {"data": final_df, "pagination": {}}
+                return {
+                    "data": dfs, 
+                    "pagination": {"sample_size": shapes, "offset": 0},
+                    "converter": self.fhir_converter,
+                    "config": table_config,
+                    }
 
         if type(table_alias) is str:
+            columns = self.config["fhir_columns"][data_type]
             final_query = single_table_query_to_string(
                 self.queries["SAMPLE_QUERY"], query_dict, self.select_function,
-                table_alias, table_alias, limit=limit, offset=offset
+                columns, table_alias, limit=limit, offset=offset
             )
         elif type(table_alias) is dict:
             base_query = self.queries["SAMPLE_QUERY"]
@@ -343,18 +359,18 @@ class DBInterface:
         # XXX - While working out the kinks, move away from list comprehension and
         # perform the conversion one at a time
         data = []
-        # for dr in data_rows:
-        #     try:
-        #         d = self.fhir_converter[data_type](dr)
-        #         data.append(d)
-        #     except Exception as e:
-        #         self.logger.error(f"===> Exception: {e}")
-        #         self.logger.error(f"Data row: {dr}")
-        #         self.logger.error(f"Query was {final_query}")
-        #         continue
+        for dr in data_rows:
+            try:
+                d = self.fhir_converter[data_type](dr)
+                data.append(d)
+            except Exception as e:
+                self.logger.error(f"===> 362 Exception: {e}")
+                self.logger.error(f"Data row: {dr}")
+                # self.logger.error(f"Query was {final_query}")
+                raise
 
         response = {
-            "data": data_rows,
+            "data": data,
             "pagination": {"sample_size": limit, "offset": offset},
         }
         return response
