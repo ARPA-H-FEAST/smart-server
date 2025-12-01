@@ -5,6 +5,7 @@ from functools import reduce
 def single_parquet_to_df(file_location, file_name, columns=None):
         # columns = self.config["fhir_columns"][data_type]
         # print(f"---> Isolating to columns\n{columns}")
+        file_name = file_name + ".parquet"
         try:
             file_path = os.path.join(file_location, file_name)
             if columns is None:
