@@ -8,9 +8,15 @@
 # docker run -d -p 8080:8080 --network fhir-backplane \
 #     --name fhir-server --volume $DATA_DIR:/app/ feast-hapi-fhir-jpa-starter
 
+MODE="${MODE:-"dev"}"
+echo $MODE
 
-# NB: Volume mount doesn't work with the gcr container provided by the HAPI FHIR
-# folks. Persistence *does* work as long as the container persists, but this is not
-# ideal
-docker run -d -p 4243:8080 --network fhir-backplane \
-    --name fhir-server feast-hapi-fhir-jpa-starter
+if [ $MODE == "dev" ]; then
+    echo Running FHIR server in dev mode
+    # docker run -d -p 8080:8080 --network fhir-backplane \
+    #     --name fhir-server hapi-fhir-server:bitnami-tomcat-memDB
+elif [ $MODE == "prod" ]; then
+    echo Running FHIR server in PRODUCTION mode
+    # docker run -d -p 4243:8080 --network fhir-backplane \
+    #     --name fhir-server -v /data/arpah/:/data/arpah/ hapi-fhir-server:bitnami-tomcat-memDB
+fi
