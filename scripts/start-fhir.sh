@@ -13,10 +13,10 @@ echo $MODE
 
 if [ $MODE == "dev" ]; then
     echo Running FHIR server in dev mode
-    # docker run -d -p 8080:8080 --network fhir-backplane \
-    #     --name fhir-server hapi-fhir-server:bitnami-tomcat-memDB
+    docker run -d -p 8080:8080 --network fhir-backplane \
+        --name fhir-server hapi-fhir-server:bitnami-tomcat-memDB
 elif [ $MODE == "prod" ]; then
     echo Running FHIR server in PRODUCTION mode
-    # docker run -d -p 4243:8080 --network fhir-backplane \
-    #     --name fhir-server -v /data/arpah/:/data/arpah/ hapi-fhir-server:bitnami-tomcat-memDB
+    docker run -d -p 4243:8080 --network fhir-backplane --restart always \
+        --name fhir-server -v /data/arpah/:/data/arpah/ hapi-fhir-server:bitnami-tomcat-memDB
 fi

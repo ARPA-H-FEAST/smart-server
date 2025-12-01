@@ -7,7 +7,7 @@ fi
 
 if [ $MODE = "dev" ]; then
     pushd .. > /dev/null 2>&1 
-    docker run -d -p 8000:8000 --network fhir-backplane \
+    docker run -d -p 8000:8000 --network fhir-backplane --restart always \
         --name smart-server --volume $(pwd)/datadir/processed/:/data/arpah/processed/ \
         feast-smart
     popd > /dev/null 2>&1 
@@ -15,8 +15,8 @@ if [ $MODE = "dev" ]; then
 fi
 if [ $MODE = "prod" ]; then
     pushd .. > /dev/null 2>&1 
-    docker run -d -p 4244:8000 --network fhir-backplane \
-        --name smart-server --volume /data/arpah/processed/:/data/arpah/processed/ feast-smart
+    docker run -d -p 4244:8000 --network fhir-backplane --restart always \
+        --name smart-server --volume /data/arpah/:/data/arpah/ feast-smart
     popd > /dev/null 2>&1 
     exit 0
 fi
