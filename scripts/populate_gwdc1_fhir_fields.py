@@ -26,6 +26,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 # DB_HOME = PROJECT_ROOT / "datadir/processed"
 DB_HOME = Path("/data/arpah/processed")
 sys.path.append(str(PROJECT_ROOT))
+BCO_ID = "FEAST_000004"
 
 from data_api.db_interfaces import DBInterface, FHIR_CONVERTER
 
@@ -40,7 +41,9 @@ with open(db_config_path, "r") as fp:
     config = json.load(fp)
 DB_CONNECTIONS = {}
 for bco_id, dataset_config in config.items():
-        # Carve-out for parquets
+    if bco_id != BCO_ID:
+        continue
+    # Carve-out for parquets
     db_location = dataset_config["db_location"]
     if type(db_location) is not list:
         db_path = os.path.join(DB_HOME, db_location)
@@ -154,120 +157,36 @@ if __name__ == "__main__":
         sys.exit(1)
     print(f"\tAccess token: {access_token}")
 
-    db_bco = "FEAST_000013" # "FEAST_000013"|"FEAST_000004"|"FEAST_000012" 
-    for db_bco, dbi in DB_CONNECTIONS.items():
+    db_bco = BCO_ID 
     dbi = DB_CONNECTIONS[db_bco]
-    print(f"---> Checking in on BCO {db_bco}")
     metadata = dbi.get_db_metadata()
     print(f"{db_bco} - DB size: {metadata['size']}")
     sample_count = metadata['size']
 
     tables = dbi._get_tables()
-    # print(f"Got tables\n{tables}\n")
-
-    # for fhir_objects, fhir_columns in dbi.config["fhir_columns"].items():
-    #     print(f"Found FHIR conversions: {fhir_objects}\n{fhir_columns}")
+    
+    chunk_size = 1000
+    offset = 0
+    chunk_count = 0
 
     fhir_objects = dbi.config["fhir_columns"]
     fhir_entry_item = "Patient"
-    # fhir_items = ["Procedure"]
-    fhir_items = ["Procedure", "DiagnosticReport", "Encounter"]
+    fhir_items = ["DiagnosticReport"]
     # if fhir_item not in fhir_objects.keys():
     #     continue
-
-    if db_bco == "FEAST_000013":
-
-        offset = 0
-        chunk_size = 10
-        print("Handling parquets...")
-
-        patient_data = dbi.get_sample_for_fhir_upload(
-            data_type=fhir_entry_item, offset=offset, limit=chunk_size
+    try:
+        # Get the first chunk
+        data = dbi.get_sample_for_fhir_upload(
+            data_type=fhir_entry_item,
+            offset=offset, limit=chunk_size
         )
-        converter = patient_data['converter']
-
-        # Get the patient objects, upload, etc.
-        patient_objects = patients_from_df(patient_data['data'], converter)
-        for idx, o in enumerate(patient_objects):
-            post_results = post_fhir_data(access_token, o.as_json(), "Patient")
-            print(f"Patient POST: {post_results}")
-            if idx > 9:
-                break
-
-        patient_ids = patient_data['data']['DurableKey_e'].unique()
-        print(f"---> Found a total of {len(patient_ids)} patient IDs.")
-        patient_count = len(patient_ids)
-
-        LOOP_LIMIT = 1
-        SAMPLE_SIZE = 1
-
-        for fhir_item in fhir_items:
-            PATIENTS_REMAINING = patient_count
-            PATIENT_INDEX = 0
-            PATIENTS_COUNTED = 0
-            item_limit = LOOP_LIMIT
-            iterations = 0
-            
-            data_time = time.time()
-            # data = {'data': {}}
-            data = dbi.get_sample_for_fhir_upload(
-                data_type=fhir_item, offset=offset, limit=chunk_size
-            )
-            print(f"Loading data required {time.time() - data_time:.2f}s")
-
-            start = time.time()
-            while PATIENTS_REMAINING > 0:
-                if item_limit is not None and item_limit > -1:
-                    item_limit -= 1
-                    # if item_limit > 0:
-                    #     print(f"\t\tLOOPS REMAINING: {item_limit}")
-
-                if item_limit is not None and item_limit < 0:
-                    # print(f"\t\tNO LOOPS REMAINING!!")
-                    PATIENTS_REMAINING = 0
-                    break
-
-                # iterations += 1
-                # print(f">>>> Iteration {iterations} <<<<")
-
-                if PATIENTS_REMAINING < SAMPLE_SIZE:
-                    # print("---> SMALL SAMPLE BRANCH <---")
-                    pids = patient_ids[PATIENT_INDEX:]
-                else:
-                    # print(f"---> TYPICAL SAMPLE BRANCH {PATIENT_INDEX} // SIZE {SAMPLE_SIZE}<---")
-                    pids = patient_ids[PATIENT_INDEX:PATIENT_INDEX+SAMPLE_SIZE]
-                # print(f"---> Checking for results on FHIR item {fhir_item} with {len(pids)} patient IDs")
-                # print(f"---> Patient IDs are {pids}")
-                # Try small joins
-                if type(data['data']) is dict:
-                    # TODO: CREATE LOG FILE, PASS TO FUNCTION
-                    objects = objects_from_joint_df(data, fhir_item, pids, converter)
-                    post_start = time.time()
-                    for o in objects:
-                        post_success = post_fhir_data(access_token, o.as_json(), fhir_item)
-                        print(post_success)
-                    print(f"{fhir_item}: POSTed {len(objects)} samples in {time.time() - post_start:.2f} s")
-                elif type(data['data']) is pd.DataFrame:
-                    # TODO: CREATE LOG FILE, PASS TO FUNCTION
-                    objects = objects_from_single_df(data, fhir_item, pids, converter)
-                    post_start = time.time()
-                    for o in objects:
-                        post_success = post_fhir_data(access_token, o.as_json(), fhir_item)
-                        print(post_success)
-                    print(f"{fhir_item}: POSTed {len(objects)} samples in {time.time() - post_start:.2f} s")
-                    # print(f"IDs: ({len(identifiers)} total): {len(set(identifiers))} unique")
-
-                PATIENTS_REMAINING -= len(pids)
-                PATIENT_INDEX += len(pids)
-
-            print(f"---> FHIR Item {fhir_item}: {PATIENT_INDEX} samples required {time.time() - start:.2f}s")
-
-        print(f"Processing BCO ID {db_bco} -- {sample_count} samples")
-        print(f"...skipping")
-        continue
-        chunk_size = 100
-        offset = 0
-        chunk_count = 0
+    except Exception as e:
+        raise
+    
+    chunk_size = 1000
+    offset = 0
+    chunk_count = 0
+    for fhir_item in fhir_items:
         while sample_count > 0:
             chunk_limit = chunk_size if chunk_size <= sample_count else sample_count
             try:
@@ -279,18 +198,10 @@ if __name__ == "__main__":
             except Exception as e:
                 raise
             print(f"Now on sample {offset}")
-            if DRYRUN:
-                print(f"{db_bco}:\n{data['data'][0]}")
-                samples_uploaded = len(data['data'])
-                sample_count -= samples_uploaded
-                offset += samples_uploaded
-                break
-
-            for idx in range(len(data['data'])):
-                post_success = post_fhir_data(access_token, data['data'][idx], "Patient")
+            
+            # for idx, d in enumerate(data['data']):
+            #     post_success = post_fhir_data(access_token, d.as_json(), "Patient")
             samples_uploaded = len(data['data'])
             sample_count -= samples_uploaded
             offset += samples_uploaded
-            # print(f"===> Success?\n{post_success}")
-            # print(f"Uploaded {offset}: {sample_count} samples remaining")
-
+            break
