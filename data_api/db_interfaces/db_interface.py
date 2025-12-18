@@ -298,7 +298,7 @@ class DBInterface:
             if type(table_alias) is str:
                 columns = self.config["fhir_columns"][data_type]
                 df = single_parquet_to_df(self.file_location, table_alias, columns=columns)
-                print(f"---> Isolating to columns\n{columns}")
+                # print(f"---> Isolating to columns\n{columns}")
                 return {
                     "data": df,
                     "pagination": {"sample_size": df.shape, "offset": 0},
@@ -375,7 +375,53 @@ class DBInterface:
         }
         return response
 
-    def get_random_sample(self):
+    def get_random_sample(self, size=100, table=None, data_type=None):
+
+        table_alias = self.config["entry_table"] if table is None else table
+        table = self.config["searchable_tables"][table_alias]
+
+        if self.con is None:
+            # Yet another exception for parquets
+            if type(table_alias) is str:
+                columns = self.config["fhir_columns"][data_type]
+                df = single_parquet_to_df(self.file_location, table, columns=columns)
+                # print(f"---> Isolating to columns\n{columns}")
+                sample = df.sample(n=100)
+                random_samples = []
+                for s in sample.itertuples(index=False):
+                    random_samples.append(s)
+                return random_samples, columns
+
+            elif type(table_alias) is dict:
+                column_config = self.config["fhir_columns"][data_type]
+                table_config = table_alias
+                dfs = {}
+                primary_table_name = table_config['primary_table']
+                primary_columns = column_config[primary_table_name]
+                dfs['primary'] = single_parquet_to_df(
+                    self.file_location, primary_table_name, columns=primary_columns
+                )
+                for tn in table_config['other_tables']:
+                    columns = column_config[tn]
+                    dfs[tn] = single_parquet_to_df(
+                        self.file_location, tn, columns=columns
+                        )
+                shapes = {}
+                for k, v in dfs.items():
+                    shapes[k] = v.shape
+                # data = [
+                #     self.fhir_converter[data_type](dr) 
+                #     for dr
+                #     in final_df.itertuples(index=False, name=None)
+                # ]
+                return {
+                    "data": dfs, 
+                    "pagination": {"sample_size": shapes, "offset": 0},
+                    "converter": self.fhir_converter,
+                    "config": table_config,
+                    }
+            return
+
         table = self.config["entry_table"]
         query = self.queries["RANDOM_SAMPLE"]
         random_sampling_config = self.config["random_sampling_keys"]
@@ -421,47 +467,3 @@ class DBInterface:
         
         df = pd.read_sql_query(query, self.con)
         return df
-
-if __name__ == "__main__":
-
-    import json
-    import logging
-    import os
-
-    DB_HOME = os.path.expanduser("~/gwu-src/feast/data")
-
-    logger = logging.getLogger()
-
-    connections = {}
-    with open("db_config.json") as config_p:
-        config = json.load(config_p)
-    for bco_id, dataset_config in config.items():
-        db_path = os.path.join(DB_HOME, dataset_config["db_location"])
-        connections[bco_id] = DBInterface(db_path, dataset_config, logger)
-
-    for name, dbi in connections.items():
-        print(f"---- {name} ----")
-        random_data, column_headers = dbi.get_random_sample()
-        print(f"{name}: Collected {len(random_data)} samples")
-
-        with open(f"{name}-RandomSamples.csv", "w") as fp:
-            fp.write(",".join(column_headers) + "\n")
-            line_count = 0
-            for line in random_data:
-                fp.write(",".join([str(l) for l in line]) + "\n")
-                line_count += 1
-                if line_count > 9:
-                    break
-        fp.close()
-
-        # df = dbi.get_sample(size=None, output_format="pandas")
-        # d_types = []
-        # uniques = {}
-        # for col in df.columns:
-        #     d_types.append(df[col].dtype)
-        #     print(f"{col}: {df[col].dtype}")
-        #     uniques = df[col].unique()
-        #     # if len(uniques) > 50:
-        #     #     print(f"{col} : {uniques[:50]}")
-        #     # else:
-        #     print(f"{col} : {uniques}")
