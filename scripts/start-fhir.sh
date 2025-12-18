@@ -8,7 +8,7 @@
 # docker run -d -p 8080:8080 --network fhir-backplane \
 #     --name fhir-server --volume $DATA_DIR:/app/ feast-hapi-fhir-jpa-starter
 
-MODE="${MODE:-"prod"}"
+MODE="${MODE:-"dev"}"
 echo $MODE
 
 if [ $MODE == "dev" ]; then
@@ -19,5 +19,5 @@ elif [ $MODE == "prod" ]; then
     echo Running FHIR server in PRODUCTION mode
     docker run -d -p 4243:8080 --network fhir-backplane --restart always \
         --name fhir-server -v /data/arpah/dockerdb/:/data/arpah/db/ \
-	--log-opt max-size=10m hapi-fhir-server:bitnami-tomcat-h2fileDB
+	    --log-opt max-size=10m hapi-fhir-server:bitnami-tomcat-h2fileDB
 fi
