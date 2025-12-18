@@ -4,10 +4,22 @@ import duckdb
 
 import os
 
+import sys
+print("*"*80)
+print("""
+.... this file has been fully deprecated. Neither SQLite nor DuckDB
+proved able to ingest the data, likely due to broken foriegn-key
+relations that were induced from the original data dump.
+
+This file is kept here only as a guide to prevent further upload attempts.
+"""
+)
+print("*"*80)
+sys.exit()
+
 DATA_HOME = "/data/arpah/downloads/GWDC_BrPrLuCA"
 DB_HOME = "/data/arpah/processed/GWDC_BrPrLuCA"
 # DB_NAME = "GWDC_BreastCancer_LungCancer_ProstateCancer.sqlite"
-DB_NAME = "GWDC_BrPrLu.duckdb"
 ERROR_LOG = "BrPrLu_errors.log"
 ERROR_PATH = os.path.join(DB_HOME, ERROR_LOG)
 
@@ -16,7 +28,7 @@ counter = 0
 table_names = {
         'PatientDim.BrPrLu.parquet': 'PatientDim', 
         'MedicationDim.parquet': 'MedicationDim',
-        # 'EncounterFact.BrPrLu.parquet': 'EncounterFact',
+        'EncounterFact.BrPrLu.parquet': 'EncounterFact',
         'PatientRegistryValueFact.BrPrLu.parquet': 'PatientRegistryValueFact',
         'FlowsheetValueFact.BrPrLu.parquet': 'FlowsheetValueFact',
         'ProcedureEventFact.BrPrLu.parquet': 'ProcedureEventFact', 
@@ -43,11 +55,11 @@ table_names = {
         'DiagnosisTerminologyDim.parquet': 'DiagnosisTerminologyDim',
         }
 
-DB_MODE = "DUCK"  # SQL | DUCK
+DB_MODE = "SQL"  # SQL | DUCK
 
-db_name = os.path.join(str(DB_HOME), DB_NAME)
 if DB_MODE == "SQL":
     ### SQLITE
+    DB_NAME = "GWDC_BrPrLu.sqlite"
     db_conn = sql.connect(database=os.path.join(DB_HOME, DB_NAME))
     cur = db_conn.cursor()
     TYPE_MAP = {
@@ -61,7 +73,8 @@ if DB_MODE == "SQL":
 
 elif DB_MODE == "DUCK":
     ### DUCKDB
-    db_conn = duckdb.connect(db_name)
+    DB_NAME = "GWDC_BrPrLu.duckdb"
+    db_conn = duckdb.connect(os.path.join(DB_HOME, DB_NAME))
     TYPE_MAP = {
         'int32':  'BIGINT',
         'int64':  'BIGINT',
@@ -148,70 +161,77 @@ table_keys = {
     
     ### DIAGNOSIS
     "DiagnosisEventFact": {
-        # "DiagnosisEventKey": "primary",
+        "DiagnosisEventKey": "primary",
         "PatientDurableKey_e": "foreign",
         # "EncounterKey": "foreign",
         # "DiagnosisKey": "unique",
     },
-    # "DiagnosisDim": {"DiagnosisKey": "foreign"},
-    # "DiagnosisSetDim": { "DiagnosisKey": "foreign"}, 
-    # "DiagnosisTerminologyDim": {"DiagnosisKey": "foreign"},
+    "DiagnosisDim": {},  # {"DiagnosisKey": "foreign"},
+    "DiagnosisSetDim": {},  # { "DiagnosisKey": "foreign"}, 
+    "DiagnosisTerminologyDim": {},  # {"DiagnosisKey": "foreign"},
 
     ### PROCEDURE
     "ProcedureEventFact": {
         "PatientDurableKey_e": "foreign",
         # "EncounterKey": "foreign",
-        # "ProcedureDurableKey": "primary",
-        "ProcedureKey": "unique",
+        "ProcedureEventKey": "primary",
     },
-    # "ProcedureDim": {"ProcedureKey": "foreign"},
-    # "ProcedureTerminologyDim": {"ProcedureKey": "foreign"},
+    "ProcedureDim": {},  # {"ProcedureKey": "foreign"},
+    "ProcedureTerminologyDim": {},  # {"ProcedureKey": "foreign"},
     
     ### ENCOUNTER
-    # "EncounterFact": {
-    #     "EncounterKey": "primary",
-    #     "PatientDurableKey_e": "foreign"
-    # },
+    "EncounterFact": {
+        "EncounterKey": "primary",
+        "PatientDurableKey_e": "foreign"
+    },
 
     ### LABCOMPONENT
     "LabComponentResultFact": {
-        # "LabComponentResultKey": "primary",
+        "LabComponentResultKey": "primary",
         "PatientDurableKey_e": "foreign",
         # "EncounterKey": "foreign",
         # "ProcedureKey": "foreign",
-        "LabComponentKey": "unique",
+        # "LabComponentKey": "unique",
     },
-    # "LabComponentMappingDim": {"LabComponentKey": "foreign"},
-    # "LabComponentSetDim": {"LabComponentKey": "foreign"},
-    # "LabComponentDim": {"LabComponentKey": "foreign"},
-    # "LabCounts": {"LabComponentKey": "foreign"},
-    # "LabOrganism": {"LabComponentKey": "foreign"},
+    "LabComponentMappingDim": {},  # {"LabComponentKey": "foreign"},
+    "LabComponentSetDim": {},  # {"LabComponentKey": "foreign"},
+    "LabComponentDim": {},  # {"LabComponentKey": "foreign"},
+    "LabCounts": {},  # {"LabComponentKey": "foreign"},
+    "LabOrganism": {},  # {"LabComponentKey": "foreign"},
    
     ### MEDICATION
     "MedicationAdministrationFact": {
-        # "MedicationAdministrationKey": "primary",
+        "MedicationAdministrationKey": "primary",
         "PatientDurableKey_e": "foreign",
         # "EncounterKey": "foreign",
-        "MedicationKey": "unique",
+        # "MedicationKey": "unique",
     },
-    # "MedicationCodeDim": {"MedicationKey": "foreign"},
-    # "MedicationDim": {"MedicationKey": "foreign"},
-    # "MedicationOrderFact": {"MedicationKey": "foreign"},
-    # "MedicationSetDim": {"MedicationKey": "foreign"},
+    "MedicationCodeDim": {},  # {"MedicationKey": "foreign"},
+    "MedicationDim": {},  # {"MedicationKey": "foreign"},
+    "MedicationOrderFact": {},  # {"MedicationKey": "foreign"},
+    "MedicationSetDim": {},  # {"MedicationKey": "foreign"},
 }
 
 UNIQUE_ENFORCEMENT = {
     "DiagnosisEventFact": [
-        "EncounterKey", "DiagnosisKey", "DiagnosisEventKey", "PatientDurableKey_e"
+        # "EncounterKey", "DiagnosisKey", "DiagnosisEventKey", "PatientDurableKey_e"
+        # "DiagnosisKey", "PatientDurableKey_e"
+        "DiagnosisEventKey"
     ],
     "ProcedureEventFact": [
-        "EncounterKey", "ProcedureKey", "ProcedureDurableKey", "PatientDurableKey_e"
+        # "ProcedureKey", "PatientDurableKey_e"
+        # "EncounterKey", "ProcedureKey", "ProcedureDurableKey", "PatientDurableKey_e"
+        "ProcedureEventKey"
     ],
     "LabComponentResultFact": [
-        "EncounterKey", "ProcedureKey", "LabComponentResultKey", "LabComponentKey", "PatientDurableKey_e"
+        # "EncounterKey", "ProcedureKey", "LabComponentResultKey", "LabComponentKey", "PatientDurableKey_e"
+        # "LabComponentKey", "PatientDurableKey_e"
+        "LabComponentResultKey"
     ],
     "MedicationAdministrationFact": [
-        "EncounterKey", "MedicationKey", "MedicationAdministrationKey", "PatientDurableKey_e"
+        # "EncounterKey", "MedicationKey", "MedicationAdministrationKey", "PatientDurableKey_e"
+        # "MedicationKey", "PatientDurableKey_e"
+        "MedicationAdministrationKey"
     ],
     # "EncounterFact": ["EncounterKey", "PatientDurableKey_e"],
 
@@ -243,8 +263,8 @@ SECONDARY_ORDER = [
     ]
 
 LOAD_ORDER = PRIMARY_ORDER
-# for s in SECONDARY_ORDER:
-#     LOAD_ORDER.append(s)
+for s in SECONDARY_ORDER:
+    LOAD_ORDER.append(s)
 
 for root, dirnames, files in os.walk(DATA_HOME):
     if root != DATA_HOME:
@@ -260,20 +280,34 @@ for root, dirnames, files in os.walk(DATA_HOME):
             print(f"---> Keys available were {table_keys.keys()}")
             continue
         df = pd.read_parquet(os.path.join(DATA_HOME, f))
-        if table_name in UNIQUE_ENFORCEMENT.keys():
-            cols_to_drop = UNIQUE_ENFORCEMENT[table_name]
-            print(f"---> DROPPING DUPLICATES <----")
-            print(f"Initial shape: {df.shape}")
-            print(f"{cols_to_drop}")
-            df.drop_duplicates(subset=cols_to_drop, inplace=True, keep='first')
-            print(f"Final shape: {df.shape}")
-            print(f"---------------------------")
-        else:
-            print(f"---> NOT DROPPING COLUMNS <----")
-            print(f"---> TABLE WAS {table_name}")
-            print(f"---------------------------")
-        # db_conn.sql(f"CREATE TABLE {table_name} AS SELECT * FROM df")
         
+        # XXX?
+        # if table_name in UNIQUE_ENFORCEMENT.keys():
+        #     cols_to_drop = UNIQUE_ENFORCEMENT[table_name]
+        #     print(f"---> DROPPING DUPLICATES <----")
+        #     print(f"Initial shape: {df.shape}")
+        #     print(f"{cols_to_drop}")
+            # for c in cols_to_drop:
+            #     if c == "PatientDurableKey_e":
+            #         print(f"===> Skipping PatientDurableKey...")
+            #         continue
+            #     # df.drop_duplicates(subset=c, inplace=True, keep='first')
+            #     print(f"---> OVER -1 {df[df[c] >= 0].shape}")
+            #     print(f"---> DUPLICATE COUNT: {len(df[c]-len(df[c].drop_duplicates(keep='first')))}")
+            #     print(f"---> Column {c} uniques: {len(df[c].unique())}")
+            #     print(f"---> UNDER 0 {df[df[c] < 0].shape}")
+            #     df_missing = df.drop(df[df[c] >= 0].index)
+            #     df = df.drop(df[df[c] < 0].index)
+            # print(f"---> Column {cols_to_drop} uniques: {len(df[cols_to_drop].uniques())}")
+        #     df.drop_duplicates(subset=cols_to_drop, inplace=True)
+        #     print(f"Final shape: {df.shape}")
+        #     print(f"---------------------------")
+        # else:
+        #     print(f"---> NOT DROPPING COLUMNS <----")
+        #     print(f"---> TABLE WAS {table_name}")
+        #     print(f"---------------------------")
+        # db_conn.sql(f"CREATE TABLE {table_name} AS SELECT * FROM df")
+
         create_string = ""
         special_fields = table_keys[table_name]
         for c in df.columns:
@@ -292,12 +326,12 @@ for root, dirnames, files in os.walk(DATA_HOME):
                         print(f"ft relation level 1: {foreign_table_relations[table_name]}")
                         print(f"----> Current list: {foreign_table_relations[table_name]}")
                         raise
-                    print(f"FT RELATION: {ft_relation}")
+                    # print(f"FT RELATION: {ft_relation}")
                     # Get the definition string
                     try:
                         create_string += foreign_key_string(c, dt, *ft_relation) + ",\n"
-                    except Exception as forRealzWTF:
-                        print(f"{forRealzWTF}")
+                    except Exception as e:
+                        print(f"{e}")
                         raise
                 elif sf_type == "unique":
                     create_string += unique_column(c, dt) + "\n"
@@ -306,9 +340,18 @@ for root, dirnames, files in os.walk(DATA_HOME):
                     sys.exit("Blowing up ---- why am I here?")
             else:
                 create_string += create_basic_column(c, dt)
-
         fs = CREATE_STATEMENT.format(table_name, create_string)
-        print(f"Final create statement: {fs}")
+        fs = fs.replace(",\n);", "\n);")
+        # print(f"Final create statement: {fs}")
+
+        # XXX?
+        # create_string = ""
+        # for c in df.columns:
+        #     dt = TYPE_MAP[df[c].dtype.name]
+        #     create_string += create_basic_column(c, dt)
+        # fs = CREATE_STATEMENT.format(table_name, create_string)
+        # print(f"Final create statement: {fs}")
+
         if DB_MODE == "DUCK":
             #### DUCKDB
             try:
@@ -316,7 +359,7 @@ for root, dirnames, files in os.walk(DATA_HOME):
             except Exception as e:
                 print("*"*80)
                 print(f"EXCEPTION: {e}")
-                db_response = db_conn.sql(f"DESCRIBE {table_name};")
+                db_response = db_conn.sql(f"DESCRIBE {table_name}")
                 print(f"{db_response}")
                 print("*"*80)
                 raise
@@ -332,8 +375,9 @@ for root, dirnames, files in os.walk(DATA_HOME):
                 continue
         elif DB_MODE == "SQL":
             #### SQLITE
+            # print(f"Creation command:\n{fs}")
             cur.execute(fs)
-            df.to_sql(table_name, db_conn)
+            df.to_sql(table_name, db_conn, if_exists='append', index=False)
         else:
             ...
 db_conn.close()
