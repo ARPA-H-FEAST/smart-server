@@ -31,6 +31,30 @@ def objects_from_single_df(
 
     return samples
 
+def describe_object_fields(
+    data, fhir_item, patient_ids, converter, resource_url_strings=None
+    ):
+    if fhir_item == "Procedure":
+        pt = data['primary']
+        unique_pcs = pt['ProcedureCodeSet'].unique()
+        unique_codes = pt['ProcedureCode'].unique()
+        print(f"Procedure: Found sets: {unique_pcs}\nCodes: {unique_codes[:5]}")
+    elif fhir_item == "DiagnosticReport":
+        dtd = data['DiagnosisTerminologyDim']
+        nac = dtd['NameAndCode'].unique()
+        g_nac = dtd['GroupedNameAndCode'].unique()
+        tipo = dtd['Type'].unique()
+        val = dtd['Value'].unique()
+
+        print(f"Name and Code: {nac[:5]}")
+        print(f"Grouped Name and Code: {g_nac[:5]}")
+        print(f"T and V: {tipo} & {val[:5]}")
+    elif fhir_item == "Encounter":
+        print(f"---> Encounter Columns: {data.columns}")
+    else:
+        ...
+    return None
+
 def objects_from_joint_df(
         data, fhir_item, patient_ids, converter, resource_url_strings=None
     ):
