@@ -133,7 +133,14 @@ def post_fhir_data(access_token, fhir_sample, fhir_endpoint):
         json=fhir_sample,
         headers={"Authorization": f"Bearer {access_token}"}
     )
-    data = response.json()
+    try:
+        data = response.json()
+    except Exception as e:
+        print("*"*80)
+        print(f"Excecption {e}")
+        print(f"---> Initial response was {response}")
+        print("*"*80)
+        raise
     return data
 
 def remove_fhir_data(access_token, sample_url):
@@ -191,11 +198,14 @@ if __name__ == "__main__":
     start = time.time()
     for idx, o in enumerate(patient_objects):
         post_results = post_fhir_data(access_token, o.as_json(), "Patient")
-        if idx % 5000 == 0:
-            print(f"Passing sample {idx}")
-            print(f"Last patient POST: {post_results}")
+        # if idx % 5000 == 0:
+        #     print(f"Passing sample {idx}")
+        #     print(f"Last patient POST: {post_results}")
+        # print(post_results)
+        # if idx > 10:
+        #     break
     print(f"Loading patients required {time.time() - start:.2f}s")
 
-with open("gwdc2-patients.txt", "w") as log:
+with open("upload_records/gwdc2-patients.txt", "w") as log:
     log.write(f"GWDC2: Wrote {metadata['size']} patient records\n")
     log.write(f"Total time required was {time.time()-big_start:.2f}\n")
