@@ -206,6 +206,6 @@ if __name__ == "__main__":
         #     break
     print(f"Loading patients required {time.time() - start:.2f}s")
 
-with open("upload_records/gwdc2-patients.txt", "w") as log:
+with open("upload_records/gwdc2-patients.log", "w") as log:
     log.write(f"GWDC2: Wrote {metadata['size']} patient records\n")
     log.write(f"Total time required was {time.time()-big_start:.2f}\n")
