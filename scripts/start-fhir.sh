@@ -8,7 +8,7 @@
 # docker run -d -p 8080:8080 --network fhir-backplane \
 #     --name fhir-server --volume $DATA_DIR:/app/ feast-hapi-fhir-jpa-starter
 
-MODE="${MODE:-"dev"}"
+MODE="${MODE:-"prod"}"
 echo $MODE
 
 if [ $MODE == "dev" ]; then
