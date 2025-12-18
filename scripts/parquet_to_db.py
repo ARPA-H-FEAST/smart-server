@@ -1,9 +1,3 @@
-import pandas as pd
-import sqlite3 as sql
-import duckdb
-
-import os
-
 import sys
 print("*"*80)
 print("""
@@ -16,6 +10,13 @@ This file is kept here only as a guide to prevent further upload attempts.
 )
 print("*"*80)
 sys.exit()
+
+
+import pandas as pd
+import sqlite3 as sql
+import duckdb
+
+import os
 
 DATA_HOME = "/data/arpah/downloads/GWDC_BrPrLuCA"
 DB_HOME = "/data/arpah/processed/GWDC_BrPrLuCA"
