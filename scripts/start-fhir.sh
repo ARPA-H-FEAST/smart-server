@@ -19,6 +19,6 @@ elif [ $MODE == "prod" ]; then
     echo Running FHIR server in PRODUCTION mode
     docker run -d -p 4243:8080 --network fhir-backplane --restart always \
         --name fhir-server \
-	    --log-opt max-size=10m hapi-fhir-server:bitnami-tomcat-h2fileDB
+	    --log-opt max-size=10m hapi-fhir-server:bitnami-tomcat-postgres
 fi
 # -v /data/arpah/dockerdb/:/data/arpah/db/
