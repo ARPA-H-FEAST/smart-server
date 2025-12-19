@@ -14,23 +14,26 @@ try:
     FHIR_VERSION = settings.FHIR_VERSION
 except:
     
-    import sys
-    from pathlib import Path
+    try:
+        import sys
+        from pathlib import Path
 
-    this_path = Path(__file__).parent.parent.parent
-    print(f"===> Adding path {this_path}")
-    sys.path.append(str(this_path))
-    ## Import for command line
-    from data_api.db_interfaces.fhir_objs.R5 import (
-        Patient, DiagnosticReport, Procedure,
-        Encounter, Observation, Medication,
-        GenomicStudy, Location
-    )
-    FHIR_VERSION = "R5"
-    ############
-    # SHIM TOOLS
-    import json
-    ############
+        this_path = Path(__file__).parent.parent.parent
+        print(f"===> Adding path {this_path}")
+        sys.path.append(str(this_path))
+        ## Import for command line
+        from data_api.db_interfaces.fhir_objs.R5 import (
+            Patient, DiagnosticReport, Procedure,
+            Encounter, Observation, Medication,
+            GenomicStudy, Location
+        )
+        FHIR_VERSION = "R5"
+        ############
+        # SHIM TOOLS
+        import json
+        ############
+    except Exception as e:
+        raise
 
 import datetime
 
@@ -562,6 +565,7 @@ FHIR_CONVERTER = {
 AUTH_URL = "https://feast.mgpc.biochemistry.gwu.edu/fhir-api/"
 AUTH_TOKEN_URL = AUTH_URL + "oauth/token/"
 FHIR_URL = "https://feast.mgpc.biochemistry.gwu.edu/fhir/"
+# FHIR_URL = "http://localhost:8080/fhir/"
 
 def _get_access_token():
 
@@ -617,6 +621,8 @@ if __name__ == "__main__":
     print(f"Access info: {access_info}")
     access_token = access_info['access_token']
     
+    # access_token = "ABCDE"
+
     print(f"Got access token:\n{access_token}")
 
     location = Location({
