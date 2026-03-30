@@ -25,7 +25,9 @@ except:
         from data_api.db_interfaces.fhir_objs.R5 import (
             Patient, DiagnosticReport, Procedure,
             Encounter, Observation, Medication,
-            GenomicStudy, Location
+            GenomicStudy, Location, MedicationAdministration,
+            MedicationRequest, MedicationDispense,
+            MedicationStatement,
         )
         FHIR_VERSION = "R5"
         ############
@@ -540,6 +542,88 @@ def gwdc_genomicStudy(record):
 def nbcc_genomicStudy(record):
     return GenomicStudy({})
 
+def brprlu_medication(record, p_ref=None):
+    patient = p_ref if p_ref is not None else "Patient/2"
+    return Medication(
+        {
+            "identifier": record[1],
+            "code": {
+                "text": record[2], 
+                "coding": record[5],
+            },
+            "status": {record[19]},
+            "doseForm": {record[11]},
+            "totalVolume": {record[36]},
+            # "ingredient": {},
+            # "batch": {},
+            # "definition": {},
+        }
+    )
+
+def brprlu_medicationadministration(record, p_ref=None):
+    patient = p_ref if p_ref is not None else "Patient/2"
+    return MedicationAdministration(
+        {
+            
+        }
+    )
+def brprlu_medicationdispense(record, p_ref=None):
+    patient = p_ref if p_ref is not None else "Patient/2"
+    return MedicationDispense(
+        {
+            
+        }
+    )
+def brprlu_medicationrequest(record, p_ref=None):
+    patient = p_ref if p_ref is not None else "Patient/2"
+    return MedicationRequest(
+        {
+            "identifier": record[1],
+            # "basedOn": ,
+            "priorPrescription": record[100],
+            # "groupIdentifier": ,
+            "status": record[117],
+            "statusReason": record[50],
+            # "statusChanged": ,
+            # "intent": ,
+            "category": record[57],
+            "priority": record[59],
+            # "doNotPerform": ,
+            "medication": record[5],
+            "subject": record[152],
+            # "informationSource": ,
+            "encounter": record[2],
+            # "supportingInformation": ,
+            "authoredOn": record[30],
+            "requester": record[15],
+            # "reported": ,
+            # "performer": ,
+            # "device": ,
+            "reason": [record[65], record[66:71]],
+            "note": [record[71], record[72:77]],
+            # "effectiveDosePeriod": ,
+            "dosageInstruction": {
+                "timing": {"event": record[30], "code": record[52]},
+                "route": record[53],
+                "doseAndRate": {"doseQuantity": {"unit": record[55]}}
+            },
+            "dispenseRequest": {
+                "validityPeriod": {"end": record[30]},
+                "quantity": {"unit": record[55], "value": record[81]},
+                "numberOfRepeatsAllowed": record[86],
+                "expectedSupplyDuration": record[89]
+            },
+            "substitution": record[95],
+            # "eventHistory": ,
+        }
+    )
+def brprlu_medicationstatement(record, p_ref=None):
+    patient = p_ref if p_ref is not None else "Patient/2"
+    return MedicationStatement(
+        {
+            
+        }
+    )
 
 FHIR_CONVERTER = {
     "gwdc_prostate": {
@@ -557,6 +641,11 @@ FHIR_CONVERTER = {
         "DiagnosticReport": brprlu_diagnosis,
         "Procedure": brprlu_procedure,
         "Encounter": brprlu_encounter,
+        "Medication": brprlu_medication,
+        "MedicationAdministration": brprlu_medicationadministration,
+        "MedicationDispense": brprlu_medicationdispense,
+        "MedicationRequest": brprlu_medicationrequest,
+        "MedicationStatement": brprlu_medicationstatement,
     }
 }
 

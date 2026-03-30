@@ -141,7 +141,32 @@
                 "other_tables": ["ProcedureDim"]
             },
             "Encounter": "EncounterFact",
-            "Observation": ""
+            "Observation": "",
+            "Medication": {
+                "fk": "MedicationKey", 
+                "primary_table": "MedicationDim", 
+                "other_tables": ["MedicationCodeDim"]
+                },
+            "MedicationRequest": {
+                "fk": "MedicationKey", 
+                "primary_table": "MedicationOrderFact", 
+                "other_tables": ["MedicationDim", "MedicationCodeDim"]
+            },
+            "MedicationAdministration": {
+                "fk": "MedicationKey", 
+                "primary_table": "MedicationAdministrationFact", 
+                "other_tables": ["MedicationDim", "MedicationCodeDim"]
+            },
+            "MedicationDispense": {
+                "fk": "MedicationKey", 
+                "primary_table": "MedicationOrderFact", 
+                "other_tables": ["MedicationDim"]
+            },
+            "MedicationStatement": {
+                "fk": "MedicationKey", 
+                "primary_table": "MedicationOrderFact", 
+                "other_tables": ["MedicationAdministrationFact", "MedicationDim"]
+            }
         },
         "fhir_columns": {
             "Patient": [
@@ -184,7 +209,182 @@
                 "Date", "EndInstant", "ChiefComplaintNumericId",
                 "PrimaryDiagnosisKey", "LevelOfServiceKey", "PlaceOfServiceKey", "DischargeDateKey",
                 "PatientClass", "TypeCategoryKey"
-            ]
+            ],
+            "Medication": { 
+                "MedicationDim": [
+                    "MedicationKey", "MedicationEpicId", "Name", "GenericName", "SimpleGenericName",
+                    "TherapeuticClass", "PharmaceuticalClass", "PharmaceuticalSubclass", "DeaClass", 
+                    "Gpi", "Strength", "Form", "Route", "Controlled", "Opioid", "OpioidAntagonist", 
+                    "_CreationInstant", "_LastUpdatedInstant", "_IsInferred", "_IsDeleted", 
+                    "_PrimaryPackageToImpactRecord", "_MostRecentPackageToImpactRecord", "_NumberOfSources", 
+                    "_HasSourceClarity", "_DeletedFromSourceClarity", "_IsDeletedByMerge"],
+                "MedicationCodeDim": [
+                    "MedicationCodeKey", "MedicationKey", "Type", "Code", "RawNumericCode", 
+                    "TerminologyConceptKey", "IsBrand", "IsNdcDeleted", "IsNdcSafeExternalMatch", 
+                    "HasGenericAlternative", "PackageSize", "PackageSizeUnit", "Classification", 
+                    "_CreationInstant", "_LastUpdatedInstant", "_IsInferred", "_IsDeleted", 
+                    "_PrimaryPackageToImpactRecord", "_MostRecentPackageToImpactRecord", 
+                    "_NumberOfSources", "_HasSourceClarity", "_DeletedFromSourceClarity", "IsNdcHidden"
+                ]
+            },
+            "MedicationRequest": {
+                "MedicationOrderFact": [
+                    "MedicationOrderKey", "MedicationOrderEpicId", "EncounterKey", "DepartmentKey", 
+                    "PharmacyKey", "MedicationKey", "MedicationComponentComboKey", 
+                    "MedicationComponentComboIdTypeId", "MedicationComponentNumericId", 
+                    "MedicationComponentComboId", "AssociatedDiagnosisComboKey", 
+                    "AssociatedDiagnosisComboIdTypeId", "AssociatedDiagnosisNumericId", 
+                    "AssociatedDiagnosisComboId", "OrderedByEmployeeKey", 
+                    "OrderedByEmployeeDurableKey", "OrderedByProviderKey", 
+                    "OrderedByProviderDurableKey", "OrderedByProviderSourceDataDurableKey", 
+                    "AuthorizedByProviderKey", "AuthorizedByProviderDurableKey", 
+                    "AuthorizedByProviderSourceDataDurableKey", "FirstVerificationEmployeeKey", 
+                    "FirstVerificationEmployeeDurableKey", "SecondVerificationEmployeeKey", 
+                    "SecondVerificationEmployeeDurableKey", "FinalVerificationEmployeeKey", 
+                    "FinalVerificationEmployeeDurableKey", "OrderedDateKey", "OrderedTimeOfDayKey", 
+                    "OrderedUtcInstant", "OrderedInstant", "PrescriptionWrittenDateKey", 
+                    "ReleaseDateKey", "ReleaseTimeOfDayKey", "ReleaseInstant", 
+                    "StartDateKey", "StartTimeOfDayKey", "FinalVerificationDateKey", 
+                    "FinalVerificationTimeOfDayKey", "FinalVerificationInstant", "FinalVerificationOutcome", 
+                    "EndDateKey", "EndTimeOfDayKey", "DiscontinuedDateKey", "DiscontinuedTimeOfDayKey", 
+                    "DiscontinuedLocalDateKey", "DiscontinuedLocalTimeOfDayKey", "DiscontinuedUtcDateKey", 
+                    "DiscontinuedUtcTimeOfDayKey", "DiscontinueReason", "OrderName", "Frequency", 
+                    "Route", "QuantityUnit", "DoseUnit", "CalculatedDoseUnit", "Class", "Mode", 
+                    "OrderPriority", "OriginCode", "Source", "SetSource", "PreferenceList", 
+                    "NonFormularyExceptionReason", "FirstPrnReason", "SecondPrnReason", 
+                    "ThirdPrnReason", "FourthPrnReason", "FifthPrnReason", "SixthPrnReason", 
+                    "FirstIndicationForUse", "SecondIndicationForUse", "ThirdIndicationForUse", 
+                    "FourthIndicationForUse", "FifthIndicationForUse", "SixthIndicationForUse", 
+                    "DurationKey", "OrderSetEpicId", "MinutesToFirstDue", "MinutesToManualFinalVerification", 
+                    "Quantity", "MinimumDose", "MaximumDose", "CalculatedMinimumDose", 
+                    "CalculatedMaximumDose", "NumberOfDoses", "RefillsWritten", "RefillsRemaining", 
+                    "DaysSupply", "TotalDaysSupply", "Sig", "MorphineEquivalentDailyDosage", 
+                    "PainAgreement", "Cpoe", "DispenseAsWritten", "OrderedAsNonFormulary", 
+                    "VerifiedAsNonFormulary", "AutomaticallyVerified", "PharmacyInterventionPriorToVerify", 
+                    "ReorderedFromPrescription", "Verbal", "VerbalOrderMode", "RequiresCosign", 
+                    "Cosigned", "VerbalSigned", "Protocol", "HighPriority", "Prn", "IsOutpatientMode", 
+                    "AdsOverride", "NonClinicalOverride", "InterfaceOrder", "Count", "_CreationInstant", 
+                    "_LastUpdatedInstant", "_IsInferred", "_IsDeleted", "_PrimaryPackageToImpactRecord", 
+                    "SentToPharmacyKey", "SupervisedByProviderDurableKey", 
+                    "SupervisedByProviderSourceDataDurableKey", "ExpirationDateKey", 
+                    "SerialNumber", "PrescriptionComments", "SmartGroupKey", "OrdersetKey", 
+                    "MedicationOrderTemplateKey", "OriginalVersionTemplateKey", "OrdersetSession", 
+                    "OrderedFromUserOrderSet", "OriginalOrderProviderDurableKey", 
+                    "OriginalOrderProviderSourceDataDurableKey", "OriginalAuthorizingProviderDurableKey", 
+                    "OriginalAuthorizingProviderSourceDataDurableKey", "Type", 
+                    "PathwayInstanceSmartGroupKey", "EPrescribingDestination", 
+                    "ProvisionalVerificationEmployeeDurableKey", "ProvisionalVerificationDateKey", 
+                    "ProvisionalVerificationTimeOfDayKey", "ProvisionalVerificationInstant", 
+                    "ProvisionalVerifyComment", "ProvisionallyVerified", "ProvisionalVerificationReverted", 
+                    "ChangesMadeInProvisionalVerify", "ChangesMadeInPharmacistVerify", 
+                    "PhaseOfCare", "IsPending", "IsControlledSubstance", "AnesthesiaOrderWasScanned", 
+                    "rn", "PatientDurableKey_e", "FirstVerificationInstant", "SecondVerificationInstant"
+                ],
+                "MedicationDim": [
+                    "MedicationKey", "MedicationEpicId", "Name", "GenericName", "SimpleGenericName", 
+                    "TherapeuticClass", "PharmaceuticalClass", "PharmaceuticalSubclass", "DeaClass", 
+                    "Gpi", "Strength", "Form", "Route", "Controlled", "Opioid", "OpioidAntagonist", 
+                    "_CreationInstant", "_LastUpdatedInstant", "_IsInferred", "_IsDeleted", 
+                    "_PrimaryPackageToImpactRecord", "_MostRecentPackageToImpactRecord", "_NumberOfSources", 
+                    "_HasSourceClarity", "_DeletedFromSourceClarity", "_IsDeletedByMerge"],
+                "MedicationCodeDim": [
+                    "MedicationCodeKey", "MedicationKey", "Type", "Code", "RawNumericCode", 
+                    "TerminologyConceptKey", "IsBrand", "IsNdcDeleted", "IsNdcSafeExternalMatch", 
+                    "HasGenericAlternative", "PackageSize", "PackageSizeUnit", "Classification", 
+                    "_CreationInstant", "_LastUpdatedInstant", "_IsInferred", "_IsDeleted", 
+                    "_PrimaryPackageToImpactRecord", "_MostRecentPackageToImpactRecord", 
+                    "_NumberOfSources", "_HasSourceClarity", "_DeletedFromSourceClarity", "IsNdcHidden"
+                ]
+            },
+            "MedicationAdministration": {
+                "MedicationAdministrationFact": [
+                    "MedicationAdministrationKey", "EncounterKey", "MedicationOrderKey", "PrimaryComponentKey", 
+                    "SecondComponentKey", "ThirdComponentKey", "FourthComponentKey", "FifthComponentKey", 
+                    "AdministrationDepartmentKey", "ScheduledAdministrationDateKey", 
+                    "ScheduledAdministrationTimeOfDayKey", "ScheduledAdministrationInstant", 
+                    "AdministrationDateKey", "AdministrationTimeOfDayKey", "AdministrationInstant", 
+                    "AdministeringEmployeeKey", "AdministeringEmployeeDurableKey", "MedicationKey", 
+                    "PainReassessmentFlowsheetRowKey", "AdministrationAction", "PrimaryComponentNdc", 
+                    "SecondComponentNdc", "ThirdComponentNdc", "FourthComponentNdc", "FifthComponentNdc", 
+                    "TimelyThresholdMinutes", "MinutesLate", "MinutesEarly", "MinutesFromScheduledTime", 
+                    "TimelyReassessmentWindowStartMinutes", "TimelyReassessmentWindowEndMinutes", 
+                    "MinutesFromAdministrationToPainReassessment", "EncounterAdmissionInstant", 
+                    "PainReassessmentTakenInstant", "ChargeAmount", "MedicationRepresentativeCost", 
+                    "MedicationAcquisitionCost", "MedicationOrderEpicId", "MedicationScanRequiredAtAdministration", 
+                    "MedicationScannedAtAdministration", "PatientScanRequiredAtAdministration", 
+                    "PatientScannedAtAdministration", "IsPrn", "IsPainReassessmentRequired", 
+                    "IsPainReassessmentTimely", "IsPainReassessmentAccepted", "SpecialMedicationType", 
+                    "TimelyAdministrationStatus", "AdministrationRoute", "PatientUnscannedReason", 
+                    "ProductUnscannedReason", "AdministrationType", "PainReassessmentFlowsheetValue", 
+                    "Dose", "DoseUnit", "EquivalentMilligramsOfMorphineAdministered", 
+                    "EquivalentMilligramsOfMorphineEndInstant", "AdsOverride", "Count", 
+                    "_CreationInstant", "_LastUpdatedInstant", "_IsInferred", "_IsDeleted", 
+                    "_PrimaryPackageToImpactRecord", "ClientType", "AdministeredBeforeVerification", 
+                    "CupScannedAtAdministration", "CupScanRequiredAtAdministration", "CupIdentifier", 
+                    "PatientSpecificPackageScanRequiredAtAdmin", "PatientSpecificPackageScannedAtAdministration", 
+                    "PatientSpecificPackageNotScannedReason", "PatientSpecificPackageIdentifier", 
+                    "AnesthesiaAdministrationWasScanned", "rn", "PatientDurableKey_e"],
+                "MedicationDim": [
+                    "MedicationKey", "MedicationEpicId", "Name", "GenericName", "SimpleGenericName", 
+                    "TherapeuticClass", "PharmaceuticalClass", "PharmaceuticalSubclass", "DeaClass", 
+                    "Gpi", "Strength", "Form", "Route", "Controlled", "Opioid", "OpioidAntagonist", 
+                    "_CreationInstant", "_LastUpdatedInstant", "_IsInferred", "_IsDeleted", 
+                    "_PrimaryPackageToImpactRecord", "_MostRecentPackageToImpactRecord", "_NumberOfSources", 
+                    "_HasSourceClarity", "_DeletedFromSourceClarity", "_IsDeletedByMerge"],
+                "MedicationCodeDim": [
+                    "MedicationCodeKey", "MedicationKey", "Type", "Code", "RawNumericCode", 
+                    "TerminologyConceptKey", "IsBrand", "IsNdcDeleted", "IsNdcSafeExternalMatch", 
+                    "HasGenericAlternative", "PackageSize", "PackageSizeUnit", "Classification", 
+                    "_CreationInstant", "_LastUpdatedInstant", "_IsInferred", "_IsDeleted", 
+                    "_PrimaryPackageToImpactRecord", "_MostRecentPackageToImpactRecord", 
+                    "_NumberOfSources", "_HasSourceClarity", "_DeletedFromSourceClarity", "IsNdcHidden"
+                ]
+            },
+            "MedicationDispense": {
+                "MedicationOrderFact": [
+                    "MedicationOrderEpicId", "PatientDurableKey_e", "EncounterKey", "PharmacyKey", 
+                    "MedicationKey", "ReleaseDateKey", "ReleaseTimeOfDayKey", "ReleaseInstant", 
+                    "FinalVerificationDateKey", "FinalVerificationTimeOfDayKey", "FinalVerificationInstant", 
+                    "FinalVerificationEmployeeDurableKey", "FinalVerificationOutcome", 
+                    "FirstVerificationEmployeeDurableKey", "SecondVerificationEmployeeDurableKey", 
+                    "Quantity", "QuantityUnit", "DaysSupply", "RefillsRemaining", "RefillsWritten", 
+                    "Sig", "Route", "DoseUnit", "DispenseAsWritten", "SerialNumber", "PrescriptionComments", 
+                    "EPrescribingDestination", "SentToPharmacyKey", "OrderedByProviderDurableKey", 
+                    "AutomaticallyVerified", "PharmacyInterventionPriorToVerify", 
+                    "NonFormularyExceptionReason", "VerifiedAsNonFormulary", "ExpirationDateKey"
+                ],
+                "MedicationDim": [
+                    "MedicationKey", "MedicationEpicId", "Name", "GenericName", "SimpleGenericName", 
+                    "TherapeuticClass", "PharmaceuticalClass", "PharmaceuticalSubclass", "DeaClass", 
+                    "Gpi", "Strength", "Form", "Route", "Controlled", "Opioid", "OpioidAntagonist", 
+                    "_CreationInstant", "_LastUpdatedInstant", "_IsInferred", "_IsDeleted", 
+                    "_PrimaryPackageToImpactRecord", "_MostRecentPackageToImpactRecord", "_NumberOfSources", 
+                    "_HasSourceClarity", "_DeletedFromSourceClarity", "_IsDeletedByMerge"]
+            },
+            "MedicationStatement": {
+                "MedicationOrderFact": [
+                    "PatientDurableKey_e", "EncounterKey", "MedicationKey", "MedicationOrderEpicId", 
+                    "OrderedUtcInstant", "StartDateKey", "StartTimeOfDayKey", "EndDateKey", "EndTimeOfDayKey", 
+                    "DiscontinuedUtcDateKey", "DiscontinuedUtcTimeOfDayKey", "OrderedByProviderDurableKey", 
+                    "Sig", "Frequency", "Route", "DoseUnit", "MinimumDose", "MaximumDose", "Prn", 
+                    "FirstPrnReason", "SecondPrnReason", "ThirdPrnReason", "FourthPrnReason", 
+                    "FifthPrnReason", "SixthPrnReason", "FirstIndicationForUse", "SecondIndicationForUse", 
+                    "ThirdIndicationForUse", "FourthIndicationForUse", "FifthIndicationForUse", 
+                    "SixthIndicationForUse", "Class", "IsOutpatientMode", "MorphineEquivalentDailyDosage", 
+                    "PainAgreement", "_IsDeleted", "_LastUpdatedInstant"], 
+                "MedicationAdministrationFact": [
+                    "PatientDurableKey_e", "MedicationKey", "AdministrationInstant", "MedicationOrderKey", 
+                    "AdministrationRoute", "Dose", "DoseUnit", "AdministeringEmployeeDurableKey", 
+                    "AdministrationAction", "EncounterKey", "_IsDeleted", "_LastUpdatedInstant"
+                ],
+                "MedicationDim": [
+                    "MedicationKey", "MedicationEpicId", "Name", "GenericName", "SimpleGenericName", 
+                    "TherapeuticClass", "PharmaceuticalClass", "PharmaceuticalSubclass", "DeaClass", 
+                    "Gpi", "Strength", "Form", "Route", "Controlled", "Opioid", "OpioidAntagonist", 
+                    "_CreationInstant", "_LastUpdatedInstant", "_IsInferred", "_IsDeleted", 
+                    "_PrimaryPackageToImpactRecord", "_MostRecentPackageToImpactRecord", "_NumberOfSources", 
+                    "_HasSourceClarity", "_DeletedFromSourceClarity", "_IsDeletedByMerge"]
+            }
         }
     }
 }
