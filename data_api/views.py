@@ -1,12 +1,13 @@
 from django.shortcuts import render
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+
 # from django.contrib.auth.mixins import ProtectedResourceView
 # NB See [SO](https://stackoverflow.com/a/55224844)
 # This is the class-view equivalent in DOT
 from oauth2_provider.views.generic import ProtectedResourceView
 
-# ...and this class, from [here](https://django-oauth-toolkit.readthedocs.io/en/latest/views/mixins.html), 
+# ...and this class, from [here](https://django-oauth-toolkit.readthedocs.io/en/latest/views/mixins.html),
 # seems pretty clearly broken out of the box...
 # import oauth2_provider.views.mixins.ClientProtectedResourceMixin as ProtectedResourceView
 from django.views.decorators.csrf import csrf_exempt
@@ -35,6 +36,8 @@ import json
 import logging
 import os
 
+from pathlib import Path
+
 # Create your views here.
 
 logger = logging.getLogger()
@@ -51,7 +54,12 @@ TARBALL_FILE_HOME = DATA_HOME / "tarballs/"
 def config_to_connections(config):
     connections = {}
     for bco_id, dataset_config in config.items():
-        db_path = os.path.join(DB_HOME, dataset_config["db_location"])
+        # Carve-out for parquets
+        db_location = dataset_config["db_location"]
+        if type(db_location) is not list:
+            db_path = os.path.join(DB_HOME, db_location)
+        else:
+            db_path = str(Path(DB_HOME).parent / db_location[1])
         connections[bco_id] = DBInterface(db_path, dataset_config, logger)
     return connections
 
@@ -73,6 +81,7 @@ else:
 ### and (2) explicit calls to `post`, `get`, etc. Seems inflexible and brittle, but
 ### sure ...
 
+
 class GetBCO(APIView):
     @swagger_auto_schema(
         request_body=openapi.Schema(
@@ -89,20 +98,22 @@ class GetBCO(APIView):
         responses=get_bco_config(),
         operation_description="Retrieve the BCO defining dataset provenance",
     )
-
     def post(self, request):
 
         bcoid = json.loads(request.body)["bcoid"]
 
         if not bcoid:
-            return JsonResponse({"error": "No BCO found in query"}, safe=False, status=400)
-        
+            return JsonResponse(
+                {"error": "No BCO found in query"}, safe=False, status=400
+            )
+
         with open(os.path.join(BCO_HOME, f"{bcoid}.json"), "r") as fp:
             bco = json.load(fp)
 
         return JsonResponse(bco)
 
-# TODO: Moving to `ProtectedView` (aka, credentialling) 
+
+# TODO: Moving to `ProtectedView` (aka, credentialling)
 # breaks the response into two
 class GetDataSets(ProtectedResourceView, APIView):
     @swagger_auto_schema(
@@ -119,6 +130,7 @@ class GetDataSets(ProtectedResourceView, APIView):
             result[bcoid] = dbi.config["dataset"]
 
         return JsonResponse({"results": result}, safe=False)
+
 
 class GetDatasetMetadata(ProtectedResourceView, APIView):
 
@@ -138,7 +150,6 @@ class GetDatasetMetadata(ProtectedResourceView, APIView):
         responses=get_dataset_metadata_config(),
         operation_description="Get detailed information about a dataset",
     )
-
     def post(self, request):
         bcoid = json.loads(request.body)["bcoid"]
 
@@ -147,7 +158,9 @@ class GetDatasetMetadata(ProtectedResourceView, APIView):
 
         if bcoid not in DB_CONNECTORS.keys():
             # Error handling
-            return JsonResponse({"error": f"Unknown BCO ID {bcoid} provided"}, safe=False, status=400)
+            return JsonResponse(
+                {"error": f"Unknown BCO ID {bcoid} provided"}, safe=False, status=400
+            )
 
         config = DB_CONNECTORS[bcoid].config
         response = {
@@ -194,7 +207,7 @@ class GetDatasetDetail(ProtectedResourceView, APIView):
                     default="FEAST_000012",
                 )
             },
-            optional=["sample_limit", "sample_offset"]
+            optional=["sample_limit", "sample_offset"],
         ),
         responses=get_dataset_detail_config(),
         operation_description="Get detailed information about a dataset",
@@ -209,7 +222,9 @@ class GetDatasetDetail(ProtectedResourceView, APIView):
         bcoid = params.get("bcoid", None)
 
         if bcoid is None:
-            return JsonResponse({"error": "No BCO ID query parameter provided"}, safe=False, status=400)
+            return JsonResponse(
+                {"error": "No BCO ID query parameter provided"}, safe=False, status=400
+            )
 
         if bcoid not in DB_CONNECTORS.keys():
 
@@ -217,10 +232,14 @@ class GetDatasetDetail(ProtectedResourceView, APIView):
                 bco = json.load(fp)
             bco_model = BCOFileDescriptor.objects.get(bcoid=bcoid)
 
-            return JsonResponse({
-                "bco": bco,
-                "fileobjlist": [{"filename": f} for f in bco_model.files_represented],
-            })
+            return JsonResponse(
+                {
+                    "bco": bco,
+                    "fileobjlist": [
+                        {"filename": f} for f in bco_model.files_represented
+                    ],
+                }
+            )
 
         sample_limit = params.get("sample_limit", 1)
         sample_offset = params.get("sample_offset", 0)
@@ -234,19 +253,24 @@ class GetDatasetDetail(ProtectedResourceView, APIView):
             ## e.g., the following error:
             # `Patient.__init__() got an unexpected keyword argument 'Sex'`
             entries = dbi.get_sample(
-                output_format="fhir", data_type="patient", limit=sample_limit, offset=sample_offset
+                output_format="fhir",
+                data_type="patient",
+                limit=sample_limit,
+                offset=sample_offset,
             )
             if response_shape == "string":
-                entries = entries[0]
-                # XXX 
+                entries["data"] = entries["data"][0]
+                # XXX
                 # / TODO Error checking if returning a string
                 #  and the sample size is > 1
-            return JsonResponse({
-                "db_entries": entries,
-                # "db_metadata": db_metadata,
-                "sample_start": sample_offset,
-                "sample_count": sample_limit,
-            })
+            return JsonResponse(
+                {
+                    "db_entries": entries,
+                    # "db_metadata": db_metadata,
+                    "sample_start": sample_offset,
+                    "sample_count": sample_limit,
+                }
+            )
         else:
             # Retrieve first N samples for display
             example_values = dbi.get_sample(limit=sample_limit, offset=sample_offset)
@@ -302,23 +326,23 @@ def search(request):
         else:
             return JsonResponse({}, safe=False)
 
-    search_query = " WHERE\n\t"
+    # search_query = " WHERE\n\t"
     query_dict = defaultdict(list)
     for filter_entry in filters:
         column, value = filter_entry.split("|")
         query_dict[column].append(f'"{value}"')
-    col_counter = 0
-    for col, values in query_dict.items():
-        if col_counter > 0:
-            search_query += "\tAND "
-        search_query += "{} IN ({})\n".format(col, ",".join(values))
-        col_counter += 1
+    # col_counter = 0
+    # for col, values in query_dict.items():
+    #     if col_counter > 0:
+    #         search_query += "\tAND "
+    #     search_query += "{} IN ({})\n".format(col, ",".join(values))
+    #     col_counter += 1
 
-    logger.debug(f"Formed search query:\n{search_query}\n")
+    # logger.debug(f"Formed search query:\n{search_query}\n")
 
     if bcoid in DB_CONNECTORS.keys():
         dbi = DB_CONNECTORS[bcoid]
-        example_values = dbi.get_sample(limit=None, selection_string=search_query)
+        example_values = dbi.get_sample(query_dict=query_dict)
     else:
         logger.error(f"Failed to find DB for {bcoid}")
         example_values = {}

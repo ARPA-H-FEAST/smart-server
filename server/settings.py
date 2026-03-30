@@ -41,18 +41,21 @@ else:
     DATA_HOME = Path("/data/arpah/releases/current/")
     DB_HOME = Path("/data/arpah/processed/")  # XXX / FIXME
 
-ALLOWED_HOSTS = ["middleware", "127.0.0.1", "localhost"]
+FHIR_VERSION = "R5"
+
+ALLOWED_HOSTS = ["middleware", "127.0.0.1", "localhost", "smart-server"]
 
 APPEND_SLASH = False
 
 AUTH_USER_MODEL = "users.User"
 
-STATIC_URL = "/testing-ui/static/"
+STATIC_URL = "/fhir-api/static/"
 STATIC_ROOT = "static/"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://smart-feast",
+    "http://smart-server:8000",
+    "http://smart-server",
     "https://feast.mgpc.biochemistry.gwu.edu",
 ]
 
@@ -133,8 +136,9 @@ def get_rsa_key():
 OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": True,
     "OAUTH2_BACKEND_CLASS": "oauth2_provider.oauth2_backends.JSONOAuthLibCore",
+    "OAUTH2_VALIDATOR_CLASS": "server.oauth_extensions.FEASTOAuth2Validator",
     "OIDC_ENABLED": True,
-    "OIDC_ISS_ENDPOINT": "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/oauth",
+    "OIDC_ISS_ENDPOINT": "https://feast.mgpc.biochemistry.gwu.edu/fhir-api/oauth",
     "OIDC_RSA_PRIVATE_KEY": get_rsa_key(),
     "ACCESS_TOKEN_EXPIRE_SECONDS": 3600 * 10000,  # 10000 hours should suffice
     "ID_TOKEN_EXPIRE_SECONDS": 3600 * 10000,  # Ditto
@@ -186,7 +190,25 @@ REST_FRAMEWORK = {
 ROOT_URLCONF = "server.urls"
 
 SWAGGER_SETTINGS = {
-    "DEFAULT_API_URL": "https://feast.mgpc.biochemistry.gwu.edu/testing-ui/yasg/",
+    # "DEFAULT_API_URL": "http://localhost:8000/fhir-api/yasg/",
+    "DEFAULT_API_URL": "https://feast.mgpc.biochemistry.gwu.edu/fhir-api/yasg/",
+    "USE_SESSION_AUTH": False,
+    "SECURITY_DEFINITIONS": {
+        "Your App API - Swagger": {
+            "type": "oauth2",
+            "authorizationUrl": "/fhir-api/oauth/authorize/",
+            "tokenUrl": "/fhir-api/oauth/token/",
+            "flow": "accessCode",
+            "scopes": {
+                "read:groups": "read groups",
+            },
+        }
+    },
+    "OAUTH2_CONFIG": {
+        "clientId": "bCqvtdpVsZXskrraLDfOQGVMsMoNubqrzrL42tRd",
+        # "clientSecret": "yourAppClientSecret",
+        "appName": "LocalHost OIDC Application",
+    },
 }
 
 TEMPLATES = [

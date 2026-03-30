@@ -14,7 +14,7 @@ RUN mkdir -p /var/log/gunicorn/ && \
 # WORKDIR /server
 
 # docker build -t feast-smart -f dockerfile .
-FROM feast-smart-base
+FROM feast-smart-base AS default
 
 # Temporarily freeze the DB to preserve application codes
 # via copying the database file directly into the container

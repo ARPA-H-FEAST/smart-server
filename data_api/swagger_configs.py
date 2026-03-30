@@ -15,10 +15,9 @@ def get_dataset_detail_config():
             #     }
             # },
         ),
-        "400": openapi.Response(
-            description="Bad request: No BCO ID given"
-        )
+        "400": openapi.Response(description="Bad request: No BCO ID given"),
     }
+
 
 def get_dataset_metadata_config():
     return {
@@ -27,15 +26,13 @@ def get_dataset_metadata_config():
         ),
         "400": openapi.Response(
             description="No BCO ID provided, or unknown BCO provided"
-        )
+        ),
     }
 
+
 def get_datasets_config():
-    return {
-        "200": openapi.Response(
-            description="Success"
-        )
-    }
+    return {"200": openapi.Response(description="Success")}
+
 
 def get_bco_config():
     return {
@@ -44,8 +41,9 @@ def get_bco_config():
         ),
         "400": openapi.Response(
             description="No BCO ID provided, or unknown BCO provided"
-        )
+        ),
     }
+
 
 def get_dataset_detail_parameters():
     return [

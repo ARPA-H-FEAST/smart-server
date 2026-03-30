@@ -10,6 +10,8 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core import serializers
 
+from oauth2_provider.decorators import protected_resource
+
 import json
 import jwt
 import logging
@@ -109,74 +111,78 @@ def check_login_and_get_files(request):
     return JsonResponse(response, safe=False)
 
 
-def get_fhir_endpoints(request):
-    return JsonResponse(AVAILABLE_FHIR_ENDPOINTS, safe=False)
+# def get_fhir_endpoints(request):
+#     return JsonResponse(AVAILABLE_FHIR_ENDPOINTS, safe=False)
 
 
-@login_required
-def query_fhir(request):
-    method = request.method
-    query_args_string = request.GET.get("q", None)
-    logger.debug(f"Found query args {query_args_string}")
-    if settings.DJANGO_MODE == "dev":
-        FHIR_URL = "http://localhost:8080/fhir/"
-    else:
-        FHIR_URL = "http://feast-fhir-302:8081/fhir/"
-    if query_args_string is None:
-        return JsonResponse({"response": "no query text provided"}, safe=False)
-    if method == "GET":
-        fhir_response = requests.request(
-            method="GET", url=f"{FHIR_URL}{query_args_string}"
-        )
-        response_body = fhir_response.json()
-        _ = response_body.pop("link", None)
-        logger.debug(
-            f"Got server response: {response_body}\n\n(Type {type(response_body)})"
-        )
-        return JsonResponse(response_body, safe=False)
-    elif method == "POST":
-        json_body = request.body.decode("utf-8")
-        logger.debug(f"---> Got JSON info {json_body}")
-        fhir_response = requests.request(
-            headers={
-                "Content-Type": "application/json",
-            },
-            method="POST",
-            url=f"{FHIR_URL}{query_args_string}",
-            data=json_body,
-        )
-        _ = response_body.pop("link", None)
-        response_body = fhir_response.json()
-        logger.debug(
-            f"Got server response: {response_body}\n\n(Type {type(response_body)})"
-        )
-        return JsonResponse(response_body, safe=False)
-    else:
-        ...
+# @login_required
+# @csrf_exempt
+# @protected_resource()
+# def query_fhir(request, query_args_string):
+#     method = request.method
+#     token = request.headers.get("Authorization", None)
+#     logger.debug(f"Found query args {query_args_string}")
+#     logger.debug(f"Found token {token}")
+#     if settings.DJANGO_MODE == "dev":
+#         logger.debug(f"===> Contacting localhost FHIR server <===")
+#         FHIR_URL = "http://localhost:8080/fhir/"
+#     else:
+#         FHIR_URL = "http://feast-fhir-internal-server:8080/fhir/"
+#     if query_args_string is None:
+#         return JsonResponse({"response": "no query text provided"}, safe=False)
+#     if method == "GET":
+#         fhir_response = requests.request(
+#             method="GET", url=f"{FHIR_URL}{query_args_string}", headers={"Authorization": token}
+#         )
+#         response_body = fhir_response.json()
+#         _ = response_body.pop("link", None)
+#         logger.debug(
+#             f"Got server response: {response_body}\n\n(Type {type(response_body)})"
+#         )
+#         return JsonResponse(response_body, safe=False)
+#     elif method == "POST":
+#         json_body = json.loads(request.body.decode("utf-8"))
+#         logger.debug(f"---> Got JSON info {json_body}")
+#         fhir_response = requests.request(
+#             headers={
+#                 "Content-Type": "application/fhir+json",
+#             },
+#             method="POST",
+#             url=f"{FHIR_URL}{query_args_string}",
+#             data=json_body,
+#         )
+#         # _ = response_body.pop("link", None)
+#         response_body = fhir_response.json()
+#         logger.debug(
+#             f"Got server response: {response_body}\n\n(Type {type(response_body)})"
+#         )
+#         return JsonResponse(response_body, safe=False)
+#     else:
+#         ...
 
 
-def fhir_metadata(request):
-    method = request.method
-    logger.debug(f"---> Got request of method {method}")
-    # logger.debug(f"META keys are\n{request.META.keys()}")
-    if method == "GET":
-        # hardcoded reponse to confirm FHIR server is there
-        fhir_response = requests.request(
-            method="GET", url="http://localhost:8081/fhir/metadata/"
-        )
-        compliance_statement = fhir_response.json()
-        # logger.debug(f"Got JSON compliance string {compliance_statement}")
-        return JsonResponse(compliance_statement, safe=False)
-    elif method == "POST":
-        return JsonResponse({"result": "Post not yet supported"}, safe=False)
+# def fhir_metadata(request):
+#     method = request.method
+#     logger.debug(f"---> Got request of method {method}")
+#     # logger.debug(f"META keys are\n{request.META.keys()}")
+#     if method == "GET":
+#         # hardcoded reponse to confirm FHIR server is there
+#         fhir_response = requests.request(
+#             method="GET", url="http://localhost:8081/fhir/metadata/"
+#         )
+#         compliance_statement = fhir_response.json()
+#         # logger.debug(f"Got JSON compliance string {compliance_statement}")
+#         return JsonResponse(compliance_statement, safe=False)
+#     elif method == "POST":
+#         return JsonResponse({"result": "Post not yet supported"}, safe=False)
 
 
-def fhir_openapi(request):
-    method = request.method
-    if method == "GET":
-        swagger_response = requests.request(
-            method="GET", url="http://localhost:8081/fhir/swagger-ui/"
-        )
-        return HttpResponse(swagger_response)
-    else:
-        ...
+# def fhir_openapi(request):
+#     method = request.method
+#     if method == "GET":
+#         swagger_response = requests.request(
+#             method="GET", url="http://localhost:8081/fhir/swagger-ui/"
+#         )
+#         return HttpResponse(swagger_response)
+#     else:
+#         ...

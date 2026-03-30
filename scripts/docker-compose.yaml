@@ -1,0 +1,29 @@
+version: '3.7'
+
+services:
+  fhir:
+    container_name: fhir
+    image: "feast-hapi-fhir-jpa-starter"
+    ports:
+      - "8080:8080"
+    # configs:
+    #   - source: hapi
+    #     target: /app/config/application.yaml
+    depends_on:
+      - fhirdb
+
+
+  fhirdb:
+    image: postgres:18.0-alpine3.22
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: fhir
+      POSTGRES_USER: postgres
+      POSTGRES_DB: hapi
+    # volumes:
+    #   - ./hapi-data:/var/lib/postgresql/data
+
+# configs:
+#   hapi:
+#      file: ./hapi.application.yaml
+
