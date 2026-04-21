@@ -18,7 +18,7 @@ logger.addHandler(logging.StreamHandler(sys.stdout))
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--dryrun", "-d", action="store_true")
+    parser.add_argument("--live-run", "-l", action="store_true")
     args = parser.parse_args()
 
     big_start = time.time()
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         )
         print(f"Now on sample {offset}")
         patient_objects = patients_from_df(data["data"], data["converter"])
-        if args.dryrun:
+        if not args.live_run:
             print(f"[dryrun] Would POST {len(patient_objects)} Patient records")
         else:
             for d in patient_objects:

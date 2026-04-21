@@ -18,7 +18,7 @@ logger.addHandler(logging.StreamHandler(sys.stdout))
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--dryrun", "-d", action="store_true")
+    parser.add_argument("--live-run", "-l", action="store_true")
     args = parser.parse_args()
 
     db_connections = load_db_connections(BCO_ID, DB_HOME, logger)
@@ -50,11 +50,11 @@ if __name__ == "__main__":
 
             # NOTE: FHIR conversion for GWDC1 fields is not yet validated.
             # Wiring up post_fhir_data requires testing object construction first.
-            if args.dryrun:
+            if not args.live_run:
                 print(f"[dryrun] {fhir_item}: loaded {len(data['data'])} records at offset {offset}")
             else:
                 raise NotImplementedError(
-                    "GWDC1 FHIR field upload is not yet tested. Run with --dryrun first."
+                    "GWDC1 FHIR field upload is not yet tested. Run without --live-run first."
                 )
 
             samples_count = len(data["data"])

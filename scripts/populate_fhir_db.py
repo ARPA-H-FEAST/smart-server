@@ -22,7 +22,7 @@ logger.addHandler(logging.StreamHandler(sys.stdout))
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--dryrun", "-d", action="store_true")
+    parser.add_argument("--live-run", "-l", action="store_true")
     args = parser.parse_args()
 
     access_info = get_access_token()
@@ -51,7 +51,7 @@ if __name__ == "__main__":
         converter = patient_data["converter"]
         patient_objects = patients_from_df(patient_data["data"], converter)
 
-        if args.dryrun:
+        if not args.live_run:
             print(f"[dryrun] {db_bco}: would POST {len(patient_objects)} Patient records")
         else:
             for o in patient_objects[:10]:
@@ -88,7 +88,7 @@ if __name__ == "__main__":
                 print(f"Skipping {fhir_item}: unexpected data shape")
                 continue
 
-            if args.dryrun:
+            if not args.live_run:
                 print(f"[dryrun] {db_bco} {fhir_item}: would POST {len(objects)} objects")
             else:
                 post_start = time.time()
