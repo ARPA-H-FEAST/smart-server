@@ -1,6 +1,38 @@
 import os
 import pandas as pd
+from collections import namedtuple
 from functools import reduce
+
+
+def _dedupe_fields(fields):
+    seen = {}
+    result = []
+    for f in fields:
+        if f in seen:
+            seen[f] += 1
+            result.append(f"{f}_{seen[f]}")
+        else:
+            seen[f] = 0
+            result.append(f)
+    return result
+
+
+def make_fhir_record_type(resource_name, column_config):
+    """Build a namedtuple type from a fhir_columns config entry.
+
+    Flat list  → bare field names (e.g. BirthDate).
+    Dict       → TableName__ColumnName prefixed names to avoid collisions
+                 across joined tables (e.g. DiagnosisDim__Name).
+    Duplicate bare names (e.g. PrimaryDiagnosisKey appearing twice in
+    Encounter) are suffixed _1, _2, … so namedtuple creation never fails.
+    """
+    if isinstance(column_config, list):
+        fields = _dedupe_fields(column_config)
+    else:
+        fields = []
+        for table_name, cols in column_config.items():
+            fields.extend(f"{table_name}__{col}" for col in cols)
+    return namedtuple(resource_name, fields)
 
 def single_parquet_to_df(file_location, file_name, columns=None):
         # columns = self.config["fhir_columns"][data_type]

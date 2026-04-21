@@ -295,33 +295,33 @@ def nbcc_gender_converter(record):
 
 def gwdc_patient(record):
     p_extension = []
-    p_race = gwdc_race_to_fhir(record[6:10])
-    p_ethnicity = gwdc_ethnicity_to_fhir(record[5])
+    p_race = gwdc_race_to_fhir([record.FirstRace, record.SecondRace, record.ThirdRace, record.FourthRace])
+    p_ethnicity = gwdc_ethnicity_to_fhir(record.Ethnicity)
     if p_race is not None:
         p_extension.append(p_race)
     if p_ethnicity is not None:
         p_extension.append(p_ethnicity)
     if len(p_extension) > 0:
         return Patient({
-            "gender": gwdc_converter["pronoun_map"][record[0]],
-            "communication": lang_to_bcp(record[1]),
-            "birthDate": record[2].strftime("%Y-%m-%d"),
-            "deceasedDateTime": None 
-                if record[3] is None 
-                else record[3].strftime("%Y-%m-%d"),
-            "identifier": [{"value": record[4]}],
+            "gender": gwdc_converter["pronoun_map"][record.ReliableSex],
+            "communication": lang_to_bcp(record.PreferredLanguage),
+            "birthDate": record.BirthDate.strftime("%Y-%m-%d"),
+            "deceasedDateTime": None
+                if record.DeathDate is None
+                else record.DeathDate.strftime("%Y-%m-%d"),
+            "identifier": [{"value": record.DurableKey_e}],
             "extension": p_extension,
         })
     else:
         return Patient({
-                "gender": gwdc_converter["pronoun_map"][record[0]],
-                "communication": lang_to_bcp(record[1]),
-                "birthDate": record[2].strftime("%Y-%m-%d"),
-                "deceasedDateTime": None 
-                    if record[3] is None 
-                    else record[3].strftime("%Y-%m-%d"),
-                "identifier": [{"value": record[4]}],
-            })
+            "gender": gwdc_converter["pronoun_map"][record.ReliableSex],
+            "communication": lang_to_bcp(record.PreferredLanguage),
+            "birthDate": record.BirthDate.strftime("%Y-%m-%d"),
+            "deceasedDateTime": None
+                if record.DeathDate is None
+                else record.DeathDate.strftime("%Y-%m-%d"),
+            "identifier": [{"value": record.DurableKey_e}],
+        })
 
 def brprlu_date(dateValue):
     try:
@@ -340,198 +340,172 @@ def brprlu_duration(length):
 
 def brprlu_patient(record, p_ref=None):
     p_extension = []
-    p_race = gwdc_race_to_fhir(record[9:13])
-    p_ethnicity = gwdc_ethnicity_to_fhir(record[8])
+    p_race = gwdc_race_to_fhir([record.FirstRace, record.SecondRace, record.ThirdRace, record.FourthRace])
+    p_ethnicity = gwdc_ethnicity_to_fhir(record.Ethnicity)
     if p_race is not None:
         p_extension.append(p_race)
     if p_ethnicity is not None:
         p_extension.append(p_ethnicity)
     if len(p_extension) > 0:
-        return Patient(
-        {
-            "gender": gwdc_converter["pronoun_map"][record[0]],
-            "communication": lang_to_bcp(record[1]),
-            "birthDate": datetime.datetime(int(record[2]), 1, 1).date().strftime("%Y-%m-%d"),
-            "deceasedDateTime": brprlu_date(record[3]),
-            "identifier": [{"value": record[4]}],
+        return Patient({
+            "gender": gwdc_converter["pronoun_map"][record.ReliableSex],
+            "communication": lang_to_bcp(record.PreferredLanguage),
+            "birthDate": datetime.datetime(int(record.BirthDate), 1, 1).date().strftime("%Y-%m-%d"),
+            "deceasedDateTime": brprlu_date(record.DeathDate),
+            "identifier": [{"value": record.DurableKey_e}],
             "address": [{
-                "state": record[5],
-                "country": record[6],
+                "state": record.StateOrProvinceAbbreviation,
+                "country": record.Country,
             }],
             "extension": p_extension,
-            # "generalPrectitioner": [{"reference": record[7]}]
-        }
-    )
-
+            # "generalPrectitioner": [{"reference": record.PrimaryCareProviderKey}]
+        })
     else:
-        return Patient(
-        {
-            "gender": gwdc_converter["pronoun_map"][record[0]],
-            "communication": [{"language": {"text": record[1]}}],
-            "birthDate": datetime.datetime(int(record[2]), 1, 1).date().strftime("%Y-%m-%d"),
-            "deceasedDateTime": brprlu_date(record[3]),
-            "identifier": [{"value": record[4]}],
+        return Patient({
+            "gender": gwdc_converter["pronoun_map"][record.ReliableSex],
+            "communication": [{"language": {"text": record.PreferredLanguage}}],
+            "birthDate": datetime.datetime(int(record.BirthDate), 1, 1).date().strftime("%Y-%m-%d"),
+            "deceasedDateTime": brprlu_date(record.DeathDate),
+            "identifier": [{"value": record.DurableKey_e}],
             "address": [{
-                "state": record[5],
-                "country": record[6],
+                "state": record.StateOrProvinceAbbreviation,
+                "country": record.Country,
             }],
-            # "generalPrectitioner": [{"reference": record[7]}]
-        }
-    )
+            # "generalPrectitioner": [{"reference": record.PrimaryCareProviderKey}]
+        })
         
 
 def nbcc_patient(record, p_ref=None):
-    return Patient(
-        {
-            "gender": nbcc_gender_converter(record[0]),
-            "birthDate": record_to_datetime(record[1]),
-            "deceasedDateTime": None if record[2] == "N" else record_to_datetime(record[2]),
-            "identifier": [{"value": record[3]}],
-        }
-    )
+    return Patient({
+        "gender": nbcc_gender_converter(record.sex),
+        "birthDate": record_to_datetime(record.year_of_birth),
+        "deceasedDateTime": None if record.alive == "N" else record_to_datetime(record.alive),
+        "identifier": [{"value": record.nbcc_userinfo_id}],
+    })
 
 
 def gwdc_diagnosis(record, p_ref=None):
     ref = "Patient/2" if p_ref is None else p_ref
-    # for idx, r in enumerate(record):
-    #     print(f"{idx}: {r}")
-    return DiagnosticReport(
-        {
-            "status": "final",
-            # "category": record[2],
-            "code": {"coding": [{
-                "system": gwdc_system_code_to_url(record[15]),
-                "code": record[16], #  14 = "DisplayString"
-                "display": record[13],
-            }], "text": record[12]},
-            "subject": {"reference": ref, "type": "Patient"},
-            "effective": None if record[4] is None else datetime.datetime(int(record[4]), 1, 1).date().strftime("%Y-%m-%d"),
-            "supportingInfo": [{"type": {"text": record[15]}, "reference": {"type": "", "reference": ""}}],
-            "supportingInfo": [{"type": {"text": record[15]}, "reference": {"type": "", "reference": ""}}],
-            "conclusion": record[12],
-            "conclusionCode": [{
-                "coding": [{
-                    "code": record[14], 
-                    "system": gwdc_system_code_to_url(record[15]),
-                    "display": record[12], 
-                }]}],
-            # "performer": record[1],
-            # "encounter": record[4],
-            # "identifier": record[6],
-            # "interpreter": record[7],
-        }
-    )
+    terminology = record.DiagnosisTerminologyDim_PRCA__Type
+    return DiagnosticReport({
+        "status": "final",
+        # "category": record.DiagnosisEventFact_PRCA__Type,
+        "code": {"coding": [{
+            "system": gwdc_system_code_to_url(terminology),
+            "code": record.DiagnosisTerminologyDim_PRCA__Value,
+            "display": record.DiagnosisTerminologyDim_PRCA__GroupedNameAndCode,
+        }], "text": record.DiagnosisTerminologyDim_PRCA__NameAndCode},
+        "subject": {"reference": ref, "type": "Patient"},
+        "effective": None if record.DiagnosisEventFact_PRCA__EndDateKey is None else datetime.datetime(int(record.DiagnosisEventFact_PRCA__EndDateKey), 1, 1).date().strftime("%Y-%m-%d"),
+        "supportingInfo": [{"type": {"text": terminology}, "reference": {"type": "", "reference": ""}}],
+        "conclusion": record.DiagnosisTerminologyDim_PRCA__NameAndCode,
+        "conclusionCode": [{
+            "coding": [{
+                "code": record.DiagnosisTerminologyDim_PRCA__DisplayString,
+                "system": gwdc_system_code_to_url(terminology),
+                "display": record.DiagnosisTerminologyDim_PRCA__NameAndCode,
+            }]}],
+        # "performer": record.DiagnosisEventFact_PRCA__DocumentedByEmployeeKey,
+        # "identifier": record.DiagnosisEventFact_PRCA__DiagnosisKey,
+    })
 
 def brprlu_diagnosis(record, p_ref=None):
     ref = "Patient/2" if p_ref is None else p_ref
-    return DiagnosticReport(
-        {
-            "identifier": [{"value": str(record[6])}],
-            "status": "final", # str(record[9]),
-            # 18: 
-            "code": {"coding": [{
-                "system": gwdc_system_code_to_url(record[18]),
-                "code": record[19], # "DisplayString"
-                "display": record[18],
-                }], "text": record[15]},  # PREFERRED, Per DNAHIVE
-            "subject": {"reference": ref, "type": "Patient"}, # {"reference": record[0], "type": "Patient"},
-            # "encounter": {"reference": str(record[4]), "type": "Encounter"},
-            "effectiveDateTime": "2299-01-01" if record[5] < 1900 else datetime.datetime(int(record[5]), 1, 1).date().strftime("%Y-%m-%d"),
-            # "performer": [{"reference": "Practitioner/1", "type": "Performer"}],  # [{"reference": str(record[8]), "type": "Performer"}],
-            # "result": [{"reference": "Observation/1", "type": "Observation"}],  # [{"reference": record[10], "type": "Observation"}],
-            "note": [{"text": "\n".join(record[11:15]), "author": str(record[8])}],
-            "supportingInfo": [{"type": {"text": record[15]}, "reference": {"type": "", "reference": ""}}],
-            "conclusion": record[17],
-            "conclusionCode": [{
-                "coding": [{
-                    "code": record[19], 
-                    "system": gwdc_system_code_to_url(record[18]),
-                    "display": record[17], 
-                }]}],
-        }
-    )
+    grouped = record.DiagnosisTerminologyDim__GroupedNameAndCode
+    note_fields = [
+        record.DiagnosisDim__DiagnosisKey,
+        record.DiagnosisDim__ClinicalClassificationLevelOne,
+        record.DiagnosisDim__ClinicalClassificationLevelTwo,
+        record.DiagnosisDim__ClinicalClassificationLevelThree,
+    ]
+    return DiagnosticReport({
+        "identifier": [{"value": str(record.DiagnosisEventFact__DiagnosisEventKey)}],
+        "status": "final",
+        "code": {"coding": [{
+            "system": gwdc_system_code_to_url(grouped),
+            "code": record.DiagnosisTerminologyDim__DisplayString,
+            "display": grouped,
+        }], "text": record.DiagnosisDim__ClinicalClassificationLevelFour},
+        "subject": {"reference": ref, "type": "Patient"},
+        # "encounter": {"reference": str(record.DiagnosisEventFact__EncounterKey), "type": "Encounter"},
+        "effectiveDateTime": "2299-01-01" if record.DiagnosisEventFact__EndDateKey < 1900 else datetime.datetime(int(record.DiagnosisEventFact__EndDateKey), 1, 1).date().strftime("%Y-%m-%d"),
+        # "performer": [{"reference": "Practitioner/1", "type": "Performer"}],
+        # "result": [{"reference": "Observation/1", "type": "Observation"}],
+        "note": [{"text": "\n".join(str(f) for f in note_fields), "author": str(record.DiagnosisEventFact__DocumentedByEmployeeKey)}],
+        "supportingInfo": [{"type": {"text": record.DiagnosisDim__ClinicalClassificationLevelFour}, "reference": {"type": "", "reference": ""}}],
+        "conclusion": record.DiagnosisTerminologyDim__NameAndCode,
+        "conclusionCode": [{
+            "coding": [{
+                "code": record.DiagnosisTerminologyDim__DisplayString,
+                "system": gwdc_system_code_to_url(grouped),
+                "display": record.DiagnosisTerminologyDim__NameAndCode,
+            }]}],
+    })
 
 
 def nbcc_diagnosis(record, p_ref=None):
-    return DiagnosticReport(
-        {
-            "identifier": "nbcc",
-            "status": "final",
-            "category": record[0],
-            "code": record[4],
-            "subject": record[9],
-            "performer": "nbcc",
-            "result": record[3],
-            "annotation": (record[7], record[8]),
-            "supporting_info": (record[5], record[6]),
-            "effective": datetime.datetime(record[1]),
-        }
-    )
+    return DiagnosticReport({
+        "identifier": "nbcc",
+        "status": "final",
+        "category": record.breast_cancer,
+        "code": record.stage,
+        "subject": record.nbcc_userinfo_id,
+        "performer": "nbcc",
+        "result": record.er,
+        "annotation": (record.other_diagnosis_descriptors, record.receptors_idk),
+        "supporting_info": (record.diagnosis_age, record.diagnosis_idk),
+        "effective": datetime.datetime(int(record.diagnosis_year), 1, 1),
+    })
 
 def brprlu_procedure(record, p_ref=None):
-    # for idx, val in enumerate(record):
-    #     print(f"{idx}: {val} (type {type(val)})")
-    # print(f"Datetime: {datetime.datetime(int(record[5]), 1, 1, 1).isoformat()}")
-    # print(f"Record:\n{record}\n")
-    start_time = "1900-01-01" if record[14] <  OLD_DATE else record[14].strftime("%Y-%m-%d")
-    end_time = "2099-12-31" if record[15] >  FUTURE_DATE else record[15].strftime("%Y-%m-%d")
-    # f_url = "https://feast.mgpc.biochemistry.gwu.edu/"
-    f_url = "/data"
-    fhir_url = f_url + "fhir/"
-    note_text = "\n".join(record[7:12]) + "\n".join(record[17:])
+    start_time = "1900-01-01" if record.ProcedureDim__Category < OLD_DATE else record.ProcedureDim__Category.strftime("%Y-%m-%d")
+    end_time = "2099-12-31" if record.ProcedureDim__StartDate > FUTURE_DATE else record.ProcedureDim__StartDate.strftime("%Y-%m-%d")
+    note_fields = [
+        record.ProcedureDim__PatientFriendlyName,
+        record.ProcedureDim__Name,
+        record.ProcedureDim__Level,
+        record.ProcedureDim__ResultReportType,
+    ]
     ref = "Patient/2" if p_ref is None else p_ref
-    return Procedure(
-        {
-            "identifier": [{"value": str(record[0])}],
-            # "partOf": [{"reference": str(record[1]), "type": "Encounter"}],
-            "status": "completed",   # str(record[12]), T/F in DB; enum in HL7
-            # "code": {"text": f"{record[4]}+{record[3]}"},  # DEPRECATED
-            "code": {"coding": [{
-                "system": record[3],
-                "code": record[4],
-                "display": record[16],
-            }], 
-                "text": f"{record[4]}+{record[3]}"
-            },  # PREFERRED, Per DNAHIVE
-            "subject": {"reference": ref, "type": "Patient"},#  {"reference": record[5], "type": "Patient"},
-            # "encounter": {"reference": "0", "type": "Encounter"}, ## {"reference": str(record[1]), "type": "Encounter"},
-            "occurrenceDateTime": start_time,
-            "occurrencePeriod": {"start": start_time, "end": end_time},
-            # "performer": [{"actor": {"reference": str(record[6]), "type": "Performer"}}],
-            # "reason": [{"reference": {"reference": f_url}}],  #  {"reference": record[16]}}],
-            # "report": [{"reference": "Patient/1", "type": "DocumentReference"}],  # [{"reference": "\n".join(record[7:12]), "type": "DocumentReference"}],
-            "note": [{"text": "\n".join(record[17:]), "author": str(record[6])}],
-        }
-    )
+    return Procedure({
+        "identifier": [{"value": str(record.ProcedureEventFact__ProcedureEventKey)}],
+        # "partOf": [{"reference": str(record.ProcedureEventFact__EncounterKey), "type": "Encounter"}],
+        "status": "completed",
+        "code": {"coding": [{
+            "system": record.ProcedureEventFact__ProcedureCodeSet,
+            "code": record.ProcedureEventFact__ProcedureCode,
+            "display": record.ProcedureDim__EndDate,
+        }],
+            "text": f"{record.ProcedureEventFact__ProcedureCode}+{record.ProcedureEventFact__ProcedureCodeSet}"
+        },
+        "subject": {"reference": ref, "type": "Patient"},
+        # "encounter": {"reference": "0", "type": "Encounter"},
+        "occurrenceDateTime": start_time,
+        "occurrencePeriod": {"start": start_time, "end": end_time},
+        # "performer": [{"actor": {"reference": str(record.ProcedureEventFact__PerformingProviderDurableKey), "type": "Performer"}}],
+        "note": [{"text": "\n".join(str(f) for f in note_fields), "author": str(record.ProcedureEventFact__PerformingProviderDurableKey)}],
+    })
 
 def brprlu_encounter(record, p_ref=None):
-    # for idx, val in enumerate(record):
-    #     print(f"{idx}: {val} (type {type(val)})")
-    # print(record)
     patient = p_ref if p_ref is not None else "Patient/2"
-    return Encounter(
-        {
-            "identifier": [{"value": str(record[0])}],
-            "status": "completed",
-            # "basedOn": {"text": f"{record[4]}+{record[3]}"},
-            # "careTeam": record[3],
-            # "partOf": f"{record[4]}:{record[5]}",
-            # "serviceProvider": record[6],
-            "class": gwdc_patient_class_to_fhir(record[16]),
-            "type": gwdc_encounter_type_to_fhir(record[1], record[17]),
-            "actualPeriod": {
-                "start": record_to_datetime(record[9]), 
-                "end": record_to_datetime(record[10])},
-            "subject": {"reference": patient, "type": "Patient"}, #  record[7],
-            "plannedStartDate": brprlu_date(record[9]), 
-            # "length": {"duration": brprlu_duration(record[10])}, 
-            # "reason": {"use": "keys", "value": record[11]},
-            # "diagnosis": {"condition": record[12]},
-            # "specialCourtesy": {record[13]},
-            # XXX Hardcoded ...
-            "location": [{"location": {"reference": "Location/1", "type": "Location"}}],# str(record[14])}},
-        }
-    )
+    return Encounter({
+        "identifier": [{"value": str(record.EncounterKey)}],
+        "status": "completed",
+        # "basedOn": {"text": f"{record.PrimaryDiagnosisKey}+{record.PrimaryProcedureKey}"},
+        # "careTeam": record.AdmissionType,
+        # "serviceProvider": record.AttendingProviderDurableKey,
+        "class": gwdc_patient_class_to_fhir(record.PatientClass),
+        "type": gwdc_encounter_type_to_fhir(record.Type, record.TypeCategoryKey),
+        "actualPeriod": {
+            "start": record_to_datetime(record.Date),
+            "end": record_to_datetime(record.EndInstant)},
+        "subject": {"reference": patient, "type": "Patient"},
+        "plannedStartDate": brprlu_date(record.Date),
+        # "length": {"duration": brprlu_duration(record.EndInstant)},
+        # "reason": {"use": "keys", "value": record.ChiefComplaintNumericId},
+        # XXX Hardcoded ...
+        "location": [{"location": {"reference": "Location/1", "type": "Location"}}],
+    })
 
 
 
@@ -543,22 +517,19 @@ def nbcc_genomicStudy(record):
     return GenomicStudy({})
 
 def brprlu_medication(record, p_ref=None):
-    patient = p_ref if p_ref is not None else "Patient/2"
-    return Medication(
-        {
-            "identifier": record[1],
-            "code": {
-                "text": record[2], 
-                "coding": record[5],
-            },
-            "status": {record[19]},
-            "doseForm": {record[11]},
-            "totalVolume": {record[36]},
-            # "ingredient": {},
-            # "batch": {},
-            # "definition": {},
-        }
-    )
+    return Medication({
+        "identifier": record.MedicationDim__MedicationEpicId,
+        "code": {
+            "text": record.MedicationDim__Name,
+            "coding": record.MedicationDim__TherapeuticClass,
+        },
+        "status": {record.MedicationDim___IsDeleted},
+        "doseForm": {record.MedicationDim__Form},
+        "totalVolume": {record.MedicationCodeDim__PackageSize},
+        # "ingredient": {},
+        # "batch": {},
+        # "definition": {},
+    })
 
 def brprlu_medicationadministration(record, p_ref=None):
     patient = p_ref if p_ref is not None else "Patient/2"
@@ -576,47 +547,55 @@ def brprlu_medicationdispense(record, p_ref=None):
     )
 def brprlu_medicationrequest(record, p_ref=None):
     patient = p_ref if p_ref is not None else "Patient/2"
-    return MedicationRequest(
-        {
-            "identifier": record[1],
-            # "basedOn": ,
-            "priorPrescription": record[100],
-            # "groupIdentifier": ,
-            "status": record[117],
-            "statusReason": record[50],
-            # "statusChanged": ,
-            # "intent": ,
-            "category": record[57],
-            "priority": record[59],
-            # "doNotPerform": ,
-            "medication": record[5],
-            "subject": record[152],
-            # "informationSource": ,
-            "encounter": record[2],
-            # "supportingInformation": ,
-            "authoredOn": record[30],
-            "requester": record[15],
-            # "reported": ,
-            # "performer": ,
-            # "device": ,
-            "reason": [record[65], record[66:71]],
-            "note": [record[71], record[72:77]],
-            # "effectiveDosePeriod": ,
-            "dosageInstruction": {
-                "timing": {"event": record[30], "code": record[52]},
-                "route": record[53],
-                "doseAndRate": {"doseQuantity": {"unit": record[55]}}
-            },
-            "dispenseRequest": {
-                "validityPeriod": {"end": record[30]},
-                "quantity": {"unit": record[55], "value": record[81]},
-                "numberOfRepeatsAllowed": record[86],
-                "expectedSupplyDuration": record[89]
-            },
-            "substitution": record[95],
-            # "eventHistory": ,
-        }
-    )
+    return MedicationRequest({
+        "identifier": record.MedicationOrderFact__MedicationOrderEpicId,
+        # "basedOn": ,
+        "priorPrescription": record.MedicationOrderFact__ReorderedFromPrescription,
+        # "groupIdentifier": ,
+        "status": record.MedicationOrderFact___IsDeleted,
+        "statusReason": record.MedicationOrderFact__DiscontinueReason,
+        # "statusChanged": ,
+        # "intent": ,
+        "category": record.MedicationOrderFact__Class,
+        "priority": record.MedicationOrderFact__OrderPriority,
+        # "doNotPerform": ,
+        "medication": record.MedicationOrderFact__MedicationKey,
+        "subject": record.MedicationOrderFact__PatientDurableKey_e,
+        # "informationSource": ,
+        "encounter": record.MedicationOrderFact__EncounterKey,
+        # "supportingInformation": ,
+        "authoredOn": record.MedicationOrderFact__OrderedUtcInstant,
+        "requester": record.MedicationOrderFact__OrderedByEmployeeDurableKey,
+        # "reported": ,
+        # "performer": ,
+        # "device": ,
+        "reason": [
+            record.MedicationOrderFact__FirstPrnReason,
+            [record.MedicationOrderFact__SecondPrnReason, record.MedicationOrderFact__ThirdPrnReason,
+             record.MedicationOrderFact__FourthPrnReason, record.MedicationOrderFact__FifthPrnReason,
+             record.MedicationOrderFact__SixthPrnReason],
+        ],
+        "note": [
+            record.MedicationOrderFact__FirstIndicationForUse,
+            [record.MedicationOrderFact__SecondIndicationForUse, record.MedicationOrderFact__ThirdIndicationForUse,
+             record.MedicationOrderFact__FourthIndicationForUse, record.MedicationOrderFact__FifthIndicationForUse,
+             record.MedicationOrderFact__SixthIndicationForUse],
+        ],
+        # "effectiveDosePeriod": ,
+        "dosageInstruction": {
+            "timing": {"event": record.MedicationOrderFact__OrderedUtcInstant, "code": record.MedicationOrderFact__Frequency},
+            "route": record.MedicationOrderFact__Route,
+            "doseAndRate": {"doseQuantity": {"unit": record.MedicationOrderFact__DoseUnit}},
+        },
+        "dispenseRequest": {
+            "validityPeriod": {"end": record.MedicationOrderFact__OrderedUtcInstant},
+            "quantity": {"unit": record.MedicationOrderFact__DoseUnit, "value": record.MedicationOrderFact__Quantity},
+            "numberOfRepeatsAllowed": record.MedicationOrderFact__NumberOfDoses,
+            "expectedSupplyDuration": record.MedicationOrderFact__DaysSupply,
+        },
+        "substitution": record.MedicationOrderFact__DispenseAsWritten,
+        # "eventHistory": ,
+    })
 def brprlu_medicationstatement(record, p_ref=None):
     patient = p_ref if p_ref is not None else "Patient/2"
     return MedicationStatement(

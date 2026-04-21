@@ -6,6 +6,7 @@ import json
 import os
 
 from .utilities import (
+    make_fhir_record_type,
     single_parquet_to_df,
     single_table_query_to_string,
     join_tables_no_select,
@@ -62,14 +63,14 @@ def duck_join(join_config, columns):
     primary_table = join_config["primary_table"]
     other_tables = join_config["other_tables"]
     primary_cols = columns[primary_table]
-    
+
     fk = join_config["fk"]
     select_str = ""
     for col in primary_cols:
-        select_str += f"t1.{col},"
+        select_str += f"t1.{col} AS {primary_table}__{col},"
     for idx, table in enumerate(other_tables):
         for col in columns[table]:
-            select_str += f"t{idx+2}.{col},"
+            select_str += f"t{idx+2}.{col} AS {table}__{col},"
     select_str = select_str.rstrip(",")
     print(f"Running select string: {select_str}")
 
@@ -222,9 +223,9 @@ class DBInterface:
             df = pd.read_parquet(file_path, columns=columns)
             return {
                 "data": [
-                    self.fhir_converter[data_type](dr) 
-                    for dr 
-                    in df.itertuples(index=False, name=None)
+                    self.fhir_converter[data_type](dr)
+                    for dr
+                    in df.itertuples(index=False)
                 ],
                 "pagination": {"sample_size": df.shape, "offset": 0},
             }
@@ -254,19 +255,13 @@ class DBInterface:
             }
             return response
         elif output_format == "fhir":
-            # self.logger.debug(
-            #     f"Data type: {data_type} ::: FHIR Converter keys: {self.fhir_converter.keys()}"
-            # )
-            # if data_type not in self.fhir_converter.keys():
-            #     return ["Error", f"Data type {data_type} not found in DB records"]
+            column_config = self.config["fhir_columns"][data_type]
+            record_type = make_fhir_record_type(data_type, column_config)
             data_rows = self.con.execute(final_query).fetchall()
-            # self.logger.debug(f"===> Found {len(data_rows)} data points")
-            # XXX - While working out the kinks, move away from list comprehension and
-            # perform the conversion one at a time
             data = []
             for dr in data_rows:
                 try:
-                    d = self.fhir_converter[data_type](dr)
+                    d = self.fhir_converter[data_type](record_type(*dr))
                     data.append(d)
                 except Exception as e:
                     self.logger.error(f"===> 272 Exception: {e}")
@@ -349,24 +344,17 @@ class DBInterface:
         else:
             raise Exception("Illegal definition")
         self.logger.debug(f"=> Final query:\n{final_query}")
-        # self.logger.debug(
-        #     f"Data type: {data_type} ::: FHIR Converter keys: {self.fhir_converter.keys()}"
-        # )
-        # if data_type not in self.fhir_converter.keys():
-        #     return ["Error", f"Data type {data_type} not found in DB records"]
+        column_config = self.config["fhir_columns"][data_type]
+        record_type = make_fhir_record_type(data_type, column_config)
         data_rows = self.con.execute(final_query).fetchall()
-        # self.logger.debug(f"===> Found {len(data_rows)} data points")
-        # XXX - While working out the kinks, move away from list comprehension and
-        # perform the conversion one at a time
         data = []
         for dr in data_rows:
             try:
-                d = self.fhir_converter[data_type](dr)
+                d = self.fhir_converter[data_type](record_type(*dr))
                 data.append(d)
             except Exception as e:
                 self.logger.error(f"===> 362 Exception: {e}")
                 self.logger.error(f"Data row: {dr}")
-                # self.logger.error(f"Query was {final_query}")
                 raise
 
         response = {
