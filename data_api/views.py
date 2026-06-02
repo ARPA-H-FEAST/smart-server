@@ -24,6 +24,7 @@ from .models import BCOFileDescriptor
 from .serializers import BCOandFileSerializer
 
 from .db_interfaces import DBInterface
+from .db_interfaces.cohort_db import CohortDB
 
 from .swagger_configs import (
     get_dataset_detail_config,
@@ -73,6 +74,20 @@ if os.path.isfile(db_config_path):
 else:
     logger.debug(f"No DB connections defined at {db_config_path}")
     DB_CONNECTORS = {}
+
+_COHORT_DB_CANDIDATES = [
+    Path("/data/arpah/processed/dbgap/cohort_frequencies.duckdb"),
+    BASE_DIR / "datadir/processed/dbgap/cohort_frequencies.duckdb",
+]
+
+def _init_cohort_db():
+    for p in _COHORT_DB_CANDIDATES:
+        if Path(p).exists():
+            return CohortDB(p)
+    logger.debug("Cohort frequencies DuckDB not found; run compute_cohort_frequencies.py first")
+    return None
+
+COHORT_DB = _init_cohort_db()
 
 # @swagger_auto_schema(tags=["get_data_source"])
 # methods=["get", "post"],
@@ -375,3 +390,59 @@ def download(request):
             return FileResponse(open(file_path, "rb"), filename=file_name)
         except Exception as e:
             logger.debug(f"---->>>> EXCEPTION: {e}")
+
+
+class CohortStudyList(APIView):
+    """List all studies with their available cohort dimensions and labels."""
+
+    def get(self, request):
+        if COHORT_DB is None:
+            return JsonResponse({"error": "Cohort frequency database not available"}, status=503)
+
+        studies = {}
+        for study_id, cancer_type in COHORT_DB.studies():
+            dims = {}
+            for dim, label in COHORT_DB.dimensions(study_id):
+                dims.setdefault(dim, []).append(label)
+            studies[study_id] = {"cancer_type": cancer_type, "cohort_dimensions": dims}
+
+        return JsonResponse({"studies": studies})
+
+
+class CohortFrequencyView(APIView):
+    """Return top-N variants by alt frequency for a given study cohort."""
+
+    def get(self, request, cancer_type, study_id):
+        if COHORT_DB is None:
+            return JsonResponse({"error": "Cohort frequency database not available"}, status=503)
+
+        cohort_dim = request.GET.get("dimension")
+        cohort_label = request.GET.get("cohort")
+        variant_type = request.GET.get("variant_type", "all")
+
+        try:
+            limit = min(int(request.GET.get("limit", 20)), 100)
+        except ValueError:
+            return JsonResponse({"error": "limit must be an integer"}, status=400)
+
+        if not cohort_dim or not cohort_label:
+            dims = {}
+            for dim, label in COHORT_DB.dimensions(study_id):
+                dims.setdefault(dim, []).append(label)
+            return JsonResponse(
+                {"error": "dimension and cohort parameters are required",
+                 "available_dimensions": dims},
+                status=400,
+            )
+
+        variants = COHORT_DB.top_variants(study_id, cohort_dim, cohort_label, limit, variant_type)
+        sample_count = COHORT_DB.sample_count(study_id, cohort_dim, cohort_label)
+
+        return JsonResponse({
+            "study_id": study_id,
+            "cancer_type": cancer_type,
+            "cohort_dimension": cohort_dim,
+            "cohort_label": cohort_label,
+            "sample_count": sample_count,
+            "variants": variants,
+        })

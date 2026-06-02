@@ -5,6 +5,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from . import views
+from .views import CohortStudyList, CohortFrequencyView
 
 import logging
 import os
@@ -59,6 +60,9 @@ urlpatterns = [
     path(
         "swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="swagger-ui"
     ),
+    path("cohort/", CohortStudyList.as_view(), name="Cohort study list"),
+    path("cohort/<str:cancer_type>/<str:study_id>/snp-frequency/",
+         CohortFrequencyView.as_view(), name="Cohort SNP frequency"),
     # path("access/get-files/", views.get_data_sources, name="API data source list access"),
     # path("access/ds-metadata/", views.get_data_metadata_values, name="API data source metadata access"),
 ] + swagger_patterns
