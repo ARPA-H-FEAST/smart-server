@@ -5,12 +5,20 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from . import views
-from .views import CohortStudyList, CohortFrequencyView
+from .views import CohortStudyList, CohortFrequencyView, PatientListView, RsidCarrierView, MutationDetailView, MutationSearchView
+
+from django.conf import settings as django_settings
 
 import logging
 import os
 
 logger = logging.getLogger()
+
+_SCHEMA_URL = (
+    "http://localhost:8000"
+    if django_settings.DJANGO_MODE == "dev"
+    else "https://feast.mgpc.biochemistry.gwu.edu"
+)
 
 
 # Routers provide an easy way of automatically determining the URL conf.
@@ -21,13 +29,10 @@ logger = logging.getLogger()
 
 
 class SchemaGenerator(OpenAPISchemaGenerator):
-    # See hacky workaround: https://github.com/axnsan12/drf-yasg/issues/440#issuecomment-520918895
-    # Unclear if it has been fixed: https://github.com/axnsan12/drf-yasg/pull/682
+    # Workaround for drf-yasg basePath derivation: https://github.com/axnsan12/drf-yasg/issues/440
     def get_schema(self, request=None, public=False):
         schema = super(SchemaGenerator, self).get_schema(request, public)
-        # schema.basePath = "https://feast.mgpc.biochemistry.gwu.edu"
-        # schema.basePath = os.path.join("https://feast.mgpc.biochemistry.gwu.edu", "fhir-api/data-api/")
-        schema.basePath = os.path.join(schema.basePath, "fhir-api/data-api/")
+        schema.basePath = "/fhir-api/data-api/"
         return schema
 
 
@@ -40,29 +45,32 @@ swagger_patterns = [
         name="API data source metadata access",
     ),
     path("dataset-bco/", views.GetBCO.as_view(), name="BCO Access"),
+    path("cohort/", CohortStudyList.as_view(), name="Cohort study list"),
+    path(
+        "cohort/<str:cancer_type>/<str:study_id>/snp-frequency/",
+        CohortFrequencyView.as_view(),
+        name="Cohort SNP frequency",
+    ),
+    path("patients/", PatientListView.as_view(), name="Patient list"),
+    path("rsid-carriers/", RsidCarrierView.as_view(), name="rsID carrier counts"),
+    path("Mutation/_search", MutationSearchView.as_view(), name="Mutation search"),
+    path("Mutation/<str:mutation_id>/", MutationDetailView.as_view(), name="Mutation detail"),
 ]
 
 schema_view = get_schema_view(
-    openapi.Info(title="FHIR Swagger Test", default_version="v0.1"),
+    openapi.Info(title="FEAST Data API", default_version="v0.1"),
     public=False,
     patterns=swagger_patterns,
-    # url="http://localhost:8000",
-    url="https://feast.mgpc.biochemistry.gwu.edu",
+    url=_SCHEMA_URL,
     urlconf="data_api.urls",
     generator_class=SchemaGenerator,
 )
 
 urlpatterns = [
     path("list/", views.get_available_files, name="Available files list"),
-    # path("detail/", GetFileDetail.as_view(), name="File detail view"),
     path("search/", views.search, name="Access search API"),
     path("download/", views.download, name="Downloads"),
     path(
         "swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="swagger-ui"
     ),
-    path("cohort/", CohortStudyList.as_view(), name="Cohort study list"),
-    path("cohort/<str:cancer_type>/<str:study_id>/snp-frequency/",
-         CohortFrequencyView.as_view(), name="Cohort SNP frequency"),
-    # path("access/get-files/", views.get_data_sources, name="API data source list access"),
-    # path("access/ds-metadata/", views.get_data_metadata_values, name="API data source metadata access"),
 ] + swagger_patterns
