@@ -509,12 +509,78 @@ def brprlu_encounter(record, p_ref=None):
 
 
 
+_COHORT_API_BASE = "https://feast.mgpc.biochemistry.gwu.edu/fhir-api/data-api/cohort"
+_DBGAP_SEX_MAP = {"M": "male", "F": "female", "m": "male", "f": "female"}
+
+
+def dbgap_patient(record, study_config):
+    subject_id_col = study_config["phenotype_subject_id_column"]
+    subject_id = getattr(record, subject_id_col)
+    study_id = study_config["_study_id"]
+    sex_raw = getattr(record, "sex", None)
+    return Patient({
+        "identifier": [{"value": str(subject_id), "system": f"dbGaP/{study_id}"}],
+        "gender": _DBGAP_SEX_MAP.get(sex_raw, "unknown"),
+    })
+
+
+_VCF_TYPE = {"coding": [{"system": "http://edamontology.org", "code": "format_3016", "display": "VCF"}]}
+
+
+def _vcf_analysis(study_config, vcf_base):
+    # TODO: replace file.display with a real DocumentReference once the data-exfiltration
+    # access policy is resolved. Currently stores filesystem paths as non-resolvable
+    # display strings so the location is machine-readable without being fetchable.
+    if vcf_base is None:
+        return None
+    if "vcf_paths" in study_config:
+        outputs = [
+            {"type": _VCF_TYPE, "file": {"display": str(vcf_base / p)}}
+            for p in study_config["vcf_paths"]
+        ]
+    elif "vcf_dir" in study_config:
+        outputs = [{"type": _VCF_TYPE, "file": {"display": str(vcf_base / study_config["vcf_dir"])}}]
+    else:
+        return None
+    return [{"title": "VCF genotype data", "output": outputs}]
+
+
+def dbgap_genomicStudy(record, study_config, patient_ref, vcf_base=None):
+    subject_id_col = study_config["phenotype_subject_id_column"]
+    subject_id = getattr(record, subject_id_col)
+    cancer_type = study_config["cancer_type"]
+    study_id = study_config["_study_id"]
+    cohort_url = f"{_COHORT_API_BASE}/{cancer_type}/{study_id}/snp-frequency/"
+    obj = {
+        "status": "available",
+        "subject": {"reference": patient_ref, "type": "Patient"},
+        "identifier": [{"value": str(subject_id), "system": f"dbGaP/{study_id}"}],
+        "description": study_config["study_name"],
+        "instantiatesUri": cohort_url,
+    }
+    analysis = _vcf_analysis(study_config, vcf_base)
+    if analysis is not None:
+        obj["analysis"] = analysis
+    return GenomicStudy(obj)
+
+
 def gwdc_genomicStudy(record):
     return GenomicStudy({})
 
 
-def nbcc_genomicStudy(record):
-    return GenomicStudy({})
+def nbcc_genomicStudy(record, p_ref=None):
+    subject = p_ref if p_ref is not None else "Patient/unknown"
+    return GenomicStudy({
+        "status": "available",
+        "subject": {"reference": subject, "type": "Patient"},
+        "identifier": [{"value": record.dnl_user}],
+        "description": f"SNP genotyping via {record.filetype}",
+        "type": [{"coding": [{
+            "system": "http://loinc.org",
+            "code": "81244-9",
+            "display": "SNP Array",
+        }]}],
+    })
 
 def brprlu_medication(record, p_ref=None):
     return Medication({
@@ -605,6 +671,10 @@ def brprlu_medicationstatement(record, p_ref=None):
     )
 
 FHIR_CONVERTER = {
+    "dbgap": {
+        "Patient": dbgap_patient,
+        "GenomicStudy": dbgap_genomicStudy,
+    },
     "gwdc_prostate": {
         "Patient": gwdc_patient,
         "DiagnosticReport": gwdc_diagnosis,
@@ -613,7 +683,7 @@ FHIR_CONVERTER = {
     "nbcc": {
         "Patient": nbcc_patient,
         "DiagnosticReport": nbcc_diagnosis,
-        "genomicStudy": nbcc_genomicStudy,
+        "GenomicStudy": nbcc_genomicStudy,
     },
     "gwdc_brprlu": {
         "Patient": brprlu_patient,
