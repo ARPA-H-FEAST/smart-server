@@ -189,25 +189,32 @@ REST_FRAMEWORK = {
 
 ROOT_URLCONF = "server.urls"
 
+_SWAGGER_BASE = (
+    "http://localhost:8000"
+    if DJANGO_MODE == "dev"
+    else "https://feast.mgpc.biochemistry.gwu.edu"
+)
+
 SWAGGER_SETTINGS = {
-    # "DEFAULT_API_URL": "http://localhost:8000/fhir-api/yasg/",
-    "DEFAULT_API_URL": "https://feast.mgpc.biochemistry.gwu.edu/fhir-api/yasg/",
+    "DEFAULT_API_URL": f"{_SWAGGER_BASE}/fhir-api/data-api/",
     "USE_SESSION_AUTH": False,
     "SECURITY_DEFINITIONS": {
-        "Your App API - Swagger": {
+        "FEAST OAuth2": {
             "type": "oauth2",
-            "authorizationUrl": "/fhir-api/oauth/authorize/",
-            "tokenUrl": "/fhir-api/oauth/token/",
+            "authorizationUrl": f"{_SWAGGER_BASE}/fhir-api/oauth/authorize/",
+            "tokenUrl": f"{_SWAGGER_BASE}/fhir-api/oauth/token/",
             "flow": "accessCode",
             "scopes": {
-                "read:groups": "read groups",
+                "openid": "OpenID Connect",
+                "read": "Read access",
             },
         }
     },
     "OAUTH2_CONFIG": {
-        "clientId": "bCqvtdpVsZXskrraLDfOQGVMsMoNubqrzrL42tRd",
-        # "clientSecret": "yourAppClientSecret",
-        "appName": "LocalHost OIDC Application",
+        "clientId": "w375YDDqSgTNGlPPq9SZZH9THELeTpZnCLJ44xuc",
+        "appName": "FEAST Data API Swagger",
+        "usePkceWithAuthorizationCodeGrant": True,
+        "scopes": "openid read",
     },
 }
 
