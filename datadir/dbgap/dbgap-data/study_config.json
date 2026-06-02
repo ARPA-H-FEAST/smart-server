@@ -2,20 +2,30 @@
   "phs001044": {
     "cancer_type": "breast",
     "study_name": "Breast Cancer Risk Pathways",
+    "study_dir": "breast_cancer/phs001044_vcf",
     "cohort_dimensions": [
       {"column": "mutated_gene", "label": "mutated_gene"}
     ],
+    "demographics": {
+      "age": "age"
+    },
     "phenotype_file": "phs001044.v1.pht005274.v1.p1.c1.Breast_Cancer_Risk_Pathways_Subject_Phenotypes.GRU.txt",
     "phenotype_subject_id_column": "SUBJECT_ID",
     "vcf_sample_id_transform": {"type": "strip_prefix", "prefix": "Subject_"},
-    "vcf_paths": ["bc-phs001044/snps.final.vcf", "bc-phs001044/indels.final.vcf"]
+    "vcf_dir": "phg000722.v1.BreastCancerRiskPathways.genotype-calls-vcf.c1"
   },
   "phs001141": {
     "cancer_type": "prostate",
     "study_name": "PROMOTE",
+    "study_dir": "prostate_cancer/phs001141_vcf",
     "cohort_dimensions": [
       {"column": "composite_progression", "label": "progression"}
     ],
+    "demographics": {
+      "sex": "sex",
+      "race": "race",
+      "age": "age"
+    },
     "phenotype_file": "phs001141.v2.pht005601.v1.p1.c1.PROMOTE_Subject_Phenotypes.GRU.txt",
     "phenotype_subject_id_column": "SUBJECT_ID",
     "vcf_sample_id_transform": {
@@ -24,11 +34,12 @@
       "sample_id_column": "SAMPLE_ID",
       "subject_id_column": "SUBJECT_ID"
     },
-    "vcf_paths": ["pc-phs001141/S10_DNA_V1N.vcf"]
+    "vcf_dir": "phg000836.v1.PROMOTE.genotype-calls-vcf.WES_markerset_grc37.c1.GRU"
   },
   "phs001273": {
     "cancer_type": "lung",
     "study_name": "OncoArray Lung Cancer",
+    "study_dir": "lung_cancer/phs001273_vcf",
     "cohort_dimensions": [
       {
         "column": "disease", "label": "disease",
@@ -52,6 +63,22 @@
         }
       }
     ],
+    "demographics": {
+      "race": {
+        "column": "ancestry_inferred",
+        "value_map": {"-9": "Other", "1": "Asian", "2": "Black/African-American", "3": "White/Caucasian"}
+      },
+      "age": {
+        "column": "age_category",
+        "value_map": {
+          "-9": null,
+          "1":  "15-19", "2":  "20-24", "3":  "25-29", "4":  "30-34",
+          "5":  "35-39", "6":  "40-44", "7":  "45-49", "8":  "50-54",
+          "9":  "55-59", "10": "60-64", "11": "65-69", "12": "70-74",
+          "13": "75-79", "14": "80-84", "15": "85-89", "16": "90+"
+        }
+      }
+    },
     "phenotype_file": "phs001273.v4.pht006173.v3.p2.c3.OncoArray_Lung_Cancer_Subject_Phenotypes.GRU.txt",
     "phenotype_subject_id_column": "subject_ID",
     "vcf_sample_id_transform": {
@@ -60,41 +87,65 @@
       "sample_id_column": "sample_ID",
       "subject_id_column": "subject_ID"
     },
-    "vcf_dir": "lc-phs001273/"
+    "vcf_dir": "c3"
   },
   "phs001483": {
     "cancer_type": "breast",
     "study_name": "DRIVE BC WGS",
+    "study_dir": "breast_cancer/phs001483_vcf",
     "cohort_dimensions": [
       {"column": "CACO", "label": "case_control", "value_map": {"0": "control", "1": "case"}},
       {"column": "ER_status", "label": "er_status", "value_map": {"0": "negative", "1": "positive", "9999": null}}
     ],
+    "demographics": {
+      "race": "Ancestry",
+      "age": "Age"
+    },
     "phenotype_file": "phs001483.v1.pht007307.v1.p1.c2.DRIVE_BC_WGS_Subject_Phenotypes.GRU.txt",
     "phenotype_subject_id_column": "SUBJECT_ID",
     "vcf_sample_id_transform": {"type": "direct"},
-    "vcf_paths": ["bc-phs001483/Sample.vcf"]
+    "vcf_dir": "phg001087.v1.NCI_DRIVE_BC_WGS.genotype-calls-vcf.c2"
   },
   "phs002056": {
     "cancer_type": "prostate",
     "study_name": "CIDR PC AS",
+    "study_dir": "prostate_cancer/phs002056_vcf",
     "cohort_dimensions": [
       {"label": "gleason_group", "derived_fn": "gleason_group"}
     ],
+    "demographics": {
+      "race": {
+        "column": "race",
+        "value_map": {
+          "1": "American Indian/Alaska Native",
+          "2": "Asian",
+          "3": "Black/African-American",
+          "4": "Native Hawaiian/Other Pacific Islander",
+          "5": "White"
+        }
+      },
+      "age": "dx_age"
+    },
     "phenotype_file": "phs002056.v1.pht010452.v1.p1.c9.CIDR_PC_AS_Subject_Phenotypes.GRU.txt",
     "phenotype_subject_id_column": "SUBJECT_ID",
     "vcf_sample_id_transform": {"type": "direct"},
-    "vcf_dir": "pc-phs002056/"
+    "vcf_dir": "phg001505.v1.NCI_CIDR_PC_Imputed.genotype-calls-vcf.c9"
   },
   "phs003516": {
     "cancer_type": "prostate",
     "study_name": "PCa LRP EA AA",
+    "study_dir": "prostate_cancer/phs003516_vcf",
     "cohort_dimensions": [
       {"column": "Race", "label": "race"},
       {"column": "self.cancer.hist", "label": "cancer_history", "value_map": {"0": "no_history", "1": "cancer_history"}}
     ],
+    "demographics": {
+      "race": "Race",
+      "age": "age"
+    },
     "phenotype_file": "phs003516.v1.pht014201.v1.p1.c1.PCa_LRP_EA_AA_Subject_Phenotypes.GRU.txt",
     "phenotype_subject_id_column": "Subject_ID",
     "vcf_sample_id_transform": {"type": "direct"},
-    "vcf_paths": ["pc-phs003516/AA_example.vcf"]
+    "vcf_dir": "phg002030.v1.NCI_PCa_LRP_EA_AA.genotype-calls-vcf.c1"
   }
 }
