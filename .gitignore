@@ -11,6 +11,10 @@ env/*
 # Keep secrets secret ...
 **/*.key
 
+# Don't track local working data cache, but keep the configs as appropriate
+datadir/*
+!datadir/**/*.json
+
 # Created by https://www.toptal.com/developers/gitignore/api/python,node,vue,vuejs,matlab
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,node,vue,vuejs,matlab
 
