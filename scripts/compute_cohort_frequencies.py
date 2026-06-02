@@ -16,6 +16,7 @@ logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
 _VCF_BASE_CANDIDATES = [
+    Path("/data/arpah/downloads/dbGaP/all_vcfs/"),
     Path("/data/arpah/dbgap-data/"),
     PROJECT_ROOT / "datadir/dbgap/dbgap-data/",
 ]
@@ -24,6 +25,7 @@ _DB_CANDIDATES = [
     PROJECT_ROOT / "datadir/processed/dbgap/cohort_frequencies.duckdb",
 ]
 _CONFIG_CANDIDATES = [
+    Path("/data/arpah/downloads/dbGaP/all_vcfs/study_config.json"),
     Path("/data/arpah/dbgap-data/study_config.json"),
     PROJECT_ROOT / "datadir/dbgap/dbgap-data/study_config.json",
 ]
@@ -52,6 +54,38 @@ CREATE TABLE IF NOT EXISTS cohort_sample_counts (
     cohort_dim   VARCHAR,
     cohort_label VARCHAR,
     sample_count INTEGER
+)
+"""
+_CREATE_PATIENT_COUNTS = """
+CREATE TABLE IF NOT EXISTS patient_snp_counts (
+    study_id    VARCHAR,
+    cancer_type VARCHAR,
+    subject_id  VARCHAR,
+    snp_count   INTEGER,
+    indel_count INTEGER
+)
+"""
+_CREATE_PATIENT_DEMOGRAPHICS = """
+CREATE TABLE IF NOT EXISTS patient_demographics (
+    study_id    VARCHAR,
+    cancer_type VARCHAR,
+    subject_id  VARCHAR,
+    sex         VARCHAR,
+    race        VARCHAR,
+    age         VARCHAR
+)
+"""
+_CREATE_VARIANT_CARRIERS = """
+CREATE TABLE IF NOT EXISTS variant_carrier_counts (
+    study_id      VARCHAR,
+    cancer_type   VARCHAR,
+    chrom         VARCHAR,
+    pos           INTEGER,
+    rsid          VARCHAR,
+    ref           VARCHAR,
+    alt           VARCHAR,
+    variant_type  VARCHAR,
+    carrier_count INTEGER
 )
 """
 
@@ -142,24 +176,65 @@ def build_sample_cohort_map(phenotype_rows, study_cfg, vcf_base=None):
             subject_cohorts[subject_id] = cohorts
 
     if transform["type"] == "sample_manifest":
-        manifest_path = vcf_base / "metadata" / transform["file"]
+        manifest_path = vcf_base / transform["file"]
         sample_to_subject = parse_sample_manifest(
             manifest_path, transform["sample_id_column"], transform["subject_id_column"]
         )
-        return {
+        cohort_map = {
             sample_id: subject_cohorts[subject_id]
             for sample_id, subject_id in sample_to_subject.items()
             if subject_id in subject_cohorts
         }
+        vcf_to_subject = {k: v for k, v in sample_to_subject.items() if v in subject_cohorts}
+        return cohort_map, vcf_to_subject
 
     # direct or strip_prefix: vcf_id derived from subject_id
     if transform["type"] == "strip_prefix":
         prefix = transform["prefix"]
-        return {
+        cohort_map = {
             subject_id.removeprefix(prefix): cohorts
             for subject_id, cohorts in subject_cohorts.items()
         }
-    return subject_cohorts
+        vcf_to_subject = {
+            subject_id.removeprefix(prefix): subject_id
+            for subject_id in subject_cohorts
+        }
+        return cohort_map, vcf_to_subject
+
+    # direct: vcf sample id == subject id
+    return subject_cohorts, {sid: sid for sid in subject_cohorts}
+
+def _dem_value(row, spec):
+    """Extract a single demographic value, applying value_map if present."""
+    if not spec:
+        return None
+    if isinstance(spec, str):
+        col, vmap = spec, None
+    else:
+        col, vmap = spec["column"], spec.get("value_map")
+    val = row.get(col, "") or None
+    if val is None:
+        return None
+    if vmap is not None:
+        return vmap.get(str(val))   # unmapped values → None
+    return None if str(val) in _MISSING else str(val)
+
+
+def _extract_demographics(phenotype_rows, study_id, cancer_type, study_cfg):
+    """Returns (study_id, cancer_type, subject_id, sex, race, age) rows from phenotype data."""
+    subject_col = study_cfg["phenotype_subject_id_column"]
+    dem_cfg = study_cfg.get("demographics", {})
+    rows = []
+    for row in phenotype_rows:
+        subject_id = row.get(subject_col, "")
+        if not subject_id:
+            continue
+        sex  = _dem_value(row, dem_cfg.get("sex"))
+        race = _dem_value(row, dem_cfg.get("race"))
+        age  = _dem_value(row, dem_cfg.get("age"))
+        rows.append((study_id, cancer_type, subject_id, sex, race, age))
+    return rows
+
 
 # ── VCF processing ─────────────────────────────────────────────────────────────
 
@@ -177,6 +252,8 @@ def _parse_gt(gt_field):
 
 def process_vcf(vcf_path, sample_cohort_map, study_id, cancer_type):
     counts = defaultdict(lambda: [0, 0])
+    patient_alt_counts = defaultdict(lambda: [0, 0])  # {vcf_sample_id: [snp_sites, indel_sites]}
+    variant_carriers = defaultdict(int)               # {(chrom, pos, rsid, ref, alt, vtype): carrier_count}
     sample_cols = None
     unmatched = set()
     n_variants = 0
@@ -212,6 +289,12 @@ def process_vcf(vcf_path, sample_cohort_map, study_id, cancer_type):
                 alt_c, total = _parse_gt(fields[9 + i])
                 if total == 0:
                     continue
+                if alt_c > 0:
+                    if vtype == "snp":
+                        patient_alt_counts[sample_id][0] += 1
+                    else:
+                        patient_alt_counts[sample_id][1] += 1
+                    variant_carriers[(chrom, pos, rsid, ref, alt, vtype)] += 1
                 for dim, label in cohorts.items():
                     counts[(chrom, pos, rsid, ref, alt, vtype, dim, label)][0] += alt_c
                     counts[(chrom, pos, rsid, ref, alt, vtype, dim, label)][1] += total
@@ -225,7 +308,7 @@ def process_vcf(vcf_path, sample_cohort_map, study_id, cancer_type):
         freq = alt_c / total if total > 0 else 0.0
         rows.append((study_id, cancer_type, chrom, pos, rsid, ref, alt, vtype,
                      dim, label, alt_c, total, freq))
-    return rows
+    return rows, dict(patient_alt_counts), dict(variant_carriers)
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 
@@ -245,15 +328,22 @@ def main():
                         help="Parse and count without writing to DuckDB")
     parser.add_argument("--force", "-f", action="store_true",
                         help="Remove stale DuckDB lock files before connecting")
+    parser.add_argument("--vcf-base", metavar="PATH",
+                        help="Root directory containing study VCF data (overrides auto-detection)")
     args = parser.parse_args()
 
     config_path = _find(_CONFIG_CANDIDATES)
     if config_path is None:
         sys.exit(f"study_config.json not found. Tried: {_CONFIG_CANDIDATES}")
 
-    vcf_base = _find(_VCF_BASE_CANDIDATES)
-    if vcf_base is None:
-        sys.exit(f"VCF base directory not found. Tried: {_VCF_BASE_CANDIDATES}")
+    if args.vcf_base:
+        vcf_base = Path(args.vcf_base)
+        if not vcf_base.exists():
+            sys.exit(f"--vcf-base path does not exist: {vcf_base}")
+    else:
+        vcf_base = _find(_VCF_BASE_CANDIDATES)
+        if vcf_base is None:
+            sys.exit(f"VCF base directory not found. Tried: {_VCF_BASE_CANDIDATES}")
 
     with open(config_path) as f:
         studies = json.load(f)
@@ -278,8 +368,14 @@ def main():
         if args.rebuild:
             conn.execute("DROP TABLE IF EXISTS cohort_frequencies")
             conn.execute("DROP TABLE IF EXISTS cohort_sample_counts")
+            conn.execute("DROP TABLE IF EXISTS patient_snp_counts")
+            conn.execute("DROP TABLE IF EXISTS patient_demographics")
+            conn.execute("DROP TABLE IF EXISTS variant_carrier_counts")
         conn.execute(_CREATE_FREQUENCIES)
         conn.execute(_CREATE_SAMPLE_COUNTS)
+        conn.execute(_CREATE_PATIENT_COUNTS)
+        conn.execute(_CREATE_PATIENT_DEMOGRAPHICS)
+        conn.execute(_CREATE_VARIANT_CARRIERS)
         _run_studies(studies, vcf_base, conn)
 
 
@@ -293,9 +389,18 @@ def _run_studies(studies, vcf_base, conn):
         logger.info(f"=== {study_id} ({cfg['cancer_type']}) ===")
         t0 = time.time()
 
-        pheno_path = vcf_base / "metadata" / cfg["phenotype_file"]
+        if "study_dir" in cfg and (vcf_base / cfg["study_dir"]).exists():
+            study_base = vcf_base / cfg["study_dir"]
+            metadata_base = study_base
+            vcf_root = study_base
+        else:
+            study_base = None
+            metadata_base = vcf_base / "metadata"
+            vcf_root = vcf_base
+
+        pheno_path = metadata_base / cfg["phenotype_file"]
         phenotype_rows = parse_phenotype_file(pheno_path)
-        sample_cohort_map = build_sample_cohort_map(phenotype_rows, cfg, vcf_base)
+        sample_cohort_map, vcf_to_subject = build_sample_cohort_map(phenotype_rows, cfg, metadata_base)
         logger.info(f"  {len(sample_cohort_map)} samples with phenotype data")
 
         sample_counts = defaultdict(lambda: defaultdict(int))
@@ -307,17 +412,45 @@ def _run_studies(studies, vcf_base, conn):
                 logger.info(f"  {dim}={label!r}: {n} samples")
 
         all_rows = []
+        all_vcf_patient_counts = defaultdict(lambda: [0, 0])
+        all_variant_carriers = defaultdict(int)
+
+        def _accumulate(vcf_path):
+            freq_rows, vcf_counts, vcf_carriers = process_vcf(
+                vcf_path, sample_cohort_map, study_id, cfg["cancer_type"]
+            )
+            all_rows.extend(freq_rows)
+            for vcf_id, (snp_c, indel_c) in vcf_counts.items():
+                all_vcf_patient_counts[vcf_id][0] += snp_c
+                all_vcf_patient_counts[vcf_id][1] += indel_c
+            for key, count in vcf_carriers.items():
+                all_variant_carriers[key] += count
+
         if "vcf_paths" in cfg:
             for rel_path in cfg["vcf_paths"]:
-                vcf_path = vcf_base / rel_path
+                vcf_path = vcf_root / rel_path
                 logger.info(f"  Reading {vcf_path.name}...")
-                all_rows.extend(process_vcf(vcf_path, sample_cohort_map, study_id, cfg["cancer_type"]))
+                _accumulate(vcf_path)
         elif "vcf_dir" in cfg:
-            for vcf_path in sorted((vcf_base / cfg["vcf_dir"]).glob("*.vcf")):
+            for vcf_path in sorted((vcf_root / cfg["vcf_dir"]).glob("*.vcf")):
                 logger.info(f"  Reading {vcf_path.name}...")
-                all_rows.extend(process_vcf(vcf_path, sample_cohort_map, study_id, cfg["cancer_type"]))
+                _accumulate(vcf_path)
 
-        logger.info(f"  Total rows: {len(all_rows)}  ({time.time()-t0:.1f}s)")
+        carrier_rows = [
+            (study_id, cfg["cancer_type"], chrom, pos, rsid, ref, alt, vtype, count)
+            for (chrom, pos, rsid, ref, alt, vtype), count in all_variant_carriers.items()
+        ]
+
+        patient_count_rows = [
+            (study_id, cfg["cancer_type"], vcf_to_subject.get(vcf_id, vcf_id), snp_c, indel_c)
+            for vcf_id, (snp_c, indel_c) in all_vcf_patient_counts.items()
+        ]
+        dem_rows = _extract_demographics(phenotype_rows, study_id, cfg["cancer_type"], cfg)
+
+        logger.info(
+            f"  Total rows: {len(all_rows)}, {len(patient_count_rows)} patients, "
+            f"{len(carrier_rows)} variant-carrier pairs  ({time.time()-t0:.1f}s)"
+        )
 
         if conn is not None and all_rows:
             freq_df = pd.DataFrame(all_rows, columns=[
@@ -337,6 +470,29 @@ def _run_studies(studies, vcf_base, conn):
             conn.execute("INSERT INTO cohort_frequencies SELECT * FROM freq_df")
             conn.execute("DELETE FROM cohort_sample_counts WHERE study_id = ?", [study_id])
             conn.execute("INSERT INTO cohort_sample_counts SELECT * FROM counts_df")
+
+            if patient_count_rows:
+                patient_df = pd.DataFrame(patient_count_rows, columns=[
+                    "study_id", "cancer_type", "subject_id", "snp_count", "indel_count",
+                ])
+                conn.execute("DELETE FROM patient_snp_counts WHERE study_id = ?", [study_id])
+                conn.execute("INSERT INTO patient_snp_counts SELECT * FROM patient_df")
+
+            if dem_rows:
+                dem_df = pd.DataFrame(dem_rows, columns=[
+                    "study_id", "cancer_type", "subject_id", "sex", "race", "age",
+                ])
+                conn.execute("DELETE FROM patient_demographics WHERE study_id = ?", [study_id])
+                conn.execute("INSERT INTO patient_demographics SELECT * FROM dem_df")
+
+            if carrier_rows:
+                carrier_df = pd.DataFrame(carrier_rows, columns=[
+                    "study_id", "cancer_type", "chrom", "pos", "rsid",
+                    "ref", "alt", "variant_type", "carrier_count",
+                ])
+                conn.execute("DELETE FROM variant_carrier_counts WHERE study_id = ?", [study_id])
+                conn.execute("INSERT INTO variant_carrier_counts SELECT * FROM carrier_df")
+
             conn.commit()
             logger.info(f"  Written to DuckDB.")
 

@@ -21,10 +21,12 @@ logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
 _VCF_BASE_CANDIDATES = [
+    Path("/data/arpah/downloads/dbGaP/all_vcfs/"),
     Path("/data/arpah/dbgap-data/"),
     PROJECT_ROOT / "datadir/dbgap/dbgap-data/",
 ]
 _CONFIG_CANDIDATES = [
+    Path("/data/arpah/downloads/dbGaP/all_vcfs/study_config.json"),
     Path("/data/arpah/dbgap-data/study_config.json"),
     PROJECT_ROOT / "datadir/dbgap/dbgap-data/study_config.json",
 ]
@@ -88,7 +90,13 @@ def _load_phenotype(pheno_path):
 
 def _process_study(study_id, cfg, vcf_base, args, access_token, fhir_url):
     cfg["_study_id"] = study_id
-    pheno_path = vcf_base / "metadata" / cfg["phenotype_file"]
+    if "study_dir" in cfg and (vcf_base / cfg["study_dir"]).exists():
+        metadata_base = vcf_base / cfg["study_dir"]
+        vcf_root = metadata_base
+    else:
+        metadata_base = vcf_base / "metadata"
+        vcf_root = vcf_base
+    pheno_path = metadata_base / cfg["phenotype_file"]
     df = _load_phenotype(pheno_path)
 
     subject_id_col = cfg["phenotype_subject_id_column"]
@@ -110,7 +118,7 @@ def _process_study(study_id, cfg, vcf_base, args, access_token, fhir_url):
     for row in df.itertuples(index=False):
         patient_uuid = f"urn:uuid:{_uuid.uuid4()}"
         patient_obj = dbgap_patient(row, cfg)
-        genomic_obj = dbgap_genomicStudy(row, cfg, patient_uuid, vcf_base=vcf_base)
+        genomic_obj = dbgap_genomicStudy(row, cfg, patient_uuid, vcf_base=vcf_root)
 
         batch.append(_bundle_entry(patient_obj.as_json(), "Patient", full_url=patient_uuid))
         batch.append(_bundle_entry(genomic_obj.as_json(), "GenomicStudy"))
@@ -147,9 +155,16 @@ if __name__ == "__main__":
                              "Overrides the default remote server; skips OAuth.")
     parser.add_argument("--batch-size", metavar="N", type=int, default=200,
                         help="Subjects per transaction bundle (default: 200)")
+    parser.add_argument("--vcf-base", metavar="PATH",
+                        help="Root directory containing study VCF data (overrides auto-detection)")
     args = parser.parse_args()
 
-    vcf_base = _find_path(_VCF_BASE_CANDIDATES)
+    if args.vcf_base:
+        vcf_base = Path(args.vcf_base)
+        if not vcf_base.exists():
+            sys.exit(f"--vcf-base path does not exist: {vcf_base}")
+    else:
+        vcf_base = _find_path(_VCF_BASE_CANDIDATES)
     config_path = _find_path(_CONFIG_CANDIDATES)
 
     with open(config_path) as f:
