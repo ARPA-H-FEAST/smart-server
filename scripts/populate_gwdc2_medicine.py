@@ -28,7 +28,7 @@ if __name__ == "__main__":
         "--index", "-i", default=-1, type=int,
         help="Index 1-12; or default -1 for testing only"
     )
-    parser.add_argument("--dryrun", "-d", action="store_true")
+    parser.add_argument("--live-run", "-l", action="store_true")
     parser.add_argument("--truncated_run", "-t", action="store_true")
     args = parser.parse_args()
 
@@ -130,7 +130,7 @@ if __name__ == "__main__":
                     log.debug(f"Missing resource? {response}")
 
             if type(data["data"]) is dict:
-                if args.dryrun:
+                if not args.live_run:
                     objects = objects_from_joint_df(data, fhir_item, pids, converter, resource_url_strings)
                     log.debug(f"[dryrun] {fhir_item}: would upload {len(objects)} objects for {len(pids)} patients")
                 else:
@@ -150,7 +150,7 @@ if __name__ == "__main__":
                     log.debug(f"====> PIDs were {', '.join(pids)}")
 
             elif type(data["data"]) is pd.DataFrame:
-                if args.dryrun:
+                if not args.live_run:
                     objects = objects_from_single_df(data, fhir_item, pids, converter, resource_url_strings)
                     log.debug(f"[dryrun] {fhir_item}: would upload {len(objects)} objects for {len(pids)} patients")
                 else:

@@ -45,11 +45,29 @@ def query_single_patient(access_token, patient_id):
     return response.json()
 
 
+def build_if_none_exist(fhir_sample):
+    identifiers = fhir_sample.get("identifier")
+    if not isinstance(identifiers, list) or not identifiers:
+        return None
+    id0 = identifiers[0]
+    if not isinstance(id0, dict):
+        return None
+    value = id0.get("value")
+    if not value:
+        return None
+    system = id0.get("system")
+    return f"identifier={system}|{value}" if system else f"identifier={value}"
+
+
 def post_fhir_data(access_token, fhir_sample, fhir_endpoint):
+    headers = {"Authorization": f"Bearer {access_token}"}
+    if_none_exist = build_if_none_exist(fhir_sample)
+    if if_none_exist:
+        headers["If-None-Exist"] = if_none_exist
     response = requests.post(
         FHIR_URL + fhir_endpoint,
         json=fhir_sample,
-        headers={"Authorization": f"Bearer {access_token}"},
+        headers=headers,
     )
     return response.json()
 
