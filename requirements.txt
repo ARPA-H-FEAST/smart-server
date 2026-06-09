@@ -1,4 +1,5 @@
 black
+cyvcf2
 duckdb
 Django
 django-oauth-toolkit
