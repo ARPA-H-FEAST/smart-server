@@ -15,6 +15,7 @@ env/*
 # Don't track local working data cache, but keep the configs as appropriate
 datadir/*
 !datadir/**/*.json
+scripts/*.tsv
 
 claude-sessions/
 
