@@ -8,6 +8,7 @@ try:
     from .fhir_objs.R5 import (
         Patient,
         DiagnosticReport,
+        DocumentReference,
         GenomicStudy,
     )
     from django.conf import settings
@@ -23,7 +24,7 @@ except:
         sys.path.append(str(this_path))
         ## Import for command line
         from data_api.db_interfaces.fhir_objs.R5 import (
-            Patient, DiagnosticReport, Procedure,
+            Patient, DiagnosticReport, DocumentReference, Procedure,
             Encounter, Observation, Medication,
             GenomicStudy, Location, MedicationAdministration,
             MedicationRequest, MedicationDispense,
@@ -568,9 +569,9 @@ def gwdc_genomicStudy(record):
     return GenomicStudy({})
 
 
-def nbcc_genomicStudy(record, p_ref=None):
+def nbcc_genomicStudy(record, p_ref=None, doc_ref_id=None):
     subject = p_ref if p_ref is not None else "Patient/unknown"
-    return GenomicStudy({
+    obj = {
         "status": "available",
         "subject": {"reference": subject, "type": "Patient"},
         "identifier": [{"value": record.dnl_user}],
@@ -580,6 +581,27 @@ def nbcc_genomicStudy(record, p_ref=None):
             "code": "81244-9",
             "display": "SNP Array",
         }]}],
+    }
+    if doc_ref_id is not None:
+        obj["analysis"] = [{
+            "title": "SNP genotype data",
+            "output": [{"type": _VCF_TYPE, "file": {"reference": f"DocumentReference/{doc_ref_id}"}}],
+        }]
+    return GenomicStudy(obj)
+
+
+def nbcc_documentReference(vcf_path, p_ref, dnl_user):
+    return DocumentReference({
+        "status": "current",
+        "subject": {"reference": p_ref, "type": "Patient"},
+        "identifier": [{"value": dnl_user}],
+        "content": [{
+            "attachment": {
+                "contentType": "text/x-vcf",
+                "url": vcf_path.as_uri() if hasattr(vcf_path, "as_uri") else str(vcf_path),
+                "title": f"NBCC SNP genotype data for {dnl_user}",
+            }
+        }],
     })
 
 def brprlu_medication(record, p_ref=None):
@@ -683,6 +705,7 @@ FHIR_CONVERTER = {
     "nbcc": {
         "Patient": nbcc_patient,
         "DiagnosticReport": nbcc_diagnosis,
+        "DocumentReference": nbcc_documentReference,
         "GenomicStudy": nbcc_genomicStudy,
     },
     "gwdc_brprlu": {
