@@ -1,5 +1,6 @@
 import json
 import logging
+import sqlite3
 import sys
 import time
 from argparse import ArgumentParser
@@ -28,6 +29,19 @@ _CONFIG_CANDIDATES = [
     Path("/data/arpah/downloads/dbGaP/all_vcfs/study_config.json"),
     Path("/data/arpah/dbgap-data/study_config.json"),
     PROJECT_ROOT / "datadir/dbgap/dbgap-data/study_config.json",
+]
+
+# ── NBCC ───────────────────────────────────────────────────────────────────────
+_NBCC_STUDY_ID = "FEAST_000012"
+_NBCC_CANCER_TYPE = "breast"
+_NBCC_DB_CANDIDATES = [
+    Path("/data/arpah/processed/nbcc/nbcc_db/nbcc.db"),
+    PROJECT_ROOT / "datadir/processed/nbcc/nbcc_db/nbcc.db",
+    PROJECT_ROOT / "../data/nbcc/nbcc_db/nbcc.db",
+]
+_NBCC_VCF_DIR_CANDIDATES = [
+    Path(__file__).parent / "vcfs",
+    PROJECT_ROOT / "datadir/processed/nbcc/vcfs",
 ]
 
 _CREATE_FREQUENCIES = """
@@ -310,6 +324,149 @@ def process_vcf(vcf_path, sample_cohort_map, study_id, cancer_type):
                      dim, label, alt_c, total, freq))
     return rows, dict(patient_alt_counts), dict(variant_carriers)
 
+# ── NBCC cohort helpers ────────────────────────────────────────────────────────
+
+def _build_nbcc_cohort_map(db_path):
+    """Returns ({dnl_user: {cohort_dim: value}}, {dnl_user: dnl_user}) from NBCC SQLite."""
+    conn = sqlite3.connect(db_path)
+    rows = conn.execute("""
+        SELECT DISTINCT fu.sample_id, ut.true_sex
+        FROM file_uploads fu
+        JOIN user_traits ut ON ut.dnl_user = fu.sample_id
+        WHERE fu.sample_id IN (SELECT DISTINCT dnl_user FROM user_snps)
+          AND ut.deleted != 't'
+    """).fetchall()
+    conn.close()
+    cohort_map = {}
+    for dnl_user, true_sex in rows:
+        if true_sex and true_sex not in _MISSING and true_sex != "unknown":
+            cohort_map[dnl_user] = {"sex": true_sex}
+    return cohort_map, {u: u for u in cohort_map}
+
+
+def _build_nbcc_demographics(db_path):
+    """Returns patient_demographics rows from NBCC SQLite.
+
+    own_account = 'V00000003' identifies the participant's own family_records row.
+    """
+    conn = sqlite3.connect(db_path)
+    rows = conn.execute("""
+        SELECT DISTINCT fu.sample_id, ut.true_sex, fr.year_of_birth
+        FROM file_uploads fu
+        JOIN user_traits ut ON ut.dnl_user = fu.sample_id
+        JOIN user_info ui ON ui.user_profile_id = fu.user_profile_id
+        LEFT JOIN family_records fr
+               ON fr.nbcc_userinfo_id = ui.id
+              AND fr.own_account = 'V00000003'
+        WHERE fu.sample_id IN (SELECT DISTINCT dnl_user FROM user_snps)
+          AND ut.deleted != 't'
+    """).fetchall()
+    conn.close()
+    seen = set()
+    dem_rows = []
+    for dnl_user, true_sex, yob in rows:
+        if dnl_user in seen:
+            continue
+        seen.add(dnl_user)
+        sex = true_sex if (true_sex and true_sex != "unknown") else None
+        age = str(yob) if yob and str(yob) not in _MISSING else None
+        dem_rows.append((_NBCC_STUDY_ID, _NBCC_CANCER_TYPE, dnl_user, sex, None, age))
+    return dem_rows
+
+
+def _run_nbcc(conn, db_path, vcf_dir):
+    study_id = _NBCC_STUDY_ID
+    cancer_type = _NBCC_CANCER_TYPE
+    logger.info(f"=== {study_id} ({cancer_type}) ===")
+    t0 = time.time()
+
+    cohort_map, vcf_to_subject = _build_nbcc_cohort_map(db_path)
+    logger.info(f"  {len(cohort_map)} NBCC samples with cohort data")
+
+    sample_counts = defaultdict(lambda: defaultdict(int))
+    for cohorts in cohort_map.values():
+        for dim, label in cohorts.items():
+            sample_counts[dim][label] += 1
+    for dim, labels in sample_counts.items():
+        for label, n in sorted(labels.items()):
+            logger.info(f"  {dim}={label!r}: {n} samples")
+
+    all_rows = []
+    all_patient_counts = defaultdict(lambda: [0, 0])
+    all_variant_carriers = defaultdict(int)
+
+    vcf_files = sorted(vcf_dir.glob("*.vcf"))
+    logger.info(f"  {len(vcf_files)} VCF files in {vcf_dir}")
+    for vcf_path in vcf_files:
+        logger.info(f"  Reading {vcf_path.name}...")
+        freq_rows, vcf_counts, vcf_carriers = process_vcf(vcf_path, cohort_map, study_id, cancer_type)
+        all_rows.extend(freq_rows)
+        for vcf_id, (snp_c, indel_c) in vcf_counts.items():
+            all_patient_counts[vcf_id][0] += snp_c
+            all_patient_counts[vcf_id][1] += indel_c
+        for key, count in vcf_carriers.items():
+            all_variant_carriers[key] += count
+
+    carrier_rows = [
+        (study_id, cancer_type, chrom, pos, rsid, ref, alt, vtype, count)
+        for (chrom, pos, rsid, ref, alt, vtype), count in all_variant_carriers.items()
+    ]
+    patient_count_rows = [
+        (study_id, cancer_type, vcf_to_subject.get(vcf_id, vcf_id), snp_c, indel_c)
+        for vcf_id, (snp_c, indel_c) in all_patient_counts.items()
+    ]
+    dem_rows = _build_nbcc_demographics(db_path)
+
+    logger.info(
+        f"  Total rows: {len(all_rows)}, {len(patient_count_rows)} patients, "
+        f"{len(carrier_rows)} variant-carrier pairs  ({time.time()-t0:.1f}s)"
+    )
+
+    if conn is not None and all_rows:
+        freq_df = pd.DataFrame(all_rows, columns=[
+            "study_id", "cancer_type", "chrom", "pos", "rsid",
+            "ref", "alt", "variant_type", "cohort_dim", "cohort_label",
+            "alt_count", "total_alleles", "alt_freq",
+        ])
+        count_rows = [
+            (study_id, cancer_type, dim, label, n)
+            for dim, labels in sample_counts.items()
+            for label, n in labels.items()
+        ]
+        counts_df = pd.DataFrame(count_rows, columns=[
+            "study_id", "cancer_type", "cohort_dim", "cohort_label", "sample_count",
+        ])
+        conn.execute("DELETE FROM cohort_frequencies WHERE study_id = ?", [study_id])
+        conn.execute("INSERT INTO cohort_frequencies SELECT * FROM freq_df")
+        conn.execute("DELETE FROM cohort_sample_counts WHERE study_id = ?", [study_id])
+        conn.execute("INSERT INTO cohort_sample_counts SELECT * FROM counts_df")
+
+        if patient_count_rows:
+            patient_df = pd.DataFrame(patient_count_rows, columns=[
+                "study_id", "cancer_type", "subject_id", "snp_count", "indel_count",
+            ])
+            conn.execute("DELETE FROM patient_snp_counts WHERE study_id = ?", [study_id])
+            conn.execute("INSERT INTO patient_snp_counts SELECT * FROM patient_df")
+
+        if dem_rows:
+            dem_df = pd.DataFrame(dem_rows, columns=[
+                "study_id", "cancer_type", "subject_id", "sex", "race", "age",
+            ])
+            conn.execute("DELETE FROM patient_demographics WHERE study_id = ?", [study_id])
+            conn.execute("INSERT INTO patient_demographics SELECT * FROM dem_df")
+
+        if carrier_rows:
+            carrier_df = pd.DataFrame(carrier_rows, columns=[
+                "study_id", "cancer_type", "chrom", "pos", "rsid",
+                "ref", "alt", "variant_type", "carrier_count",
+            ])
+            conn.execute("DELETE FROM variant_carrier_counts WHERE study_id = ?", [study_id])
+            conn.execute("INSERT INTO variant_carrier_counts SELECT * FROM carrier_df")
+
+        conn.commit()
+        logger.info(f"  Written to DuckDB.")
+
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def _find(candidates):
@@ -321,7 +478,7 @@ def _find(candidates):
 
 def main():
     parser = ArgumentParser(description="Pre-compute cohort allele frequencies from dbGaP VCFs")
-    parser.add_argument("--study", "-s", help="Process only this study ID")
+    parser.add_argument("--study", "-s", help="Process only this study ID (dbGaP only)")
     parser.add_argument("--rebuild", "-r", action="store_true",
                         help="Drop and recreate tables before processing")
     parser.add_argument("--dry-run", "-n", action="store_true",
@@ -330,31 +487,52 @@ def main():
                         help="Remove stale DuckDB lock files before connecting")
     parser.add_argument("--vcf-base", metavar="PATH",
                         help="Root directory containing study VCF data (overrides auto-detection)")
+    parser.add_argument("--nbcc", action="store_true",
+                        help="Also process NBCC per-patient VCFs into the same DuckDB")
     args = parser.parse_args()
 
-    config_path = _find(_CONFIG_CANDIDATES)
-    if config_path is None:
-        sys.exit(f"study_config.json not found. Tried: {_CONFIG_CANDIDATES}")
+    run_dbgap = not args.nbcc or args.study is not None
+    run_nbcc = args.nbcc
 
-    if args.vcf_base:
-        vcf_base = Path(args.vcf_base)
-        if not vcf_base.exists():
-            sys.exit(f"--vcf-base path does not exist: {vcf_base}")
-    else:
-        vcf_base = _find(_VCF_BASE_CANDIDATES)
-        if vcf_base is None:
-            sys.exit(f"VCF base directory not found. Tried: {_VCF_BASE_CANDIDATES}")
+    studies = {}
+    vcf_base = None
+    if run_dbgap:
+        config_path = _find(_CONFIG_CANDIDATES)
+        if config_path is None:
+            sys.exit(f"study_config.json not found. Tried: {_CONFIG_CANDIDATES}")
 
-    with open(config_path) as f:
-        studies = json.load(f)
+        if args.vcf_base:
+            vcf_base = Path(args.vcf_base)
+            if not vcf_base.exists():
+                sys.exit(f"--vcf-base path does not exist: {vcf_base}")
+        else:
+            vcf_base = _find(_VCF_BASE_CANDIDATES)
+            if vcf_base is None:
+                sys.exit(f"VCF base directory not found. Tried: {_VCF_BASE_CANDIDATES}")
 
-    if args.study:
-        if args.study not in studies:
-            sys.exit(f"Study {args.study!r} not in config. Available: {list(studies)}")
-        studies = {args.study: studies[args.study]}
+        with open(config_path) as f:
+            studies = json.load(f)
+
+        if args.study:
+            if args.study not in studies:
+                sys.exit(f"Study {args.study!r} not in config. Available: {list(studies)}")
+            studies = {args.study: studies[args.study]}
+
+    nbcc_db = nbcc_vcf_dir = None
+    if run_nbcc:
+        nbcc_db = _find(_NBCC_DB_CANDIDATES)
+        if nbcc_db is None:
+            sys.exit(f"NBCC SQLite DB not found. Tried: {_NBCC_DB_CANDIDATES}")
+        nbcc_vcf_dir = _find(_NBCC_VCF_DIR_CANDIDATES)
+        if nbcc_vcf_dir is None:
+            sys.exit(f"NBCC VCF directory not found. Tried: {_NBCC_VCF_DIR_CANDIDATES}\n"
+                     "Run populate_nbcc_vcfs.py --generate-vcfs first.")
 
     if args.dry_run:
-        _run_studies(studies, vcf_base, conn=None)
+        if studies:
+            _run_studies(studies, vcf_base, conn=None)
+        if run_nbcc:
+            _run_nbcc(conn=None, db_path=nbcc_db, vcf_dir=nbcc_vcf_dir)
         return
 
     db_path = _find(_DB_CANDIDATES) or _DB_CANDIDATES[-1]
@@ -376,7 +554,10 @@ def main():
         conn.execute(_CREATE_PATIENT_COUNTS)
         conn.execute(_CREATE_PATIENT_DEMOGRAPHICS)
         conn.execute(_CREATE_VARIANT_CARRIERS)
-        _run_studies(studies, vcf_base, conn)
+        if studies:
+            _run_studies(studies, vcf_base, conn)
+        if run_nbcc:
+            _run_nbcc(conn, db_path=nbcc_db, vcf_dir=nbcc_vcf_dir)
 
 
 def _run_studies(studies, vcf_base, conn):

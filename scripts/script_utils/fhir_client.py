@@ -8,7 +8,7 @@ FHIR_URL = "https://feast.mgpc.biochemistry.gwu.edu/fhir/"
 AUTH_URL = "https://feast.mgpc.biochemistry.gwu.edu/fhir-api/"
 AUTH_TOKEN_URL = AUTH_URL + "oauth/token/"
 
-_SECRETS_PATH = Path(__file__).parent.parent.parent / "server/populate_fhir_secrets.json"
+_SECRETS_PATH = Path(__file__).parent.parent.parent / "server/secrets.json"
 
 
 def get_access_token():
