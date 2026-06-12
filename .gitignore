@@ -15,6 +15,8 @@ env/*
 datadir/*
 !datadir/**/*.json
 
+claude-sessions/
+
 # Created by https://www.toptal.com/developers/gitignore/api/python,node,vue,vuejs,matlab
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,node,vue,vuejs,matlab
 
