@@ -47,10 +47,13 @@ SELECT COUNT(*) FROM patient_snp_counts
 """
 
 _CARRIER_COUNT_SQL = """
-SELECT rsid, chrom, pos, ref, alt, variant_type, SUM(carrier_count) AS carrier_count
+SELECT rsid,
+       regexp_replace(chrom, '^chr', '') AS chrom,
+       pos, ref, alt, variant_type,
+       SUM(carrier_count) AS carrier_count
 FROM variant_carrier_counts
 {where_clause}
-GROUP BY rsid, chrom, pos, ref, alt, variant_type
+GROUP BY rsid, regexp_replace(chrom, '^chr', ''), pos, ref, alt, variant_type
 ORDER BY carrier_count DESC
 """
 
@@ -164,7 +167,16 @@ class CohortDB:
         return where, params
 
     def patient_list(self, study_id=None, cancer_type=None, limit=100, offset=0):
-        where, params = self._patient_where(study_id, cancer_type)
+        # patient_demographics also has a cancer_type column, so qualify with p. to
+        # avoid DuckDB's "Ambiguous reference" error in the JOIN query.
+        conditions, params = [], []
+        if study_id:
+            conditions.append("study_id = ?")   # merged by USING, unambiguous
+            params.append(study_id)
+        if cancer_type:
+            conditions.append("p.cancer_type = ?")
+            params.append(cancer_type)
+        where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
         sql = _PATIENT_LIST_SQL.format(where_clause=where)
         rows = self.con.execute(sql, params + [limit, offset]).fetchall()
         return [
