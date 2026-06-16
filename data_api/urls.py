@@ -37,14 +37,14 @@ class SchemaGenerator(OpenAPISchemaGenerator):
 
 
 swagger_patterns = [
-    path("dataset-detail/", views.GetDatasetDetail.as_view(), name="File detail view"),
-    path("datasets/", views.GetDataSets.as_view(), name="API data source list access"),
-    path(
-        "dataset-metadata/",
-        views.GetDatasetMetadata.as_view(),
-        name="API data source metadata access",
-    ),
-    path("dataset-bco/", views.GetBCO.as_view(), name="BCO Access"),
+    # path("dataset-detail/", views.GetDatasetDetail.as_view(), name="File detail view"),
+    # path("datasets/", views.GetDataSets.as_view(), name="API data source list access"),
+    # path(
+    #     "dataset-metadata/",
+    #     views.GetDatasetMetadata.as_view(),
+    #     name="API data source metadata access",
+    # ),
+    # path("dataset-bco/", views.GetBCO.as_view(), name="BCO Access"),
     path("cohort/", CohortStudyList.as_view(), name="Cohort study list"),
     path(
         "cohort/<str:cancer_type>/<str:study_id>/snp-frequency/",
@@ -53,8 +53,8 @@ swagger_patterns = [
     ),
     path("patients/", PatientListView.as_view(), name="Patient list"),
     path("rsid-carriers/", RsidCarrierView.as_view(), name="rsID carrier counts"),
-    path("Mutation/_search", MutationSearchView.as_view(), name="Mutation search"),
-    path("Mutation/<str:mutation_id>/", MutationDetailView.as_view(), name="Mutation detail"),
+    path("mutation/_search", MutationSearchView.as_view(), name="Mutation search"),
+    path("mutation/<str:mutation_id>/", MutationDetailView.as_view(), name="Mutation detail"),
 ]
 
 schema_view = get_schema_view(
