@@ -31,6 +31,28 @@ def objects_from_single_df(
 
     return samples
 
+def catalog_objects_from_joint_df(data, fhir_item, converter):
+    """Join and convert records for non-patient resources (e.g., Medication catalog)."""
+    pt = data['data']['primary']
+    join_config = data['config']
+    foreign_key = join_config['fk']
+    primary_table_name = join_config['primary_table']
+
+    df = pt.rename(columns={
+        col: f"{primary_table_name}__{col}"
+        for col in pt.columns if col != foreign_key
+    })
+    for other_table_name, other_df in data['data'].items():
+        if other_table_name == 'primary':
+            continue
+        renamed_other = other_df.rename(columns={
+            col: f"{other_table_name}__{col}"
+            for col in other_df.columns if col != foreign_key
+        })
+        df = pd.merge(df, renamed_other, on=foreign_key, how='inner')
+
+    return [converter[fhir_item](df_row) for df_row in df.itertuples(index=False)]
+
 def describe_object_fields(
     data, fhir_item, patient_ids, converter, resource_url_strings=None
     ):
