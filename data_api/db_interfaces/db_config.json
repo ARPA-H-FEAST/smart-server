@@ -163,9 +163,9 @@
                 "other_tables": ["MedicationDim"]
             },
             "MedicationStatement": {
-                "fk": "MedicationKey", 
-                "primary_table": "MedicationOrderFact", 
-                "other_tables": ["MedicationAdministrationFact", "MedicationDim"]
+                "fk": "MedicationKey",
+                "primary_table": "MedicationOrderFact",
+                "other_tables": ["MedicationDim"]
             }
         },
         "fhir_columns": {
@@ -363,20 +363,15 @@
             },
             "MedicationStatement": {
                 "MedicationOrderFact": [
-                    "PatientDurableKey_e", "EncounterKey", "MedicationKey", "MedicationOrderEpicId", 
-                    "OrderedUtcInstant", "StartDateKey", "StartTimeOfDayKey", "EndDateKey", "EndTimeOfDayKey", 
-                    "DiscontinuedUtcDateKey", "DiscontinuedUtcTimeOfDayKey", "OrderedByProviderDurableKey", 
-                    "Sig", "Frequency", "Route", "DoseUnit", "MinimumDose", "MaximumDose", "Prn", 
-                    "FirstPrnReason", "SecondPrnReason", "ThirdPrnReason", "FourthPrnReason", 
-                    "FifthPrnReason", "SixthPrnReason", "FirstIndicationForUse", "SecondIndicationForUse", 
-                    "ThirdIndicationForUse", "FourthIndicationForUse", "FifthIndicationForUse", 
-                    "SixthIndicationForUse", "Class", "IsOutpatientMode", "MorphineEquivalentDailyDosage", 
-                    "PainAgreement", "_IsDeleted", "_LastUpdatedInstant"], 
-                "MedicationAdministrationFact": [
-                    "PatientDurableKey_e", "MedicationKey", "AdministrationInstant", "MedicationOrderKey", 
-                    "AdministrationRoute", "Dose", "DoseUnit", "AdministeringEmployeeDurableKey", 
-                    "AdministrationAction", "EncounterKey", "_IsDeleted", "_LastUpdatedInstant"
-                ],
+                    "PatientDurableKey_e", "EncounterKey", "MedicationKey", "MedicationOrderEpicId",
+                    "OrderedUtcInstant", "StartDateKey", "StartTimeOfDayKey", "EndDateKey", "EndTimeOfDayKey",
+                    "DiscontinuedUtcDateKey", "DiscontinuedUtcTimeOfDayKey", "OrderedByProviderDurableKey",
+                    "Sig", "Frequency", "Route", "DoseUnit", "MinimumDose", "MaximumDose", "Prn",
+                    "FirstPrnReason", "SecondPrnReason", "ThirdPrnReason", "FourthPrnReason",
+                    "FifthPrnReason", "SixthPrnReason", "FirstIndicationForUse", "SecondIndicationForUse",
+                    "ThirdIndicationForUse", "FourthIndicationForUse", "FifthIndicationForUse",
+                    "SixthIndicationForUse", "Class", "IsOutpatientMode", "MorphineEquivalentDailyDosage",
+                    "PainAgreement", "_IsDeleted", "_LastUpdatedInstant"],
                 "MedicationDim": [
                     "MedicationKey", "MedicationEpicId", "Name", "GenericName", "SimpleGenericName", 
                     "TherapeuticClass", "PharmaceuticalClass", "PharmaceuticalSubclass", "DeaClass", 

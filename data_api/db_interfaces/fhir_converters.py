@@ -338,6 +338,48 @@ def brprlu_duration(length):
         print(f"Exception in deceased time conversion: {e}")
         print(f"Record was {length}")
 
+def _brprlu_instant(value):
+    if value is None:
+        return None
+    try:
+        result = value.strftime('%Y-%m-%dT%H:%M:%SZ')
+        return None if result == 'NaT' else result
+    except Exception:
+        return None
+
+def _brprlu_deleted(value):
+    try:
+        return bool(value)
+    except Exception:
+        return False
+
+_MED_PRIORITY_MAP = {"routine": "routine", "stat": "stat", "urgent": "urgent", "asap": "asap"}
+
+def _brprlu_float(value):
+    if value is None:
+        return None
+    try:
+        f = float(value)
+        return None if (math.isnan(f) or math.isinf(f)) else f
+    except (ValueError, TypeError):
+        return None
+
+def _brprlu_med_ref(record):
+    """CodeableReference with code from MedicationCodeDim join (Medication, MedicationRequest, MedicationAdministration)."""
+    return {
+        "concept": {
+            "text": str(record.MedicationDim__Name),
+            "coding": [{
+                "system": str(record.MedicationCodeDim__Type),
+                "code": str(record.MedicationCodeDim__Code),
+            }],
+        }
+    }
+
+def _brprlu_med_ref_simple(record):
+    """CodeableReference text-only (MedicationDispense, MedicationStatement — no MedicationCodeDim in join)."""
+    return {"concept": {"text": str(record.MedicationDim__Name)}}
+
 
 def brprlu_patient(record, p_ref=None):
     p_extension = []
@@ -606,91 +648,176 @@ def nbcc_documentReference(vcf_path, p_ref, dnl_user):
 
 def brprlu_medication(record, p_ref=None):
     return Medication({
-        "identifier": record.MedicationDim__MedicationEpicId,
+        "identifier": [{"value": str(record.MedicationDim__MedicationEpicId)}],
         "code": {
-            "text": record.MedicationDim__Name,
-            "coding": record.MedicationDim__TherapeuticClass,
+            "text": str(record.MedicationDim__Name),
+            "coding": [{
+                "system": str(record.MedicationCodeDim__Type),
+                "code": str(record.MedicationCodeDim__Code),
+                "display": str(record.MedicationDim__Name),
+            }],
         },
-        "status": {record.MedicationDim___IsDeleted},
-        "doseForm": {record.MedicationDim__Form},
-        "totalVolume": {record.MedicationCodeDim__PackageSize},
-        # "ingredient": {},
-        # "batch": {},
-        # "definition": {},
+        "status": "entered-in-error" if _brprlu_deleted(record.MedicationDim___IsDeleted) else "active",
+        "doseForm": {"text": str(record.MedicationDim__Form)} if record.MedicationDim__Form else None,
+        "totalVolume": {
+            "value": _brprlu_float(record.MedicationCodeDim__PackageSize),
+            "unit": str(record.MedicationCodeDim__PackageSizeUnit),
+        } if _brprlu_float(record.MedicationCodeDim__PackageSize) is not None else None,
     })
 
 def brprlu_medicationadministration(record, p_ref=None):
     patient = p_ref if p_ref is not None else "Patient/2"
-    return MedicationAdministration(
-        {
-            
-        }
+    is_deleted = _brprlu_deleted(record.MedicationAdministrationFact___IsDeleted)
+    action = str(record.MedicationAdministrationFact__AdministrationAction) if record.MedicationAdministrationFact__AdministrationAction else None
+    status = "entered-in-error" if is_deleted else ("not-done" if action == "Not Given" else "completed")
+    occurrence = (
+        _brprlu_instant(record.MedicationAdministrationFact__AdministrationInstant) or
+        _brprlu_instant(record.MedicationAdministrationFact__ScheduledAdministrationInstant) or
+        "1900-01-01T00:00:00Z"
     )
+    dose_value = _brprlu_float(record.MedicationAdministrationFact__Dose)
+    return MedicationAdministration({
+        "identifier": [{"value": str(record.MedicationAdministrationFact__MedicationAdministrationKey)}],
+        "status": status,
+        "medication": _brprlu_med_ref(record),
+        "subject": {"reference": patient, "type": "Patient"},
+        # "encounter": {"reference": f"Encounter/{record.MedicationAdministrationFact__EncounterKey}"} if record.MedicationAdministrationFact__EncounterKey else None,
+        "occurenceDateTime": occurrence,
+        "dosage": {
+            "route": {"text": str(record.MedicationAdministrationFact__AdministrationRoute)} if record.MedicationAdministrationFact__AdministrationRoute else None,
+            "dose": {
+                "value": dose_value,
+                "unit": str(record.MedicationAdministrationFact__DoseUnit),
+            } if dose_value is not None else None,
+        },
+    })
 def brprlu_medicationdispense(record, p_ref=None):
     patient = p_ref if p_ref is not None else "Patient/2"
-    return MedicationDispense(
-        {
-            
-        }
-    )
+    dispense_as_written = _brprlu_deleted(record.MedicationOrderFact__DispenseAsWritten) if record.MedicationOrderFact__DispenseAsWritten is not None else None
+    return MedicationDispense({
+        "identifier": [{"value": f"{record.MedicationOrderFact__MedicationOrderEpicId}:{record.MedicationKey}"}],
+        "status": "completed",
+        "medication": _brprlu_med_ref_simple(record),
+        "subject": {"reference": patient, "type": "Patient"},
+        # "encounter": {"reference": f"Encounter/{record.MedicationOrderFact__EncounterKey}"} if record.MedicationOrderFact__EncounterKey else None,
+        "whenHandedOver": _brprlu_instant(record.MedicationOrderFact__ReleaseInstant),
+        "quantity": {
+            "value": _brprlu_float(record.MedicationOrderFact__Quantity),
+            "unit": str(record.MedicationOrderFact__QuantityUnit),
+        } if _brprlu_float(record.MedicationOrderFact__Quantity) is not None else None,
+        "daysSupply": {
+            "value": _brprlu_float(record.MedicationOrderFact__DaysSupply),
+            "unit": "d",
+            "system": "http://unitsofmeasure.org",
+            "code": "d",
+        } if _brprlu_float(record.MedicationOrderFact__DaysSupply) is not None else None,
+        "dosageInstruction": [{
+            "text": str(record.MedicationOrderFact__Sig),
+            "route": {"text": str(record.MedicationOrderFact__Route)} if record.MedicationOrderFact__Route else None,
+            "doseAndRate": [{"doseQuantity": {"unit": str(record.MedicationOrderFact__DoseUnit)}}] if record.MedicationOrderFact__DoseUnit else None,
+        }] if record.MedicationOrderFact__Sig else None,
+        "substitution": {"wasSubstituted": not dispense_as_written} if dispense_as_written is not None else None,
+    })
 def brprlu_medicationrequest(record, p_ref=None):
     patient = p_ref if p_ref is not None else "Patient/2"
-    return MedicationRequest({
-        "identifier": record.MedicationOrderFact__MedicationOrderEpicId,
-        # "basedOn": ,
-        "priorPrescription": record.MedicationOrderFact__ReorderedFromPrescription,
-        # "groupIdentifier": ,
-        "status": record.MedicationOrderFact___IsDeleted,
-        "statusReason": record.MedicationOrderFact__DiscontinueReason,
-        # "statusChanged": ,
-        # "intent": ,
-        "category": record.MedicationOrderFact__Class,
-        "priority": record.MedicationOrderFact__OrderPriority,
-        # "doNotPerform": ,
-        "medication": record.MedicationOrderFact__MedicationKey,
-        "subject": record.MedicationOrderFact__PatientDurableKey_e,
-        # "informationSource": ,
-        "encounter": record.MedicationOrderFact__EncounterKey,
-        # "supportingInformation": ,
-        "authoredOn": record.MedicationOrderFact__OrderedUtcInstant,
-        "requester": record.MedicationOrderFact__OrderedByEmployeeDurableKey,
-        # "reported": ,
-        # "performer": ,
-        # "device": ,
-        "reason": [
+    is_deleted = _brprlu_deleted(record.MedicationOrderFact___IsDeleted)
+    discontinue_reason = record.MedicationOrderFact__DiscontinueReason
+    if is_deleted:
+        status = "entered-in-error"
+    elif discontinue_reason:
+        status = "stopped"
+    else:
+        status = "active"
+    priority_raw = str(record.MedicationOrderFact__OrderPriority).lower() if record.MedicationOrderFact__OrderPriority else None
+    priority = _MED_PRIORITY_MAP.get(priority_raw)
+    reasons = [
+        {"concept": {"text": str(r)}}
+        for r in [
             record.MedicationOrderFact__FirstPrnReason,
-            [record.MedicationOrderFact__SecondPrnReason, record.MedicationOrderFact__ThirdPrnReason,
-             record.MedicationOrderFact__FourthPrnReason, record.MedicationOrderFact__FifthPrnReason,
-             record.MedicationOrderFact__SixthPrnReason],
-        ],
-        "note": [
+            record.MedicationOrderFact__SecondPrnReason,
+            record.MedicationOrderFact__ThirdPrnReason,
+            record.MedicationOrderFact__FourthPrnReason,
+            record.MedicationOrderFact__FifthPrnReason,
+            record.MedicationOrderFact__SixthPrnReason,
             record.MedicationOrderFact__FirstIndicationForUse,
-            [record.MedicationOrderFact__SecondIndicationForUse, record.MedicationOrderFact__ThirdIndicationForUse,
-             record.MedicationOrderFact__FourthIndicationForUse, record.MedicationOrderFact__FifthIndicationForUse,
-             record.MedicationOrderFact__SixthIndicationForUse],
-        ],
-        # "effectiveDosePeriod": ,
-        "dosageInstruction": {
-            "timing": {"event": record.MedicationOrderFact__OrderedUtcInstant, "code": record.MedicationOrderFact__Frequency},
-            "route": record.MedicationOrderFact__Route,
-            "doseAndRate": {"doseQuantity": {"unit": record.MedicationOrderFact__DoseUnit}},
-        },
+            record.MedicationOrderFact__SecondIndicationForUse,
+            record.MedicationOrderFact__ThirdIndicationForUse,
+            record.MedicationOrderFact__FourthIndicationForUse,
+            record.MedicationOrderFact__FifthIndicationForUse,
+            record.MedicationOrderFact__SixthIndicationForUse,
+        ]
+        if r
+    ]
+    dispense_as_written = record.MedicationOrderFact__DispenseAsWritten
+    return MedicationRequest({
+        "identifier": [{"value": str(record.MedicationOrderFact__MedicationOrderEpicId)}],
+        "status": status,
+        "statusReason": {"text": str(discontinue_reason)} if discontinue_reason else None,
+        "intent": "order",
+        "category": [{"text": str(record.MedicationOrderFact__Class)}] if record.MedicationOrderFact__Class else None,
+        "priority": priority,
+        "medication": _brprlu_med_ref(record),
+        "subject": {"reference": patient, "type": "Patient"},
+        # "encounter": {"reference": f"Encounter/{record.MedicationOrderFact__EncounterKey}"} if record.MedicationOrderFact__EncounterKey else None,
+        "authoredOn": _brprlu_instant(record.MedicationOrderFact__OrderedUtcInstant),
+        # "requester": {"reference": f"Practitioner/{record.MedicationOrderFact__OrderedByEmployeeDurableKey}"} if record.MedicationOrderFact__OrderedByEmployeeDurableKey else None,
+        "reason": reasons if reasons else None,
+        "note": [{"text": str(record.MedicationOrderFact__Sig)}] if record.MedicationOrderFact__Sig else None,
+        "dosageInstruction": [{
+            "timing": {"code": {"text": str(record.MedicationOrderFact__Frequency)}} if record.MedicationOrderFact__Frequency else None,
+            "route": {"text": str(record.MedicationOrderFact__Route)} if record.MedicationOrderFact__Route else None,
+            "doseAndRate": [{"doseQuantity": {"unit": str(record.MedicationOrderFact__DoseUnit)}}] if record.MedicationOrderFact__DoseUnit else None,
+        }],
         "dispenseRequest": {
-            "validityPeriod": {"end": record.MedicationOrderFact__OrderedUtcInstant},
-            "quantity": {"unit": record.MedicationOrderFact__DoseUnit, "value": record.MedicationOrderFact__Quantity},
-            "numberOfRepeatsAllowed": record.MedicationOrderFact__NumberOfDoses,
-            "expectedSupplyDuration": record.MedicationOrderFact__DaysSupply,
+            "quantity": {
+                "value": _brprlu_float(record.MedicationOrderFact__Quantity),
+                "unit": str(record.MedicationOrderFact__QuantityUnit),
+            } if _brprlu_float(record.MedicationOrderFact__Quantity) is not None else None,
+            "numberOfRepeatsAllowed": int(_brprlu_float(record.MedicationOrderFact__NumberOfDoses)) if _brprlu_float(record.MedicationOrderFact__NumberOfDoses) is not None else None,
+            "expectedSupplyDuration": {
+                "value": _brprlu_float(record.MedicationOrderFact__DaysSupply),
+                "unit": "d",
+                "system": "http://unitsofmeasure.org",
+                "code": "d",
+            } if _brprlu_float(record.MedicationOrderFact__DaysSupply) is not None else None,
         },
-        "substitution": record.MedicationOrderFact__DispenseAsWritten,
-        # "eventHistory": ,
+        "substitution": {"allowedBoolean": not _brprlu_deleted(dispense_as_written)} if dispense_as_written is not None else None,
     })
 def brprlu_medicationstatement(record, p_ref=None):
     patient = p_ref if p_ref is not None else "Patient/2"
-    return MedicationStatement(
-        {
-            
-        }
-    )
+    is_deleted = _brprlu_deleted(record.MedicationOrderFact___IsDeleted)
+    reasons = [
+        {"concept": {"text": str(r)}}
+        for r in [
+            record.MedicationOrderFact__FirstPrnReason,
+            record.MedicationOrderFact__SecondPrnReason,
+            record.MedicationOrderFact__ThirdPrnReason,
+            record.MedicationOrderFact__FourthPrnReason,
+            record.MedicationOrderFact__FifthPrnReason,
+            record.MedicationOrderFact__SixthPrnReason,
+        ]
+        if r
+    ]
+    return MedicationStatement({
+        "identifier": [{"value": f"{record.MedicationOrderFact__MedicationOrderEpicId}:{record.MedicationKey}"}],
+        "status": "entered-in-error" if is_deleted else "recorded",
+        "medication": _brprlu_med_ref_simple(record),
+        "subject": {"reference": patient, "type": "Patient"},
+        # "encounter": {"reference": f"Encounter/{record.MedicationOrderFact__EncounterKey}"} if record.MedicationOrderFact__EncounterKey else None,
+        "effectivePeriod": {
+            "start": _brprlu_instant(record.MedicationOrderFact__OrderedUtcInstant),
+        },
+        "dosage": [{
+            "text": str(record.MedicationOrderFact__Sig),
+            "timing": {"code": {"text": str(record.MedicationOrderFact__Frequency)}} if record.MedicationOrderFact__Frequency else None,
+            "route": {"text": str(record.MedicationOrderFact__Route)} if record.MedicationOrderFact__Route else None,
+            "doseAndRate": [{"doseQuantity": {
+                "value": _brprlu_float(record.MedicationOrderFact__MinimumDose),
+                "unit": str(record.MedicationOrderFact__DoseUnit),
+            }}] if _brprlu_float(record.MedicationOrderFact__MinimumDose) is not None else None,
+        }] if record.MedicationOrderFact__Sig else None,
+        "reason": reasons if reasons else None,
+    })
 
 FHIR_CONVERTER = {
     "dbgap": {
