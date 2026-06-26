@@ -6,6 +6,7 @@ import time
 
 from argparse import ArgumentParser
 from collections import Counter
+from pathlib import Path
 import script_utils.fhir_client as fhir_client
 from script_utils.db_setup import PROJECT_ROOT, load_db_connections
 from script_utils.fhir_client import get_access_token, post_fhir_data, query_single_patient
@@ -47,13 +48,18 @@ if __name__ == "__main__":
         "--server", "-s", default=None,
         help="Override FHIR base URL (e.g. http://localhost:8080/fhir/). Skips OAuth."
     )
+    parser.add_argument(
+        "--db-home", default=None,
+        help="Override data directory (parent of downloads/GWDC_BrPrLuCA/). "
+             "Default: <project_root>/datadir/processed"
+    )
     args = parser.parse_args()
 
     allowed_index = {-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
     if args.index not in allowed_index:
         sys.exit(f"Index {args.index} not valid (valid: {sorted(allowed_index)})")
 
-    db_connections = load_db_connections(BCO_ID, DB_HOME, logger)
+    db_connections = load_db_connections(BCO_ID, Path(args.db_home) if args.db_home else DB_HOME, logger)
     if not db_connections:
         sys.exit("No DB connections available, aborting")
 
